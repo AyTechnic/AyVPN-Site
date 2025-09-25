@@ -184,7 +184,7 @@
             </form>
 
             <div class="footer-section">
-                &copy; ۲۰۲۴ - تمام حقوق برای <a href="https://shop.shaammy.ir" target="_blank">Ay Technic</a> محفوظ است.
+                &copy; ۲۰۲۵ - تمام حقوق برای <a href="https://shammay.ir" target="_blank">Ay Technic</a> محفوظ است.
             </div>
         </div>
     </div>
@@ -208,7 +208,7 @@
             const amount = selectedPlan.value;
             const description = selectedPlan.getAttribute('data-description');
             
-            // --- تغییر در این خط اعمال شده است ---
+            // هدایت به درگاه پرداخت زرین‌پال
             const paymentUrl = `https://www.zarinpal.com/pg/StartPay/${merchant_id}/${amount}?Description=${encodeURIComponent(description)}&CallbackURL=${encodeURIComponent(callback_url)}`;
             window.location.href = paymentUrl;
         });
