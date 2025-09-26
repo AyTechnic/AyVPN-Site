@@ -1,5 +1,5 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet');
-const axios = require('axios');
+const fetch = require('node-fetch');
 
 const ZARINPAL_MERCHANT_ID = process.env.ZARINPAL_MERCHANT_ID;
 const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
@@ -8,7 +8,7 @@ const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
 
 const planToSheetMap = {
     '12000': '30D', '220000': '60D', '340000': '90D',
-    '600000': '180D', '10000': '365D', '2000000': '730D',
+    '600000': '180D', '10000': '365D', '20000': '730D',
 };
 
 function generateResponseMessage(title, message, type = 'success', link = null) {
@@ -38,21 +38,24 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const unverifiedResponse = await axios.post('https://api.zarinpal.com/pg/v4/payment/unverified.json', 
-            { merchant_id: ZARINPAL_MERCHANT_ID, authority: Authority },
-            { headers: { 'User-Agent': 'axios/0.21.1', 'Content-Type': 'application/json' } }
-        );
+        const amountResponse = await fetch(`https://api.zarinpal.com/pg/v4/payment/unverified.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merchant_id: ZARINPAL_MERCHANT_ID, authority: Authority })
+        });
+        const amountResult = await amountResponse.json();
+        const amount = amountResult.data.transactions[0].amount;
 
-        const amount = unverifiedResponse.data.data.transactions[0].amount;
+        const verificationResponse = await fetch(`https://api.zarinpal.com/pg/v4/payment/verify.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merchant_id: ZARINPAL_MERCHANT_ID, authority: Authority, amount: amount })
+        });
 
-        const verificationResponse = await axios.post('https://api.zarinpal.com/pg/v4/payment/verify.json', 
-            { merchant_id: ZARINPAL_MERCHANT_ID, authority: Authority, amount: amount },
-            { headers: { 'User-Agent': 'axios/0.21.1', 'Content-Type': 'application/json' } }
-        );
+        const result = await verificationResponse.json();
+        const { data } = result;
 
-        const { data } = verificationResponse.data;
-
-        if (data.code === 100 || data.code === 101) {
+        if (result.errors.length === 0 && (data.code === 100 || data.code === 101)) {
             const sheetName = planToSheetMap[amount.toString()];
             if (!sheetName) throw new Error(`پلنی برای مبلغ ${amount} تومان یافت نشد.`);
 
@@ -67,7 +70,7 @@ module.exports = async (req, res) => {
             const availableLinkRow = rows.find(row => row.get('status') === 'unused');
 
             if (!availableLinkRow) {
-                return res.status(500).send(generateResponseMessage('پرداخت موفق، تحویل ناموفق', `متاسفانه تمام لینک‌های اشتراک این پلن تمام شده است. لطفاً با پشتیبانی تماس بگیرید. کد پیگیری: ${data.ref_id}`, 'error'));
+                return res.status(500).send(generateResponseMessage('پرداخت موفق، تحویل ناموفق', `متاسفانه تمام لینک‌های اشتراک این پلن تمام شده است. کد پیگیری: ${data.ref_id}`, 'error'));
             }
 
             const userLink = availableLinkRow.get('link');
@@ -77,10 +80,10 @@ module.exports = async (req, res) => {
             res.status(200).send(generateResponseMessage('پرداخت موفقیت آمیز بود!', `لینک اشتراک شما آماده است. کد پیگیری: ${data.ref_id}`, 'success', userLink));
         
         } else {
-            throw new Error(`تایید پرداخت با زرین‌پال ناموفق بود. کد خطا: ${data.code}`);
+            throw new Error(`تایید پرداخت با زرین‌پال ناموفق بود. کد خطا: ${data.code || result.errors.code}`);
         }
     } catch (error) {
         console.error('Vercel Function Error:', error.message);
-        res.status(500).send(generateResponseMessage('خطای سرور', `در پردازش تراکنش شما خطایی رخ داد. لطفاً با پشتیبانی تماس بگیرید. جزئیات خطا: ${error.message}`, 'error'));
+        res.status(500).send(generateResponseMessage('خطای سرور', `در پردازش تراکنش شما خطایی رخ داد. جزئیات خطا: ${error.message}`, 'error'));
     }
 };
