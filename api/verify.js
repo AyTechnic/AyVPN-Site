@@ -8,8 +8,8 @@ const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY;
 
 const planToSheetMap = {
-    '120000': '30D', '220000': '60D', '340000': '90D',
-    '600000': '180D', '1000000': '365D', '2000000': '730D',
+    '12000': '30D', '220000': '60D', '340000': '90D',
+    '600000': '180D', '10000': '365D', '2000000': '730D',
 };
 
 function generateResponseMessage(title, message, type = 'success', link = null) {
