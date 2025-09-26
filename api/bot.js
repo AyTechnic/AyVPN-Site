@@ -6,7 +6,7 @@ const APP_URL = process.env.APP_URL; // استفاده از متغیر جدید 
 const bot = new TelegramBot(TOKEN);
 
 const plans = [
-    { text: 'اشتراک ۱ ماهه - ۱۲۰,۰۰۰ تومان', amount: 120000, description: 'اشتراک ۳۰ روزه' },
+    { text: 'اشتراک ۱ ماهه - ۱۲۰,۰۰۰ تومان', amount: 12000, description: 'اشتراک ۳۰ روزه' },
     { text: 'اشتراک ۲ ماهه - ۲۲۰,۰۰۰ تومان', amount: 220000, description: 'اشتراک ۶۰ روزه' },
     { text: 'اشتراک ۳ ماهه - ۳۴۰,۰۰۰ تومان', amount: 340000, description: 'اشتراک ۹۰ روزه' },
     { text: 'اشتراک ۶ ماهه - ۶۰۰,۰۰۰ تومان', amount: 600000, description: 'اشتراک ۱۸۰ روزه' },
