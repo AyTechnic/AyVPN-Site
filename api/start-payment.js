@@ -1,40 +1,38 @@
-const axios = require('axios');
+const fetch = require('node-fetch');
 
-// اطلاعات حساس از Environment Variables خوانده می‌شوند
 const ZARINPAL_MERCHANT_ID = process.env.ZARINPAL_MERCHANT_ID;
 
 module.exports = async (req, res) => {
-    // فقط درخواست‌های POST را قبول می‌کنیم
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
 
     try {
         const { amount, description } = req.body;
+        if (!amount) return res.status(400).json({ error: 'Amount is required' });
 
-        if (!amount) {
-            return res.status(400).json({ error: 'Amount is required' });
-        }
-
-        // آدرس بازگشت را بر اساس دامنه فعلی می‌سازیم
         const host = req.headers.host;
         const protocol = host.startsWith('localhost') ? 'http' : 'https';
         const callback_url = `${protocol}://${host}/api/verify`;
 
-        // درخواست به زرین‌پال برای ایجاد تراکنش و دریافت کد Authority
-        const zarinpalResponse = await axios.post('https://api.zarinpal.com/pg/v4/payment/request.json', {
-            merchant_id: ZARINPAL_MERCHANT_ID,
-            amount: Number(amount),
-            callback_url: callback_url,
-            description: description,
+        const response = await fetch('https://api.zarinpal.com/pg/v4/payment/request.json', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                merchant_id: ZARINPAL_MERCHANT_ID,
+                amount: Number(amount),
+                callback_url: callback_url,
+                description: description,
+            }),
         });
 
-        const { data } = zarinpalResponse.data;
+        const result = await response.json();
+        const data = result.data;
 
-        if (data.code === 100 && data.authority) {
+        if (result.errors.length === 0 && data.code === 100 && data.authority) {
             res.status(200).json({ authority: data.authority });
         } else {
-            throw new Error(`Zarinpal request failed with code: ${data.code}`);
+            throw new Error(`Zarinpal request failed with code: ${data.code || result.errors.code}`);
         }
 
     } catch (error) {
