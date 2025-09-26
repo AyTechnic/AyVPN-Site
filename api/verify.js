@@ -61,6 +61,12 @@ module.exports = async (req, res) => {
             await doc.useServiceAccountAuth({ client_email: GOOGLE_SERVICE_ACCOUNT_EMAIL, private_key: GOOGLE_PRIVATE_KEY, });
 
             await doc.loadInfo();
+
+            // --- کد جدید برای عیب‌یابی ---
+            const allSheetTitles = doc.sheetsByIndex.map(sheet => sheet.title);
+            console.log('SHEETS FOUND BY API:', allSheetTitles);
+            // --------------------------
+            
             const sheet = doc.sheetsByTitle[sheetName];
             if (!sheet) throw new Error(`شیت با نام "${sheetName}" یافت نشد.`);
             
