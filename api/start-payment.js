@@ -6,16 +6,16 @@ module.exports = async (req, res) => {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
     try {
-        // chat_id را از ورودی دریافت می‌کنیم
         const { amount, description, chat_id } = req.body;
-        if (!amount || !chat_id) {
-            return res.status(400).json({ error: 'Amount and Chat ID are required' });
+        if (!amount) { // فقط مبلغ را چک می‌کنیم چون ممکن است از وب‌سایت باشد
+            return res.status(400).json({ error: 'Amount is required' });
         }
 
         const host = req.headers.host;
         const protocol = host.startsWith('localhost') ? 'http' : 'https';
-        // chat_id را به آدرس بازگشت اضافه می‌کنیم
-        const callback_url = `${protocol}://${host}/api/verify?chat_id=${chat_id}`;
+        
+        // --- تغییر مهم: مبلغ و آیدی چت را به آدرس بازگشت اضافه می‌کنیم ---
+        const callback_url = `${protocol}://${host}/api/verify?amount=${amount}&chat_id=${chat_id || 'none'}`;
 
         const response = await fetch('https://api.zarinpal.com/pg/v4/payment/request.json', {
             method: 'POST',
