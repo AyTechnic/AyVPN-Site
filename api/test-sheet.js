@@ -16,15 +16,14 @@ module.exports = async (req, res) => {
         const doc = new GoogleSpreadsheet(GOOGLE_SHEET_ID, serviceAccountAuth);
         
         await doc.loadInfo();
-        const sheet = doc.sheetsByTitle['30D'];
         const sheet = doc.sheetsByTitle['60D'];
-        if (!sheet) throw new Error('شیت با نام دقیق "30D" پیدا نشد.');
+        if (!sheet) throw new Error('شیت با نام دقیق "60D" پیدا نشد.');
         
         const rows = await sheet.getRows();
         if (rows.length === 0) throw new Error('شیت "30D" خالی است.');
 
         const availableLinkRow = rows.find(row => row.get('status') === 'unused');
-        if (!availableLinkRow) throw new Error('هیچ لینک استفاده نشده‌ای در شیت "30D" پیدا نشد.');
+        if (!availableLinkRow) throw new Error('هیچ لینک استفاده نشده‌ای در شیت "60D" پیدا نشد.');
 
         const firstLink = availableLinkRow.get('link');
 
@@ -32,7 +31,7 @@ module.exports = async (req, res) => {
             <html lang="fa" dir="rtl"><body style="font-family: sans-serif; text-align: center; padding: 50px;">
                 <h1 style="color: #2e7d32;">✅ اتصال به گوگل شیت موفق بود!</h1>
                 <p>سیستم با موفقیت به فایل شما متصل شد.</p>
-                <p>اولین لینک اشتراک پیدا شده در شیت 30D:</p>
+                <p>اولین لینک اشتراک پیدا شده در شیت 60D:</p>
                 <div style="background: #eee; padding: 15px; border-radius: 8px; direction: ltr;">${firstLink}</div>
             </body></html>
         `);
