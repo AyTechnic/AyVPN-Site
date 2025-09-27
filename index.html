@@ -3,135 +3,364 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>خرید اشتراک - Ay Technic</title>
+    <title>خرید اشتراک Ay VPN</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
         /* FONT & BASE STYLES */
-        @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight: 700; }
-        @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight: 500; }
-        @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight: 400; }
-        
-        :root {
-            --bg-light: #f0f2f5; --card-light: rgba(255, 255, 255, 0.4); --text-light: #2c3e50; --border-light: rgba(255, 255, 255, 0.6);
-            --bg-dark: #1a1a2e; --card-dark: rgba(26, 26, 46, 0.6); --text-dark: #2c3e50; --border-dark: rgba(255, 255, 255, 0.1);
-            --font-family: 'Vazirmatn', sans-serif;
+        @font-face {
+            font-family: 'Vazirmatn';
+            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2');
+            font-weight: 700;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Vazirmatn';
+            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2') format('woff2');
+            font-weight: 500;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Vazirmatn';
+            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2') format('woff2');
+            font-weight: 400;
+            font-display: swap;
         }
 
-        [data-theme="light"] { --bg-color: var(--bg-light); --card-bg: var(--card-light); --text-color: var(--text-light); --border-color: var(--border-light); }
-        [data-theme="dark"] { --bg-color: var(--bg-dark); --card-bg: var(--card-dark); --text-color: var(--text-dark); --border-color: var(--border-dark); }
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --font-family: 'Vazirmatn', sans-serif;
+            --transition-speed: 0.3s;
+            
+            /* Light Theme */
+            --bg-light: #f8f9fa;
+            --card-bg-light: #ffffff;
+            --text-primary-light: #212529;
+            --text-secondary-light: #6c757d;
+            --border-light: #dee2e6;
+            --primary-color-light: #0d6efd;
+            --primary-hover-light: #0b5ed7;
+
+            /* Dark Theme */
+            --bg-dark: #0a192f;
+            --card-bg-dark: #1e293b;
+            --text-primary-dark: #e2e8f0;
+            --text-secondary-dark: #94a3b8;
+            --border-dark: #334155;
+            --primary-color-dark: #38bdf8;
+            --primary-hover-dark: #0ea5e9;
+        }
+
+        [data-theme="light"] {
+            --bg-color: var(--bg-light);
+            --card-bg: var(--card-bg-light);
+            --text-primary: var(--text-primary-light);
+            --text-secondary: var(--text-secondary-light);
+            --border-color: var(--border-light);
+            --primary-color: var(--primary-color-light);
+            --primary-hover: var(--primary-hover-light);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: var(--bg-dark);
+            --card-bg: var(--card-bg-dark);
+            --text-primary: var(--text-primary-dark);
+            --text-secondary: var(--text-secondary-dark);
+            --border-color: var(--border-dark);
+            --primary-color: var(--primary-color-dark);
+            --primary-hover: var(--primary-hover-dark);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s; line-height: 1.6;
-            background-image: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%);
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            line-height: 1.7;
             overflow-x: hidden;
         }
-        [data-theme="dark"] body { background-image: linear-gradient(to top, #1e3c72 0%, #2a5298 100%); }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+        }
+
         /* HEADER */
-        header { text-align: center; margin-bottom: 40px; position: relative; }
-        header h1 { font-size: 2.5rem; font-weight: 700; }
-        header p { font-size: 1.2rem; opacity: 0.8; margin-top: 10px; }
-        .theme-switcher { position: absolute; top: 0; left: 0; }
-        #theme-toggle { cursor: pointer; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
-        #theme-toggle svg { width: 20px; height: 20px; color: var(--text-color); }
-        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+        header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .theme-switcher {
+            position: absolute;
+            top: 0;
+            left: 10px;
+        }
+        #theme-toggle {
+            cursor: pointer;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+        #theme-toggle:hover { background-color: var(--bg-color); }
+        #theme-toggle svg {
+            width: 22px;
+            height: 22px;
+            color: var(--text-primary);
+            transition: color var(--transition-speed);
+        }
+
         /* TABS */
-        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
-        .tab-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 10px 25px; border-radius: 30px; font-size: 1rem; cursor: pointer; transition: all 0.3s; font-weight: 500; }
-        .tab-btn.active { background: #007bff; color: white; border-color: #007bff; }
-        [data-theme="dark"] .tab-btn.active { background: #3b82f6; }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            background-color: var(--card-bg);
+            border-radius: 50px;
+            padding: 8px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid var(--border-color);
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+        }
+        [data-theme="dark"] .tab-btn.active { box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2); }
 
         /* PLANS GRID */
-        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
         .tab-content { display: none; }
-        .tab-content.active { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .tab-content.active {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .plan-card {
-            background: var(--card-bg); border: 1px solid var(--border-color);
-            border-radius: 20px; padding: 30px; text-align: center;
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            transition: all 0.3s; cursor: pointer; position: relative; overflow: hidden;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all var(--transition-speed);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border-top-width: 4px;
+            border-top-color: var(--plan-color);
         }
-        .plan-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        [data-theme="dark"] .plan-card:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-
-        .plan-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, var(--gradient-color, rgba(255,255,255,0.3)) 0%, transparent 40%); transition: opacity 0.5s; opacity: 0; animation: rotate 10s linear infinite; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .plan-card:hover::before { opacity: 1; }
+        .plan-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        [data-theme="dark"] .plan-card:hover { box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); }
         
-        /* Plan-specific gradients */
-        [data-plan="1"] { --gradient-color: rgba(0, 123, 255, 0.4); }
-        [data-plan="2"] { --gradient-color: rgba(40, 167, 69, 0.4); }
-        [data-plan="3"] { --gradient-color: rgba(255, 193, 7, 0.4); }
-        [data-plan="4"] { --gradient-color: rgba(220, 53, 69, 0.4); }
-        [data-plan="5"] { --gradient-color: rgba(23, 162, 184, 0.4); }
-        [data-plan="6"] { --gradient-color: rgba(108, 117, 125, 0.4); }
-        [data-plan="7"] { --gradient-color: rgba(220, 53, 69, 0.4); }
+        .plan-card.selected {
+            border-color: var(--primary-color);
+            border-top-color: var(--primary-color);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+        }
+        [data-theme="dark"] .plan-card.selected { box-shadow: 0 8px 25px rgba(56, 189, 248, 0.15); }
+        
+        /* Plan-specific colors */
+        [data-plan="1"], [data-plan="7"] { --plan-color: #0d6efd; }
+        [data-plan="2"] { --plan-color: #198754; }
+        [data-plan="3"], [data-plan="8"] { --plan-color: #6f42c1; }
+        [data-plan="4"] { --plan-color: #ffc107; }
+        [data-plan="5"] { --plan-color: #dc3545; }
+        [data-plan="6"] { --plan-color: #fd7e14; }
 
         .plan-card input { display: none; }
-        .plan-card.selected { border: 2px solid #007bff; }
-        [data-theme="dark"] .plan-card.selected { border: 2px solid #3b82f6; }
         
-        .plan-icon { font-size: 2.5rem; margin-bottom: 15px; }
-        .plan-duration { font-size: 1.6rem; font-weight: 700; }
-        .plan-features { list-style: none; padding: 0; margin: 20px 0; font-size: 0.95rem; opacity: 0.9; }
+        .plan-icon { margin-bottom: 15px; }
+        .plan-icon svg { width: 48px; height: 48px; color: var(--plan-color); }
+        .plan-duration { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); }
+        .plan-features { list-style: none; padding: 0; margin: 25px 0; font-size: 0.95rem; color: var(--text-secondary); }
+        .plan-features li { margin-bottom: 10px; }
+        
         .os-icons { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
-        .os-icons svg { width: 24px; height: 24px; opacity: 0.7; }
-        .plan-price { font-size: 2rem; font-weight: 700; }
+        .os-icons svg { width: 24px; height: 24px; color: var(--text-secondary); opacity: 0.7; }
+        
+        .plan-price { font-size: 2.2rem; font-weight: 700; color: var(--text-primary); }
+        .plan-price span { font-size: 1rem; font-weight: 400; color: var(--text-secondary); }
         
         /* Purchase Button */
         .purchase-btn {
-            background: linear-gradient(45deg, #007bff, #00c6ff); color: white; border: none;
-            padding: 15px 40px; font-size: 1.2rem; border-radius: 50px; cursor: pointer;
-            transition: all 0.3s; display: block; width: fit-content; margin: 40px auto;
-            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 500;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            display: block;
+            width: fit-content;
+            margin: 50px auto 0;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.2);
         }
-        .purchase-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4); }
-        [data-theme="dark"] .purchase-btn { background: linear-gradient(45deg, #3b82f6, #60a5fa); }
-        .purchase-btn:disabled { background: #aaa; cursor: not-allowed; }
+        .purchase-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+        }
+        [data-theme="dark"] .purchase-btn {
+            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.2);
+        }
+        [data-theme="dark"] .purchase-btn:hover {
+            box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
+        }
+        .purchase-btn:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
 
         /* MODAL (Popup) */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center;
             z-index: 1000; backdrop-filter: blur(5px);
         }
         .modal.show { display: flex; animation: fadeIn 0.3s; }
-        .modal-content { background: var(--bg-color); padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; animation: slideIn 0.3s; }
-        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-content h3 { margin-bottom: 20px; }
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px; border-radius: 15px; width: 90%; max-width: 400px;
+            animation: slideIn 0.3s; border: 1px solid var(--border-color);
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-30px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .modal-content h3 { margin-bottom: 10px; }
+        .modal-content p { color: var(--text-secondary); }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; }
-        .form-group input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); }
-        .modal-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
-        .modal-actions button { flex: 1; padding: 12px; border-radius: 8px; border: none; font-size: 1rem; cursor: pointer; }
-        #skip-btn { background: transparent; border: 1px solid #aaa; color: var(--text-color); }
-        #confirm-btn { background: #007bff; color: white; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .form-group input {
+            width: 100%; padding: 12px; border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color); color: var(--text-primary);
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        }
+        [data-theme="dark"] .form-group input:focus { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25); }
+        .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px; }
+        .modal-actions button {
+            padding: 12px; border-radius: 8px; border: none; font-size: 1rem;
+            font-weight: 500; cursor: pointer; transition: all var(--transition-speed);
+        }
+        #skip-btn { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-primary); }
+        #skip-btn:hover { background-color: var(--border-color); }
+        #confirm-btn { background: var(--primary-color); color: white; }
+        #confirm-btn:hover { background: var(--primary-hover); }
 
         /* TRACKING SECTION */
         .tracking-section {
-            background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color); border-radius: 20px; padding: 30px;
-            margin-top: 50px; text-align: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 60px;
+            text-align: center;
         }
         .tracking-section h2 { margin-bottom: 20px; }
-        .tracking-form { display: flex; gap: 10px; justify-content: center; }
-        .tracking-form input { flex-grow: 1; max-width: 300px; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.1); color: var(--text-color); }
-        .tracking-form button { background: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; }
-        #tracking-results { margin-top: 20px; text-align: right; }
+        .tracking-form { display: flex; gap: 10px; justify-content: center; max-width: 450px; margin: 0 auto; }
+        .tracking-form input {
+            flex-grow: 1; padding: 12px; border-radius: 8px;
+            border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-primary);
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed); text-align: left;
+        }
+        .tracking-form input:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        }
+        [data-theme="dark"] .tracking-form input:focus { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25); }
+        .tracking-form button {
+            background: var(--primary-color); color: white; padding: 12px 20px;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: 500;
+            transition: background-color var(--transition-speed);
+        }
+        .tracking-form button:hover { background-color: var(--primary-hover); }
+        #tracking-results { margin-top: 20px; text-align: right; color: var(--text-secondary); }
+        #tracking-results li {
+            background: var(--bg-color); padding: 15px; border-radius: 8px; margin-bottom: 10px;
+            border-right: 3px solid var(--primary-color);
+        }
 
         /* FOOTER */
-        footer { text-align: center; margin-top: 50px; padding: 30px; border-top: 1px solid var(--border-color); }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
         .social-icons { margin-bottom: 20px; }
-        .social-icons a { margin: 0 10px; display: inline-block; transition: transform 0.2s; }
-        .social-icons a:hover { transform: translateY(-3px); }
-        .social-icons svg { width: 24px; height: 24px; color: var(--text-color); opacity: 0.7; }
-        footer p { font-size: 0.9rem; opacity: 0.8; }
-        footer a { color: var(--text-color); text-decoration: underline; }
+        .social-icons a {
+            margin: 0 10px; display: inline-block;
+            transition: transform var(--transition-speed);
+            color: var(--text-secondary);
+        }
+        .social-icons a:hover {
+            transform: translateY(-3px);
+            color: var(--text-primary);
+        }
+        .social-icons svg { width: 33px; height: 33px; }
+        footer p { font-size: 0.9rem; margin-bottom: 5px; }
+        footer a { color: var(--text-primary); text-decoration: none; font-weight: 500; }
+        footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body data-theme="light">
@@ -140,11 +369,11 @@
         <header>
             <div class="theme-switcher">
                 <button id="theme-toggle" title="تغییر تم">
-                    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <i id="theme-icon" data-lucide="moon"></i>
                 </button>
             </div>
-            <h1>اشتراک پرسرعت Ay VPN</h1>
-            <p>سرویس پایدار و امن، مناسب برای تمام دستگاه‌ها</p>
+            <h1>Ay VPN</h1>
+            <p>سرویس پایدار و امن، با پشتیبانی کامل، مناسب برای تمام دستگاه‌ها و اپراتورها</p>
         </header>
 
         <main>
@@ -159,7 +388,7 @@
                 <div id="national" class="tab-content">
                     </div>
                 
-                <button type="submit" class="purchase-btn" id="purchase-btn">خرید و دریافت آنی</button>
+                <button type="submit" class="purchase-btn" id="purchase-btn">خرید اشتراک</button>
             </form>
 
             <section class="tracking-section">
@@ -174,15 +403,17 @@
 
         <footer>
             <div class="social-icons">
-                <a href="https://t.me/AyVPNsupport" target="_blank" title="Telegram">
-                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M9.78,18.65L10.26,14.21L18.73,7.45C19.19,7.08 18.83,6.83 18.33,7.09L7.09,13.05L2.81,11.62C2.1,11.38 2.11,10.48 2.87,10.2L21.3,3.15C21.93,2.91 22.48,3.41 22.25,4.1L18.65,20.22C18.45,21.04 17.65,21.21 17.1,20.76L13.12,17.27L10.74,19.53C10.4,19.84 10.02,19.96 9.78,18.65Z" /></svg>
+                <a href="https://t.me/AyVPNsupport" target="_blank" title="Support">
+                    <i data-lucide="user"></i>
+                </a>
+                <a href="https://t.me/AyVPN_Bot" target="_blank" title="Telegram">
+                    <i data-lucide="send"></i>
                 </a>
                 <a href="https://wa.me/your-whatsapp-number" target="_blank" title="WhatsApp">
-                     <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.35 3.45 16.86L2.05 22L7.31 20.62C8.75 21.41 10.37 21.82 12.04 21.82C17.5 21.82 21.95 17.37 21.95 11.91C21.95 6.45 17.5 2 12.04 2M12.04 3.67C16.56 3.67 20.28 7.39 20.28 11.91C20.28 16.43 16.56 20.15 12.04 20.15C10.48 20.15 8.99 19.7 7.7 18.89L7.22 18.61L4.62 19.22L5.24 16.69L4.95 16.21C4.06 14.83 3.6 13.2 3.6 11.91C3.6 7.39 7.32 3.67 12.04 3.67M9.13 8.03C8.91 8.03 8.7 8.04 8.5 8.4L7.54 9.38C7.33 9.59 7.14 9.83 7.14 10.23C7.14 10.64 7.55 11.04 7.66 11.16L7.67 11.17C8.13 11.68 8.92 12.61 9.92 13.5C11.21 14.65 12.37 15.09 12.91 15.09C13.25 15.09 13.49 14.97 13.72 14.74L14.47 13.97C14.63 13.81 14.74 13.65 14.74 13.38C14.74 13.12 14.63 12.96 14.42 12.75L13.16 11.47C13.05 11.36 12.91 11.3 12.77 11.3C12.63 11.3 12.5 11.36 12.38 11.47L12.07 11.8C11.97 11.91 11.85 12.03 11.66 12.03C11.47 12.03 11.01 11.85 10.15 11.03C9.11 10.05 8.53 9.24 8.53 8.97C8.53 8.7 8.64 8.58 8.75 8.47L9.04 8.19C9.15 8.08 9.15 7.94 9.15 7.8C9.15 7.67 9.13 7.55 9.13 7.55L8.03 6.45C7.92 6.34 7.78 6.28 7.64 6.28C7.5 6.28 7.37 6.34 7.25 6.45L6.67 7.03C6.46 7.24 6.26 7.46 6.26 7.85C6.26 8.26 6.67 8.66 6.78 8.78L6.79 8.79C7.26 9.3 8.04 10.23 9.04 11.12C10.33 12.27 11.49 12.71 12.03 12.71C12.37 12.71 12.61 12.59 12.84 12.36L13.59 11.59C13.75 11.43 13.86 11.27 13.86 11C13.86 10.74 13.75 10.58 13.54 10.37L12.28 9.09C12.17 8.98 12.03 8.92 11.89 8.92C11.75 8.92 11.62 8.98 11.5 9.09L11.19 9.42C11.09 9.53 10.97 9.65 10.78 9.65C10.59 9.65 10.13 9.47 9.27 8.65C8.23 7.67 7.65 6.86 7.65 6.59C7.65 6.32 7.76 6.2 7.87 6.09L8.16 5.81C8.27 5.7 8.27 5.56 8.27 5.42C8.27 5.29 8.25 5.17 8.25 5.17L7.15 4.07C7.04 3.96 6.9 3.9 6.76 3.9C6.62 3.9 6.49 3.96 6.37 4.07L5.79 4.65C5.58 4.86 5.38 5.08 5.38 5.47C5.38 5.88 5.79 6.28 5.9 6.4L5.91 6.41C6.38 6.92 7.16 7.85 8.16 8.74C9.45 9.89 10.61 10.33 11.15 10.33C11.49 10.33 11.73 10.21 11.96 9.98L12.71 9.21C12.87 9.05 12.98 8.89 12.98 8.62C12.98 8.36 12.87 8.2 12.66 7.99L11.4 6.71C11.29 6.6 11.15 6.54 11.01 6.54C10.87 6.54 10.74 6.6 10.62 6.71L10.31 7.04C10.21 7.15 10.09 7.27 9.9 7.27C9.71 7.27 9.25 7.09 8.39 6.27C7.35 5.29 6.77 4.48 6.77 4.21C6.77 3.94 6.88 3.82 6.99 3.71L7.28 3.43C7.39 3.32 7.39 3.18 7.39 3.04C7.39 2.91 7.37 2.79 7.37 2.79L6.27 1.69C6.16 1.58 6.02 1.52 5.88 1.52C5.74 1.52 5.61 1.58 5.49 1.69L4.91 2.27C4.7 2.48 4.5 2.7 4.5 3.09C4.5 3.5 4.91 3.9 5.02 4.02L5.03 4.03C5.5 4.54 6.28 5.47 7.28 6.36C8.57 7.51 9.73 7.95 10.27 7.95C10.61 7.95 10.85 7.83 11.08 7.6L11.83 6.83C11.99 6.67 12.1 6.51 12.1 6.24C12.1 5.98 12 5.82 11.79 5.61L10.53 4.33C10.42 4.22 10.28 4.16 10.14 4.16C10 4.16 9.87 4.22 9.75 4.33L9.44 4.66C9.34 4.77 9.22 4.89 9.03 4.89C8.84 4.89 8.38 4.71 7.52 3.89C6.48 2.91 5.9 2.1 5.9 1.83C5.9 1.56 6.01 1.44 6.12 1.33L6.41 1.05C6.52 0.94 6.52 0.8 6.52 0.66C6.52 0.53 6.5 0.41 6.5 0.41L5.4 0.59C5.29 -0.52 5.15 -0.58 5.01 -0.58C4.87 -0.58 4.74 -0.52 4.62 -0.41L4.04 0.17C3.83 0.38 3.63 0.6 3.63 0.99C3.63 1.4 4.04 1.8 4.15 1.92L4.16 1.93C4.63 2.44 5.41 3.37 6.41 4.26C7.7 5.41 8.86 5.85 9.4 5.85C9.74 5.85 9.98 5.73 10.21 5.5L10.96 4.73C11.12 4.57 11.23 4.41 11.23 4.14C11.23 3.88 11.12 3.72 10.91 3.51L9.65 2.23C9.54 2.12 9.4 2.06 9.26 2.06C9.12 2.06 8.99 2.12 8.87 2.23L8.56 2.56C8.46 2.67 8.34 2.79 8.15 2.79C7.96 2.79 7.5 2.61 6.64 1.79C5.6 0.81 5.02 0 5.02 -0.27C5.02 -0.54 5.13 -0.66 5.24 -0.77L5.53 -1.05C5.64 -1.16 5.64 -1.3 5.64 -1.44C5.64 -1.57 5.62 -1.69 5.62 -1.69L4.52 -2.79C4.41 -2.9 4.27 -2.96 4.13 -2.96C3.99 -2.96 3.86 -2.9 3.74 -2.79L3.16 -2.21C2.95 -2 2.75 -1.78 2.75 -1.39C2.75 -0.98 3.16 -0.58 3.27 -0.46L3.28 -0.45C3.75 0.06 4.53 0.99 5.53 1.88C6.82 3.03 7.98 3.47 8.52 3.47C8.86 3.47 9.1 3.35 9.33 3.12L10.08 2.35C10.24 2.19 10.35 2.03 10.35 1.76C10.35 1.5 10.24 1.34 10.03 1.13L8.77 -0.15C8.66 -0.26 8.52 -0.32 8.38 -0.32C8.24 -0.32 8.11 -0.26 7.99 -0.15L7.68 0.18C7.58 0.29 7.46 0.41 7.27 0.41C7.08 0.41 6.62 0.23 5.76 -0.59C4.72 -1.57 4.14 -2.38 4.14 -2.65C4.14 -2.92 4.25 -3.04 4.36 -3.15L4.65 -3.43C4.76 -3.54 4.76 -3.68 4.76 -3.82C4.76 -3.95 4.74 -4.07 4.74 -4.07L3.64 -5.17C3.53 -5.28 3.39 -5.34 3.25 -5.34C3.11 -5.34 2.98 -5.28 2.86 -5.17L2.28 -4.59C2.07 -4.38 1.87 -4.16 1.87 -3.77C1.87 -3.36 2.28 -2.96 2.39 -2.84L2.4 -2.83C2.87 -2.32 3.65 -1.39 4.65 -0.5C5.94 0.65 7.1 1.09 7.64 1.09C7.98 1.09 8.22 0.97 8.45 0.74L9.2 0.03C9.36 -0.13 9.47 -0.29 9.47 -0.56C9.47 -0.82 9.36 -0.98 9.15 -1.19L7.89 -2.47C7.78 -2.58 7.64 -2.64 7.5 -2.64C7.36 -2.64 7.23 -2.58 7.11 -2.47L6.8 -2.14C6.7 -2.03 6.58 -1.91 6.39 -1.91C6.2 -1.91 5.74 -2.09 4.88 -2.91C3.84 -3.89 3.26 -4.7 3.26 -4.97C3.26 -5.24 3.37 -5.36 3.48 -5.47L3.77 -5.75C3.88 -5.86 3.88 -6 3.88 -6.14C3.88 -6.27 3.86 -6.39 3.86 -6.39L2.76 -7.49C2.65 -7.6 2.51 -7.66 2.37 -7.66C2.23 -7.66 2.1 -7.6 1.98 -7.49L1.4 -6.91C1.19 -6.7 0.99 -6.48 0.99 -6.09C0.99 -5.68 1.4 -5.28 1.51 -5.16L1.52 -5.15C1.99 -4.64 2.77 -3.71 3.77 -2.82C5.06 -1.67 6.22 -1.23 6.76 -1.23C7.1 -1.23 7.34 -1.11 7.57 -0.88L8.32 -0.11C8.48 0.05 8.59 0.21 8.59 0.48C8.59 0.74 8.48 0.9 8.27 1.11L7.01 2.39C6.9 2.5 6.76 2.56 6.62 2.56C6.48 2.56 6.35 2.5 6.23 2.39L5.92 2.06C5.82 1.95 5.7 1.83 5.51 1.83C5.32 1.83 4.86 2.01 4 2.83C2.96 3.81 2.38 4.62 2.38 4.89C2.38 5.16 2.49 5.28 2.6 5.39L2.89 5.67C3 5.78 3 5.92 3 6.06C3 6.19 2.98 6.31 2.98 6.31L1.88 7.41C1.77 7.52 1.63 7.58 1.49 7.58C1.35 7.58 1.22 7.52 1.1 7.41L0.52 6.83C0.31 6.62 0.11 6.4 0.11 6.01C0.11 5.6 0.52 5.2 0.63 5.08L0.64 5.07C1.11 4.56 1.89 3.63 2.89 2.74C4.18 1.59 5.34 1.15 5.88 1.15C6.22 1.15 6.46 1.27 6.69 1.5L7.44 2.27C7.6 2.43 7.71 2.59 7.71 2.86C7.71 3.12 7.6 3.28 7.39 3.49L6.13 4.77C6.02 4.88 5.88 4.94 5.74 4.94C5.6 4.94 5.47 4.88 5.35 4.77L5.04 4.44C4.94 4.33 4.82 4.21 4.63 4.21C4.44 4.21 3.98 4.39 3.12 5.21C2.08 6.19 1.5 7 1.5 7.27C1.5 7.54 1.61 7.66 1.72 7.77L2.01 8.05C2.12 8.16 2.12 8.3 2.12 8.44C2.12 8.57 2.1 8.69 2.1 8.69L1.00001 9.79C0.890005 9.9 0.750005 9.96 0.610005 9.96C0.470005 9.96 0.340005 9.9 0.220005 9.79L-0.359995 9.21C-0.569995 9 -0.769995 8.78 -0.769995 8.39C-0.769995 7.98 -0.359995 7.58 -0.249995 7.46L-0.239995 7.45C0.220005 6.94 1.00001 6.01 2.00001 5.12C3.29001 3.97 4.45001 3.53 4.99001 3.53C5.33001 3.53 5.57001 3.65 5.80001 3.88L6.55001 4.65C6.71001 4.81 6.82001 4.97 6.82001 5.24C6.82001 5.5 6.71001 5.66 6.50001 5.87L5.24001 7.15C5.13001 7.26 4.99001 7.32 4.85001 7.32C4.71001 7.32 4.58001 7.26 4.46001 7.15L4.15001 6.82C4.05001 6.71 3.93001 6.59 3.74001 6.59C3.55001 6.59 3.09001 6.77 2.23001 7.59C1.19001 8.57 0.610005 9.38 0.610005 9.65C0.610005 9.92 0.720005 10.04 0.830005 10.15L1.12001 10.43C1.23001 10.54 1.23001 10.68 1.23001 10.82C1.23001 10.95 1.21001 11.07 1.21001 11.07L0.110005 12.17C0.000005125 12.28 -0.139995 12.34 -0.279995 12.34C-0.419995 12.34 -0.549995 12.28 -0.669995 12.17L-1.25 11.59C-1.46 11.38 -1.66 11.16 -1.66 10.77C-1.66 10.36 -1.25 9.96 -1.14 9.84L-1.13 9.83C-0.669995 9.32 0.110005 8.39 1.11001 7.5C2.40001 6.35 3.56001 5.91 4.10001 5.91C4.44001 5.91 4.68001 6.03 4.91001 6.26L5.66001 7.03C5.82001 7.19 5.93001 7.35 5.93001 7.62C5.93001 7.88 5.82001 8.04 5.61001 8.25L4.35001 9.53C4.24001 9.64 4.10001 9.7 3.96001 9.7C3.82001 9.7 3.69001 9.64 3.57001 9.53L3.26001 9.2C3.16001 9.09 3.04001 8.97 2.85001 8.97C2.66001 8.97 2.20001 9.15 1.34001 9.97C0.300005 10.95 -0.279995 11.76 -0.279995 12.03C-0.279995 12.3 0.160005 12.42 0.270005 12.53L0.560005 12.81C0.670005 12.92 0.670005 13.06 0.670005 13.2C0.670005 13.33 0.650005 13.45 0.650005 13.45L-0.449995 14.55C-0.559995 14.66 -0.699995 14.72 -0.839995 14.72C-0.979995 14.72 -1.11 14.66 -1.23 14.55L-1.81 13.97C-2.02 13.76 -2.22 13.54 -2.22 13.15C-2.22 12.74 -1.81 12.34 -1.7 12.22L-1.69 12.21C-1.22 11.7 -0.449995 10.77 0.550005 9.88C1.84001 8.73 3.00001 8.29 3.54001 8.29C3.88001 8.29 4.12001 8.41 4.35001 8.64L5.10001 9.41C5.26001 9.57 5.37001 9.73 5.37001 10C5.37001 10.26 5.26001 10.42 5.05001 10.63L3.79001 11.91C3.68001 12.02 3.54001 12.08 3.40001 12.08C3.26001 12.08 3.13001 12.02 3.01001 11.91L2.70001 11.58C2.60001 11.47 2.48001 11.35 2.29001 11.35C2.10001 11.35 1.64001 11.53 0.780005 12.35C-0.259995 13.33 -0.839995 14.14 -0.839995 14.41C-0.839995 14.68 -0.729995 14.8 -0.619995 14.91L-0.329995 15.19C-0.219995 15.3 -0.219995 15.44 -0.219995 15.58C-0.219995 15.71 -0.239995 15.83 -0.239995 15.83L-1.34 16.93C-1.45 17.04 -1.59 17.1 -1.73 17.1C-1.87 17.1 -2 17.04 -2.12 16.93L-2.7 16.35C-2.91 16.14 -3.11 15.92 -3.11 15.53C-3.11 15.12 -2.7 14.72 -2.59 14.6L-2.58 14.59C-2.11 14.08 -1.33 13.15 -0.330005 12.26C0.959995 11.11 2.12001 10.67 2.66001 10.67C3.00001 10.67 3.24001 10.79 3.47001 11.02L4.22001 11.79C4.38001 11.95 4.49001 12.11 4.49001 12.38C4.49001 12.64 4.38001 12.8 4.17001 13.01L2.91001 14.29C2.80001 14.4 2.66001 14.46 2.52001 14.46C2.38001 14.46 2.25001 14.4 2.13001 14.29L1.82001 13.96C1.72001 13.85 1.60001 13.73 1.41001 13.73C1.22001 13.73 0.760005 13.91 -0.0999951 14.73C-1.14 15.71 -1.72 16.52 -1.72 16.79C-1.72 17.06 -1.61 17.18 -1.5 17.29L-1.21 17.57C-1.1 17.68 -1.1 17.82 -1.1 17.96C-1.1 18.09 -1.12 18.21 -1.12 18.21L-2.22 19.31C-2.33 19.42 -2.47 19.48 -2.61 19.48C-2.75 19.48 -2.88 19.42 -3 19.31L-3.58 18.73C-3.79 18.52 -3.99 18.3 -3.99 17.91C-3.99 17.5 -3.58 17.1 -3.47 16.98L-3.46 16.97C-2.99 16.46 -2.21 15.53 -1.21 14.64C-0.0799951 13.49 1.22001 13.05 1.90001 13.05C2.24001 13.05 2.48001 13.17 2.71001 13.4L3.46001 14.17C3.62001 14.33 3.73001 14.49 3.73001 14.76C3.73001 15.02 3.62001 15.18 3.41001 15.39L2.15001 16.67C2.04001 16.78 1.90001 16.84 1.76001 16.84C1.62001 16.84 1.49001 16.78 1.37001 16.67L1.06001 16.34C0.960005 16.23 0.840005 16.11 0.650005 16.11C0.460005 16.11 0.00000488281 16.29 -0.859995 17.11C-1.9 18.09 -2.48 18.9 -2.48 19.17C-2.48 19.44 -2.37 19.56 -2.26 19.67L-1.97 19.95C-1.86 20.06 -1.86 20.2 -1.86 20.34C-1.86 20.47 -1.88 20.59 -1.88 20.59L-2.98 21.69C-3.09 21.8 -3.23 21.86 -3.37 21.86C-3.51 21.86 -3.64 21.8 -3.76 21.69L-4.34 21.11C-4.55 20.9 -4.75 20.68 -4.75 20.29C-4.75 19.88 -4.34 19.48 -4.23 19.36L-4.22 19.35C-3.75 18.84 -2.97 17.91 -1.97 17.02C-0.680005 15.87 0.480005 15.43 1.02001 15.43C1.36001 15.43 1.60001 15.55 1.83001 15.78L2.58001 16.55C2.74001 16.71 2.85001 16.87 2.85001 17.14C2.85001 17.4 2.74001 17.56 2.53001 17.77L1.27001 19.05C1.16001 19.16 1.02001 19.22 0.880005 19.22C0.740005 19.22 0.610005 19.16 0.490005 19.05L0.180005 18.72C0.0800049 18.61 -0.0399951 18.49 -0.229995 18.49C-0.419995 18.49 -0.879995 18.67 -1.74 19.49C-2.78 20.47 -3.36 21.28 -3.36 21.55C-3.36 21.82 -3.25 21.94 -3.14 22.05L-2.85 22.33C-2.74 22.44 -2.74 22.58 -2.74 22.72C-2.74 22.85 -2.76 22.97 -2.76 22.97L-3.86 24.07C-3.97 24.18 -4.11 24.24 -4.25 24.24C-4.39 24.24 -4.52 24.18 -4.64 24.07L-5.22 23.49C-5.43 23.28 -5.63 23.06 -5.63 22.67C-5.63 22.26 -5.22 21.86 -5.11 21.74L-5.1 21.73C-4.63 21.22 -3.85 20.29 -2.85 19.4C-1.56 18.25 -0.4 17.81 0.140005 17.81C0.480005 17.81 0.720005 17.93 0.950005 18.16L1.70001 18.93C1.86001 19.09 1.97001 19.25 1.97001 19.52C1.97001 19.78 1.86001 19.94 1.65001 20.15L0.390005 21.43C0.280005 21.54 0.140005 21.6 0 21.6C-0.14 21.6 -0.27 21.54 -0.39 21.43L-0.7 21.1C-0.8 20.99 -0.92 20.87 -1.11 20.87C-1.3 20.87 -1.76 21.05 -2.62 21.87C-3.66 22.85 -4.24 23.66 -4.24 23.93C-4.24 24.2 -4.13 24.32 -4.02 24.43L-3.73 24.71C-3.62 24.82 -3.62 24.96 -3.62 25.1C-3.62 25.23 -3.64 25.35 -3.64 25.35L-4.74 26.45C-4.85 26.56 -4.99 26.62 -5.13 26.62C-5.27 26.62 -5.4 26.56 -5.52 26.45L-6.1 25.87C-6.31 25.66 -6.51 25.44 -6.51 25.05C-6.51 24.64 -6.1 24.24 -5.99 24.12L-5.98 24.11C-5.51 23.6 -4.73 22.67 -3.73 21.78C-2.44 20.63 -1.28 20.19 0.419995 20.19Z" /></svg>
+                     <i data-lucide="message-circle"></i>
                 </a>
             </div>
-            <p>&copy; 2025 تمام حقوق برای <a href="https://shammay.ir" target="_blank">Ay Technic</a> محفوظ است.</p>
-            <p>پشتیبانی: <a href="https://t.me/AyVPNsupport" target="_blank">@AyVPNsupport</a></p>
+            <p>&copy; تمام حقوق برای <a href="https://shammay.ir" target="_blank">Ay Technic</a> محفوظ است.</p>
         </footer>
 
     </div>
@@ -190,19 +421,19 @@
     <div class="modal" id="user-info-modal">
         <div class="modal-content">
             <h3>تکمیل اطلاعات (اختیاری)</h3>
-            <p style="font-size:0.9rem; opacity:0.8; margin-bottom: 20px;">با وارد کردن اطلاعات، می‌توانید خریدهای قبلی خود را مشاهده و پیگیری کنید.</p>
+            <p>با وارد کردن اطلاعات، می‌توانید خریدهای قبلی خود را مشاهده و پیگیری کنید.</p>
             <form id="user-info-form">
                 <div class="form-group">
                     <label for="name">نام</label>
-                    <input type="text" id="name" placeholder="مثال: شامای">
+                    <input type="text" id="name" placeholder="مثال: Aylin">
                 </div>
                 <div class="form-group">
                     <label for="email">ایمیل</label>
-                    <input type="email" id="email" placeholder="shammay@example.com">
+                    <input type="email" id="email" placeholder="esm@gmail.com">
                 </div>
                 <div class="form-group">
                     <label for="phone">شماره تماس</label>
-                    <input type="tel" id="phone" placeholder="09123456789">
+                    <input type="tel" id="phone" placeholder="09123456789" dir="ltr" style="text-align:right;">
                 </div>
                 <div class="modal-actions">
                     <button type="button" id="skip-btn">رد شدن</button>
@@ -213,194 +444,224 @@
     </div>
 
 <script>
-// --- DATA & CONFIG ---
-const plansData = [
-    { id: 1, duration: '۱ ماهه', price: 12000, desc: 'اشتراک ۳۰ روزه', icon: '💎', type: 'unlimited' },
-    { id: 2, duration: '۲ ماهه', price: 220000, desc: 'اشتراک ۶۰ روزه', icon: '🚀', type: 'unlimited' },
-    { id: 3, duration: '۳ ماهه', price: 340000, desc: 'اشتراک ۹۰ روزه', icon: '🌟', type: 'unlimited' },
-    { id: 4, duration: '۶ ماهه', price: 600000, desc: 'اشتراک ۱۸۰ روزه', icon: '🔥', type: 'unlimited' },
-    { id: 5, duration: '۱ ساله', price: 10000, desc: 'اشتراک ۳۶۵ روزه', icon: '🛡️', type: 'unlimited' },
-    { id: 6, duration: '۲ ساله', price: 2000000, desc: 'اشتراک ۷۳۰ روزه', icon: '👑', type: 'unlimited' }
-];
+document.addEventListener('DOMContentLoaded', () => {
 
-const nationalPlansData = [ // Placeholder for National plans
-    { id: 7, duration: '۱ ماهه ملی', price: 120000, desc: 'اشتراک ملی ۳۰ روزه', icon: '🇮🇷', type: 'national' },
-    { id: 8, duration: '۳ ماهه ملی', price: 340000, desc: 'اشتراک ملی ۹۰ روزه', icon: '🇮🇷', type: 'national' },
-];
+    // --- DATA & CONFIG ---
+    // Icon names are from the Lucide library (lucide.dev)
+    const plansData = [
+        { id: 1, duration: '۱ ماهه', price: 12000, desc: 'اشتراک ۳۰ روزه', icon: 'gem', type: 'unlimited' },
+        { id: 2, duration: '۲ ماهه', price: 220000, desc: 'اشتراک ۶۰ روزه', icon: 'zap', type: 'unlimited' },
+        { id: 3, duration: '۳ ماهه', price: 340000, desc: 'اشتراک ۹۰ روزه', icon: 'star', type: 'unlimited' },
+        { id: 4, duration: '۶ ماهه', price: 600000, desc: 'اشتراک ۱۸۰ روزه', icon: 'flame', type: 'unlimited' },
+        { id: 5, duration: '۱ ساله', price: 10000, desc: 'اشتراک ۳۶۵ روزه', icon: 'shield', type: 'unlimited' },
+        { id: 6, duration: '۲ ساله', price: 2000000, desc: 'اشتراک ۷۳۰ روزه', icon: 'crown', type: 'unlimited' }
+    ];
 
-// --- DOM ELEMENTS ---
-const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = document.getElementById('theme-icon');
-const tabs = document.querySelectorAll('.tab-btn');
-const tabContents = document.querySelectorAll('.tab-content');
-const paymentForm = document.getElementById('payment-form');
-const purchaseBtn = document.getElementById('purchase-btn');
-const modal = document.getElementById('user-info-modal');
-const userInfoForm = document.getElementById('user-info-form');
-const skipBtn = document.getElementById('skip-btn');
-const trackingForm = document.getElementById('tracking-form');
-const trackingInput = document.getElementById('tracking-id-input');
-const trackingResults = document.getElementById('tracking-results');
+    const nationalPlansData = [
+        { id: 7, duration: '۱ ماهه ملی', price: 120000, desc: 'اشتراک ملی ۳۰ روزه', icon: 'globe', type: 'national' },
+        { id: 8, duration: '۳ ماهه ملی', price: 340000, desc: 'اشتراک ملی ۹۰ روزه', icon: 'server', type: 'national' },
+    ];
 
-// --- THEME SWITCHER ---
-const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-const currentTheme = localStorage.getItem('theme') || 'light';
-document.body.setAttribute('data-theme', currentTheme);
-themeIcon.innerHTML = currentTheme === 'light' ? moonIcon : sunIcon;
+    // --- DOM ELEMENTS ---
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const tabs = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const purchaseBtn = document.getElementById('purchase-btn');
+    const modal = document.getElementById('user-info-modal');
+    const userInfoForm = document.getElementById('user-info-form');
+    const skipBtn = document.getElementById('skip-btn');
+    const trackingForm = document.getElementById('tracking-form');
+    const trackingInput = document.getElementById('tracking-id-input');
+    const trackingResults = document.getElementById('tracking-results');
 
-themeToggle.addEventListener('click', () => {
-    let newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    document.body.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    themeIcon.innerHTML = newTheme === 'light' ? moonIcon : sunIcon;
-});
+    // --- THEME SWITCHER ---
+    function applyTheme(theme) {
+        document.body.setAttribute('data-theme', theme);
+        themeIcon.setAttribute('data-lucide', theme === 'light' ? 'moon' : 'sun');
+        localStorage.setItem('theme', theme);
+        // Re-render icons after changing the attribute
+        lucide.createIcons();
+    }
 
-// --- DYNAMIC PLAN RENDERING ---
-function renderPlans(plans, containerId) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = plans.map(plan => `
-        <label class="plan-card" data-plan="${plan.id}">
-            <input type="radio" name="plan" value="${plan.price}" data-description="${plan.desc}">
-            <div class="plan-icon">${plan.icon}</div>
-            <div class="plan-duration">${plan.duration}</div>
-            <ul class="plan-features">
-                <li>نامحدود</li>
-                <li>پر سرعت</li>
-                <li>چند سروره</li>
-                <li>آی پی ثابت</li>
-            </ul>
-            <div class="os-icons">
-                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M17.3,14.76C16.14,13.73 15.5,13.25 15.5,12.75C15.5,12.25 15.91,12 16.28,12C16.62,12 17.2,12.19 17.9,12.59L18.6,12.11C17.7,11.39 16.89,11 16.28,11C15.2,11 14.5,11.69 14.5,12.75C14.5,13.88 15.34,14.53 16.3,15.34C17.38,16.25 18,16.78 18,17.38C18,18.05 17.5,19 16.28,19C15.2,19 14.41,18.56 13.6,17.9L14.3,18.38C15.1,19.12 15.94,19.5 16.28,19.5C17.3,19.5 18.5,18.79 18.5,17.38C18.5,16.12 17.62,15.44 16.72,14.63L17.3,14.76M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>
-                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M15.5,13.5V10.5C15.5,9.67 14.83,9 14,9H12V7H14V5H12V2H10V5H8V7H10V9H8C7.17,9 6.5,9.67 6.5,10.5V13.5C6.5,14.33 7.17,15 8,15H10V17H8V19H10V22H12V19H14V17H12V15H14C14.83,15 15.5,14.33 15.5,13.5M10,13H8V11H10V13M14,13H12V11H14V13Z" /></svg>
-                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M2.37,12.26L12,17.26L21.63,12.26L12,7.26L2.37,12.26M12,2L1,9L12,16L23,9L12,2M1,15L12,22L23,15V9L22,9.5V14.5L12,19.5L2,14.5V9.5L1,9V15Z" /></svg>
-            </div>
-            <div class="plan-price">${new Intl.NumberFormat('fa-IR').format(plan.price)} <span style="font-size:1rem;">تومان</span></div>
-        </label>
-    `).join('');
+    themeToggle.addEventListener('click', () => {
+        const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        applyTheme(newTheme);
+    });
     
-    // Add click listeners to cards
-    container.querySelectorAll('.plan-card').forEach(card => {
-        card.addEventListener('click', () => {
-            container.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            card.querySelector('input').checked = true;
+    const preferredTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(preferredTheme);
+
+    // --- DYNAMIC PLAN RENDERING ---
+    function renderPlans(plans, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        container.innerHTML = plans.map(plan => `
+            <label class="plan-card" data-plan="${plan.id}">
+                <input type="radio" name="plan" value="${plan.price}" data-description="${plan.desc}">
+                <div class="plan-icon"><i data-lucide="${plan.icon}"></i></div>
+                <div class="plan-duration">${plan.duration}</div>
+                <ul class="plan-features">
+                    <li>ترافیک نامحدود</li>
+                    <li>پشتیبانی کامل</li>
+                    <li>سازگار با همه اپراتورها</li>
+                    <li>آی پی ثابت</li>
+                </ul>
+                <div class="os-icons">
+                     <i data-lucide="smartphone"></i>
+                     <i data-lucide="laptop"></i>
+                     <i data-lucide="globe"></i>
+                </div>
+                <div class="plan-price">${new Intl.NumberFormat('fa-IR').format(plan.price)} <span>تومان</span></div>
+            </label>
+        `).join('');
+        
+        // Add click listeners to cards
+        container.querySelectorAll('.plan-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                // Unselect all cards in all tabs first
+                document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+                document.querySelectorAll('input[name="plan"]').forEach(radio => radio.checked = false);
+                
+                // Select the clicked card
+                card.classList.add('selected');
+                card.querySelector('input').checked = true;
+            });
+        });
+
+        // After rendering, convert all <i> tags to SVG
+        lucide.createIcons();
+    }
+
+    renderPlans(plansData, 'unlimited');
+    renderPlans(nationalPlansData, 'national');
+
+    // --- TABS LOGIC ---
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            let foundSelected = false;
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === tab.dataset.tab) {
+                    content.classList.add('active');
+                    // Automatically select the first plan in the new active tab if no plan is selected
+                    if (!document.querySelector('input[name="plan"]:checked') && content.querySelector('.plan-card')) {
+                         content.querySelector('.plan-card').click();
+                    }
+                }
+            });
         });
     });
-    // Select first plan by default
-    if (container.querySelector('.plan-card')) {
-        container.querySelector('.plan-card').click();
+
+    // --- Select first plan by default on initial load ---
+    if (document.querySelector('#unlimited .plan-card')) {
+        document.querySelector('#unlimited .plan-card').click();
     }
-}
 
-renderPlans(plansData, 'unlimited');
-renderPlans(nationalPlansData, 'national');
+    // --- PAYMENT & MODAL LOGIC ---
+    let paymentData = {};
 
-// --- TABS LOGIC ---
-tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        tabContents.forEach(content => {
-            content.classList.remove('active');
-            if (content.id === tab.dataset.tab) {
-                content.classList.add('active');
+    purchaseBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const selectedPlan = document.querySelector('input[name="plan"]:checked');
+        if (!selectedPlan) {
+            alert('لطفا یک پلن را انتخاب کنید.');
+            return;
+        }
+        paymentData = {
+            amount: selectedPlan.value,
+            description: selectedPlan.dataset.description,
+        };
+        modal.classList.add('show');
+    });
+
+    skipBtn.addEventListener('click', () => {
+        modal.classList.remove('show');
+        startPayment();
+    });
+
+    userInfoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        modal.classList.remove('show');
+        paymentData.name = document.getElementById('name').value;
+        paymentData.email = document.getElementById('email').value;
+        paymentData.phone = document.getElementById('phone').value;
+        startPayment();
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('show');
+    });
+
+    async function startPayment() {
+        purchaseBtn.disabled = true;
+        purchaseBtn.innerText = 'در حال انتقال...';
+
+        try {
+            // This is a placeholder for your actual API endpoint
+            const response = await fetch('/api/start-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(paymentData),
+            });
+            const data = await response.json();
+            if (response.ok && data.authority) {
+                window.location.href = `https://www.zarinpal.com/pg/StartPay/${data.authority}`;
+            } else {
+                throw new Error(data.details || 'خطا در ارتباط با درگاه پرداخت.');
             }
-        });
+        } catch (error) {
+            alert('خطا: ' + error.message);
+            purchaseBtn.disabled = false;
+            purchaseBtn.innerText = 'خرید و دریافت آنی';
+        }
+    }
+
+    // --- TRACKING LOGIC ---
+    trackingForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const trackingId = trackingInput.value.trim();
+        if (!trackingId) return;
+        trackingResults.innerHTML = '<p>در حال جستجو...</p>';
+
+        try {
+            // This is a placeholder for your actual API endpoint
+            const response = await fetch(`/api/track?trackingId=${trackingId}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'خطایی رخ داد.');
+            }
+
+            if (data.length === 0) {
+                trackingResults.innerHTML = '<p>خریدی با این شماره پیگیری یافت نشد.</p>';
+                return;
+            }
+
+            let html = '<h3>نتایج یافت شده:</h3><ul>';
+            data.forEach(p => {
+                html += `
+                    <li>
+                        <strong>پلن:</strong> ${p.plan} <br>
+                        <strong>تاریخ:</strong> ${new Date(p.date).toLocaleDateString('fa-IR')} <br>
+                        <strong>لینک:</strong> <code>${p.link}</code>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            trackingResults.innerHTML = html;
+
+        } catch (error) {
+            trackingResults.innerHTML = `<p style="color:red;">خطا: ${error.message}</p>`;
+        }
     });
+
 });
-
-
-// --- PAYMENT & MODAL LOGIC ---
-let paymentData = {};
-
-purchaseBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    const selectedPlan = document.querySelector('input[name="plan"]:checked');
-    if (!selectedPlan) {
-        alert('لطفا یک پلن را انتخاب کنید.');
-        return;
-    }
-    paymentData = {
-        amount: selectedPlan.value,
-        description: selectedPlan.dataset.description,
-    };
-    modal.classList.add('show');
-});
-
-skipBtn.addEventListener('click', () => {
-    modal.classList.remove('show');
-    startPayment();
-});
-
-userInfoForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    modal.classList.remove('show');
-    paymentData.name = document.getElementById('name').value;
-    paymentData.email = document.getElementById('email').value;
-    paymentData.phone = document.getElementById('phone').value;
-    startPayment();
-});
-
-modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.classList.remove('show');
-});
-
-async function startPayment() {
-    purchaseBtn.disabled = true;
-    purchaseBtn.innerText = 'در حال انتقال...';
-
-    try {
-        const response = await fetch('/api/start-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(paymentData),
-        });
-        const data = await response.json();
-        if (response.ok && data.authority) {
-            window.location.href = `https://www.zarinpal.com/pg/StartPay/${data.authority}`;
-        } else {
-            throw new Error(data.details || 'خطا در ارتباط با درگاه پرداخت.');
-        }
-    } catch (error) {
-        alert('خطا: ' + error.message);
-        purchaseBtn.disabled = false;
-        purchaseBtn.innerText = 'خرید و دریافت آنی';
-    }
-}
-
-// --- TRACKING LOGIC ---
-trackingForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const trackingId = trackingInput.value.trim();
-    trackingResults.innerHTML = '<p>در حال جستجو...</p>';
-
-    try {
-        const response = await fetch(`/api/track?trackingId=${trackingId}`);
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || 'خطایی رخ داد.');
-        }
-
-        let html = '<h3>نتایج یافت شده:</h3><ul>';
-        data.forEach(p => {
-            html += `
-                <li>
-                    <strong>پلن:</strong> ${p.plan} <br>
-                    <strong>تاریخ:</strong> ${new Date(p.date).toLocaleDateString('fa-IR')} <br>
-                    <strong>لینک:</strong> <code>${p.link}</code>
-                </li>
-            `;
-        });
-        html += '</ul>';
-        trackingResults.innerHTML = html;
-
-    } catch (error) {
-        trackingResults.innerHTML = `<p style="color:red;">خطا: ${error.message}</p>`;
-    }
-});
-
 </script>
+
 </body>
 </html>
