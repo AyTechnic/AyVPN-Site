@@ -6,16 +6,24 @@ module.exports = async (req, res) => {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
     try {
-        const { amount, description, chat_id } = req.body;
-        if (!amount) { // فقط مبلغ را چک می‌کنیم چون ممکن است از وب‌سایت باشد
+        const { amount, description, chat_id, name, email, phone } = req.body;
+        if (!amount) {
             return res.status(400).json({ error: 'Amount is required' });
         }
 
         const host = req.headers.host;
         const protocol = host.startsWith('localhost') ? 'http' : 'https';
         
-        // --- تغییر مهم: مبلغ و آیدی چت را به آدرس بازگشت اضافه می‌کنیم ---
-        const callback_url = `${protocol}://${host}/api/verify?amount=${amount}&chat_id=${chat_id || 'none'}`;
+        // ساخت Query String برای ارسال اطلاعات به مرحله بعد
+        const queryParams = new URLSearchParams({
+            amount,
+            chat_id: chat_id || 'none',
+            name: name || '',
+            email: email || '',
+            phone: phone || ''
+        }).toString();
+        
+        const callback_url = `${protocol}://${host}/api/verify?${queryParams}`;
 
         const response = await fetch('https://api.zarinpal.com/pg/v4/payment/request.json', {
             method: 'POST',
@@ -25,6 +33,11 @@ module.exports = async (req, res) => {
                 amount: Number(amount),
                 callback_url: callback_url,
                 description: description,
+                // ارسال اطلاعات کاربر به زرین‌پال (اختیاری اما مفید)
+                metadata: {
+                    email: email || undefined,
+                    mobile: phone || undefined
+                }
             }),
         });
         const result = await response.json();
