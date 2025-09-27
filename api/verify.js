@@ -14,40 +14,9 @@ const ADMIN_CHAT_ID = '5976170456';
 const bot = new TelegramBot(TELEGRAM_BOT_TOKEN);
 
 const planToSheetMap = {
-    '12000': '30D', '220000': '60D', '340000': '90D',
-    '600000': '180D', '10000': '365D', '2000000': '730D',
+    '120000': '30D', '220000': '60D', '340000': '90D',
+    '600000': '180D', '1000000': '365D', '2000000': '730D',
 };
-
-// تابع ساخت شماره پیگیری یکتا
-function generateTrackingId() {
-    return `AYT-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
-}
-
-// تابع برای جستجوی خریدهای قبلی
-async function findPreviousPurchases(doc, email, phone) {
-    if (!email && !phone) return [];
-    
-    const previousPurchases = [];
-    for (const sheetTitle of Object.values(planToSheetMap)) {
-        const sheet = doc.sheetsByTitle[sheetTitle];
-        if (sheet) {
-            const rows = await sheet.getRows();
-            rows.forEach(row => {
-                const rowEmail = row.get('email');
-                const rowPhone = row.get('phone');
-                if ((email && rowEmail === email) || (phone && rowPhone === phone)) {
-                    previousPurchases.push({
-                        plan: sheetTitle,
-                        date: row.get('purchaseDate'),
-                        link: row.get('link'),
-                        trackingId: row.get('trackingId')
-                    });
-                }
-            });
-        }
-    }
-    return previousPurchases;
-}
 
 // تابع ساخت صفحه HTML موفقیت
 function generateSuccessPage(details) {
@@ -111,7 +80,7 @@ function generateSuccessPage(details) {
         <div class="container">
             <div class="icon">🎉</div>
             <h1>پرداخت موفقیت‌آمیز بود!</h1>
-            <p>${name ? `شامای عزیز ${name}،` : ''} لینک اشتراک شما آماده است.</p>
+            <p>${name ? `کاربر گرامی ${name}،` : ''} لینک اشتراک شما آماده است.</p>
             <p style="font-size:0.9rem; color:#888;">شماره پیگیری شما: <strong>${trackingId}</strong></p>
 
             <div class="subscription-box">
@@ -175,12 +144,13 @@ function generateSuccessPage(details) {
     `;
 }
 
-
 module.exports = async (req, res) => {
     const { Authority, Status, amount, chat_id, name, email, phone } = req.query;
 
     try {
-        if (Status !== 'OK') throw new Error('Payment was cancelled by user.');
+        if (Status !== 'OK') {
+            throw new Error('Payment was cancelled by user.');
+        }
 
         const verificationResponse = await fetch(`https://api.zarinpal.com/pg/v4/payment/verify.json`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -198,16 +168,23 @@ module.exports = async (req, res) => {
                 scopes: ['https://www.googleapis.com/auth/spreadsheets'],
             });
             const doc = new GoogleSpreadsheet(GOOGLE_SHEET_ID, serviceAccountAuth);
+
             await doc.loadInfo();
             const sheet = doc.sheetsByTitle[sheetName];
             if (!sheet) throw new Error(`شیت با نام "${sheetName}" یافت نشد.`);
             
             const rows = await sheet.getRows();
             const availableLinkRow = rows.find(row => row.get('status') === 'unused');
-            if (!availableLinkRow) throw new Error('No unused links available.');
+            if (!availableLinkRow) {
+                 if (chat_id && chat_id !== 'none') {
+                    await bot.sendMessage(chat_id, '❌ پرداخت شما موفق بود اما متاسفانه تمام لینک‌های اشتراک این پلن تمام شده است. لطفاً با پشتیبانی (@AyVPNsupport) تماس بگیرید.');
+                }
+                throw new Error('No unused links available.');
+            }
             
             const userLink = availableLinkRow.get('link');
-            const trackingId = generateTrackingId();
+            // --- تغییر کلیدی: استفاده از شماره پیگیری زرین‌پال ---
+            const trackingId = data.ref_id.toString(); 
             const purchaseDate = new Date().toISOString();
 
             // ذخیره اطلاعات در گوگل شیت
@@ -221,22 +198,53 @@ module.exports = async (req, res) => {
 
             const previousPurchases = await findPreviousPurchases(doc, email, phone);
 
+            // اگر خرید از ربات بوده، به ربات پیام می‌دهیم
             if (chat_id && chat_id !== 'none') {
                 await bot.sendMessage(chat_id, `✅ پرداخت موفق!\n🔗 لینک شما:\n\`${userLink}\`\n🔢 شماره پیگیری: \`${trackingId}\``, { parse_mode: 'Markdown' });
-                await bot.sendMessage(ADMIN_CHAT_ID, `🎉 فروش جدید (ربات)!\nاشتراک ${sheetName} به ${name || 'ناشناس'} فروخته شد.`);
+                await bot.sendMessage(ADMIN_CHAT_ID, `🎉 فروش جدید از طریق ربات! 🎉\n\nیک اشتراک ${sheetName} به مبلغ ${amount} تومان فروخته شد.`);
                 return res.redirect(`https://t.me/aylinvpnbot`);
-            } else {
+            } else { // اگر خرید از وب‌سایت بوده، صفحه وب نمایش می‌دهیم
                 return res.status(200).send(generateSuccessPage({ trackingId, userLink, previousPurchases, name }));
             }
         
         } else {
-            throw new Error(`تایید پرداخت ناموفق بود. کد خطا: ${data.code || result.errors.code}`);
+            throw new Error(`تایید پرداخت با زرین‌پال ناموفق بود. کد خطا: ${data.code || result.errors.code}`);
         }
     } catch (error) {
         console.error('Vercel Function Error:', error.message);
+        // اگر خرید از ربات بوده، پیام خطا در ربات ارسال می‌شود
         if (chat_id && chat_id !== 'none') {
-            await bot.sendMessage(chat_id, '❌ در پردازش پرداخت خطایی رخ داد. لطفا با پشتیبانی (@AyVPNsupport) تماس بگیرید.');
+            await bot.sendMessage(chat_id, '❌ در پردازش پرداخت شما خطایی رخ داد. لطفاً با پشتیبانی (@AyVPNsupport) تماس بگیرید.');
         }
-        return res.status(500).send(`<h1>خطا در سرور</h1><p>${error.message}</p>`);
+        // در هر صورت، یک صفحه خطا برای کاربر وب نمایش داده می‌شود
+        return res.status(500).send(generateResponseMessage('خطای سرور', `در پردازش تراکنش شما خطایی رخ داد. جزئیات خطا: ${error.message}`, 'error'));
     }
 };
+
+// تابع برای جستجوی خریدهای قبلی (باید بیرون از تابع اصلی باشد)
+async function findPreviousPurchases(doc, email, phone) {
+    if (!email && !phone) return [];
+    
+    const previousPurchases = [];
+    const allSheetTitles = Object.values(planToSheetMap);
+
+    for (const sheetTitle of allSheetTitles) {
+        const sheet = doc.sheetsByTitle[sheetTitle];
+        if (sheet) {
+            const rows = await sheet.getRows();
+            rows.forEach(row => {
+                const rowEmail = row.get('email');
+                const rowPhone = row.get('phone');
+                if ((email && rowEmail === email) || (phone && rowPhone === phone)) {
+                    previousPurchases.push({
+                        plan: sheetTitle,
+                        date: row.get('purchaseDate'),
+                        link: row.get('link'),
+                        trackingId: row.get('trackingId')
+                    });
+                }
+            });
+        }
+    }
+    return previousPurchases;
+}
