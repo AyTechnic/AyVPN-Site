@@ -31,7 +31,7 @@ module.exports = async (req, res) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 merchant_id: ZARINPAL_MERCHANT_ID,
-                amount: Number(amount),
+                amount: Number(amount) * 10,
                 callback_url: callback_url,
                 description: description,
             }),
