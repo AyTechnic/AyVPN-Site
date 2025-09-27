@@ -17,6 +17,7 @@ module.exports = async (req, res) => {
         
         await doc.loadInfo();
         const sheet = doc.sheetsByTitle['30D'];
+        const sheet = doc.sheetsByTitle['60D'];
         if (!sheet) throw new Error('شیت با نام دقیق "30D" پیدا نشد.');
         
         const rows = await sheet.getRows();
@@ -29,7 +30,7 @@ module.exports = async (req, res) => {
 
         res.status(200).send(`
             <html lang="fa" dir="rtl"><body style="font-family: sans-serif; text-align: center; padding: 50px;">
-                <h1 style="color: #2e7d32;">✅ اتصال به گوگل شیت موفق بود! (روش جدید)</h1>
+                <h1 style="color: #2e7d32;">✅ اتصال به گوگل شیت موفق بود!</h1>
                 <p>سیستم با موفقیت به فایل شما متصل شد.</p>
                 <p>اولین لینک اشتراک پیدا شده در شیت 30D:</p>
                 <div style="background: #eee; padding: 15px; border-radius: 8px; direction: ltr;">${firstLink}</div>
