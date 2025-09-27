@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
     try {
-        const { amount, description, chat_id, name, email, phone } = req.body;
+        const { amount, description, chat_id, name, email, phone, renewalIdentifier, requestedPlan } = req.body;
         if (!amount) {
             return res.status(400).json({ error: 'Amount is required' });
         }
@@ -19,7 +19,9 @@ module.exports = async (req, res) => {
             chat_id: chat_id || 'none',
             name: name || '',
             email: email || '',
-            phone: phone || ''
+            phone: phone || '',
+            renewalIdentifier: renewalIdentifier || '',
+            requestedPlan: requestedPlan || ''
         }).toString();
         
         const callback_url = `${protocol}://${host}/api/verify?${queryParams}`;
@@ -31,8 +33,7 @@ module.exports = async (req, res) => {
                 merchant_id: ZARINPAL_MERCHANT_ID,
                 amount: Number(amount),
                 callback_url: callback_url,
-                description: description
-                // --- بخش metadata به طور کامل حذف شد ---
+                description: description,
             }),
         });
         const result = await response.json();
@@ -40,7 +41,6 @@ module.exports = async (req, res) => {
         if (result.errors.length === 0 && data.code === 100 && data.authority) {
             res.status(200).json({ authority: data.authority });
         } else {
-            // اضافه کردن لاگ برای دیدن خطای دقیق زرین‌پال
             console.error('Zarinpal Error:', result.errors);
             throw new Error(`Zarinpal request failed with code: ${data.code || result.errors.code}`);
         }
