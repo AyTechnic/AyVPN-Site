@@ -14,7 +14,6 @@ module.exports = async (req, res) => {
         const host = req.headers.host;
         const protocol = host.startsWith('localhost') ? 'http' : 'https';
         
-        // ساخت Query String برای ارسال اطلاعات به مرحله بعد
         const queryParams = new URLSearchParams({
             amount,
             chat_id: chat_id || 'none',
@@ -32,12 +31,8 @@ module.exports = async (req, res) => {
                 merchant_id: ZARINPAL_MERCHANT_ID,
                 amount: Number(amount),
                 callback_url: callback_url,
-                description: description,
-                // ارسال اطلاعات کاربر به زرین‌پال (اختیاری اما مفید)
-                metadata: {
-                    email: email || undefined,
-                    mobile: phone || undefined
-                }
+                description: description
+                // --- بخش metadata به طور کامل حذف شد ---
             }),
         });
         const result = await response.json();
@@ -45,6 +40,8 @@ module.exports = async (req, res) => {
         if (result.errors.length === 0 && data.code === 100 && data.authority) {
             res.status(200).json({ authority: data.authority });
         } else {
+            // اضافه کردن لاگ برای دیدن خطای دقیق زرین‌پال
+            console.error('Zarinpal Error:', result.errors);
             throw new Error(`Zarinpal request failed with code: ${data.code || result.errors.code}`);
         }
     } catch (error) {
