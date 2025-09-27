@@ -135,7 +135,8 @@ function generateSuccessPage(details) {
 
                 if (timeLeft <= 0) {
                     clearInterval(interval);
-                    window.location.href = subLink;
+//                     window.location.href = subLink;
+                    window.open(subLink, '_blank');
                 }
             }, 1000);
         <\/script>
