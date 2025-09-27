@@ -3,145 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>خرید اشتراک Ay VPN</title>
+    <title>خرید و تمدید اشتراک Ay VPN</title>
     <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
-        @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
-        @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
-        @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
-        
+        /* FONT & BASE STYLES */
+        @font-face {
+            font-family: 'Vazirmatn';
+            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2');
+            font-weight: 700;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Vazirmatn';
+            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2') format('woff2');
+            font-weight: 500;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Vazirmatn';
+            src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2') format('woff2');
+            font-weight: 400;
+            font-display: swap;
+        }
+
         :root {
-            --bg-light: #f0f2f5; --card-light: rgba(255, 255, 255, 0.4); --text-light: #2c3e50; --border-light: rgba(200, 200, 200, 0.6);
-            --bg-dark: #12121c; --card-dark: rgba(26, 26, 46, 0.6); --text-dark: #e0e0e0; --border-dark: rgba(255, 255, 255, 0.1);
             --font-family: 'Vazirmatn', sans-serif;
-            --slider-thumb-color: #007bff; --slider-track-color: rgba(0, 123, 255, 0.2);
+            --transition-speed: 0.3s;
+            
+            /* Light Theme */
+            --bg-light: #f8f9fa;
+            --card-bg-light: #ffffff;
+            --text-primary-light: #212529;
+            --text-secondary-light: #6c757d;
+            --border-light: #dee2e6;
+            --primary-color-light: #0d6efd;
+            --primary-hover-light: #0b5ed7;
+
+            /* Dark Theme */
+            --bg-dark: #0a192f;
+            --card-bg-dark: #1e293b;
+            --text-primary-dark: #e2e8f0;
+            --text-secondary-dark: #94a3b8;
+            --border-dark: #334155;
+            --primary-color-dark: #38bdf8;
+            --primary-hover-dark: #0ea5e9;
         }
-        [data-theme="light"] { --bg-color: var(--bg-light); --card-bg: var(--card-light); --text-color: var(--text-light); --border-color: var(--border-light); }
-        [data-theme="dark"] { --bg-color: var(--bg-dark); --card-bg: var(--card-dark); --text-color: var(--text-dark); --border-color: var(--border-dark); }
-        
+
+        [data-theme="light"] {
+            --bg-color: var(--bg-light);
+            --card-bg: var(--card-bg-light);
+            --text-primary: var(--text-primary-light);
+            --text-secondary: var(--text-secondary-light);
+            --border-color: var(--border-light);
+            --primary-color: var(--primary-color-light);
+            --primary-hover: var(--primary-hover-light);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: var(--bg-dark);
+            --card-bg: var(--card-bg-dark);
+            --text-primary: var(--text-primary-dark);
+            --text-secondary: var(--text-secondary-dark);
+            --border-color: var(--border-dark);
+            --primary-color: var(--primary-color-dark);
+            --primary-hover: var(--primary-hover-dark);
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
         body {
-            font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s; line-height: 1.6;
-            background-image: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%); overflow-x: hidden;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            line-height: 1.7;
+            overflow-x: hidden;
         }
-        [data-theme="dark"] body { background-image: linear-gradient(to top, #1e3c72 0%, #2a5298 100%); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px; }
+        @media (max-width: 768px) { .container { padding: 20px; } }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-        
-        header { text-align: center; margin-bottom: 40px; position: relative; }
-        header h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); font-weight: 700; }
-        header p { font-size: clamp(1rem, 3vw, 1.2rem); opacity: 0.8; margin-top: 10px; }
-        .theme-switcher { position: absolute; top: 0; left: 0; z-index: 10; }
-        #theme-toggle { cursor: pointer; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
-        
-        .tabs { display: flex; width: 100%; border-radius: 15px; background: var(--card-bg); border: 1px solid var(--border-color); margin: 40px auto; padding: 5px; }
-        .tab-btn { flex: 1; background: transparent; border: none; padding: 12px 10px; border-radius: 12px; font-size: clamp(0.9rem, 2.5vw, 1rem); cursor: pointer; transition: all 0.3s; font-weight: 500; color: var(--text-color); }
-        .tab-btn.active { background: #007bff; color: white; box-shadow: 0 4px 15px rgba(0,123,255,0.3); }
-        [data-theme="dark"] .tab-btn.active { background: #3b82f6; }
+        /* HEADER */
+        header { text-align: center; margin-bottom: 50px; position: relative; }
+        header h1 { font-size: 2.8rem; font-weight: 700; margin-bottom: 8px; }
+        header p { font-size: 1.1rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto; }
+        .theme-switcher { position: absolute; top: 0; left: 10px; }
+        #theme-toggle {
+            cursor: pointer; background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 50%; width: 44px; height: 44px;
+            display: flex; justify-content: center; align-items: center;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+        #theme-toggle:hover { background-color: var(--bg-color); }
+        #theme-toggle svg { width: 22px; height: 22px; color: var(--text-primary); transition: color var(--transition-speed); }
 
+        /* TABS */
+        .tabs {
+            display: flex; justify-content: center; flex-wrap: no-wrap; gap: 1px;
+            margin-bottom: 40px; background-color: var(--card-bg);
+            border-radius: 50px; padding: 1px; width: fit-content;
+            margin-left: auto; margin-right: auto; border: 1px solid var(--border-color);
+        }
+        .tab-btn {
+            background: transparent; border: none; padding: 10px 25px;
+            border-radius: 30px; font-size: 1rem; cursor: pointer;
+            transition: all var(--transition-speed); font-weight: 500;
+            color: var(--text-secondary); display: flex; align-items: center; gap: 8px;
+        }
+        .tab-btn.active { background: var(--primary-color); color: white; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2); }
+        [data-theme="dark"] .tab-btn.active { box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2); }
+
+        /* PLANS GRID & TAB CONTENT */
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-content.active {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px; animation: fadeIn 0.5s ease-in-out;
+        }
+        #renew.active { display: block; } /* Special case for renew tab */
 
-        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .plan-card {
             background: var(--card-bg); border: 1px solid var(--border-color);
             border-radius: 20px; padding: 30px; text-align: center;
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            transition: all 0.3s; cursor: pointer; position: relative; overflow: hidden;
+            transition: all var(--transition-speed); cursor: pointer;
+            position: relative; overflow: hidden; border-top-width: 4px;
+            border-top-color: var(--plan-color);
         }
-        .plan-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        [data-theme="dark"] .plan-card:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-
-        .plan-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, var(--gradient-color, rgba(255,255,255,0.3)) 0%, transparent 40%); transition: opacity 0.5s; opacity: 0; animation: rotate 10s linear infinite; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .plan-card:hover::before { opacity: 1; }
+        .plan-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); }
+        [data-theme="dark"] .plan-card:hover { box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); }
+        .plan-card.selected {
+            border-color: var(--primary-color); border-top-color: var(--primary-color);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+        }
+        [data-theme="dark"] .plan-card.selected { box-shadow: 0 8px 25px rgba(56, 189, 248, 0.15); }
         
-        [data-color="#007bff"] { --gradient-color: rgba(0, 123, 255, 0.4); } [data-color="#28a745"] { --gradient-color: rgba(40, 167, 69, 0.4); } [data-color="#ffc107"] { --gradient-color: rgba(255, 193, 7, 0.4); } [data-color="#dc3545"] { --gradient-color: rgba(220, 53, 69, 0.4); } [data-color="#17a2b8"] { --gradient-color: rgba(23, 162, 184, 0.4); } [data-color="#6c757d"] { --gradient-color: rgba(108, 117, 125, 0.4); } [data-color="#0056b3"] { --gradient-color: rgba(0, 86, 179, 0.4); } [data-color="#003d82"] { --gradient-color: rgba(0, 61, 130, 0.4); }
+        [data-plan="1"], [data-plan="7"] { --plan-color: #0d6efd; }
+        [data-plan="2"] { --plan-color: #198754; }
+        [data-plan="3"], [data-plan="8"] { --plan-color: #6f42c1; }
+        [data-plan="4"] { --plan-color: #ffc107; }
+        [data-plan="5"] { --plan-color: #dc3545; }
+        [data-plan="6"] { --plan-color: #fd7e14; }
 
         .plan-card input { display: none; }
-        .plan-card.selected { border: 2px solid var(--selected-color, #007bff); }
-        
-        .plan-icon { font-size: 2.5rem; margin-bottom: 15px; }
-        .plan-duration { font-size: 1.6rem; font-weight: 700; }
-        .plan-features { list-style: none; padding: 0; margin: 20px 0; font-size: 0.95rem; opacity: 0.9; text-align: right; }
-        .plan-features li { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .plan-icon { margin-bottom: 15px; }
+        .plan-icon svg { width: 48px; height: 48px; color: var(--plan-color); }
+        .plan-duration { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); }
+        .plan-features { list-style: none; padding: 0; margin: 25px 0; font-size: 0.95rem; color: var(--text-secondary); }
+        .plan-features li { margin-bottom: 10px; }
         .os-icons { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
-        .os-icons i { font-size: 24px; opacity: 0.7; }
-        .plan-price { font-size: 1.8rem; font-weight: 700; }
+        .os-icons svg { width: 24px; height: 24px; color: var(--text-secondary); opacity: 0.7; }
+        .plan-price { font-size: 2.2rem; font-weight: 700; color: var(--text-primary); }
+        .plan-price span { font-size: 1rem; font-weight: 400; color: var(--text-secondary); }
         
+        /* Purchase Button */
         .purchase-btn {
-            background: linear-gradient(45deg, #007bff, #00c6ff); color: white; border: none;
-            padding: 18px; font-size: 1.2rem; border-radius: 15px; cursor: pointer;
-            transition: all 0.3s; display: block; width: 100%; margin: 40px auto 0;
-            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+            background: var(--primary-color); color: white; border: none;
+            padding: 15px 40px; font-size: 1.2rem; font-weight: 500;
+            border-radius: 50px; cursor: pointer; transition: all var(--transition-speed);
+            display: block; width: fit-content; margin: 50px auto 0;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.2);
         }
-        .purchase-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4); }
-        [data-theme="dark"] .purchase-btn { background: linear-gradient(45deg, #3b82f6, #60a5fa); }
-        .purchase-btn:disabled { background: #aaa; cursor: not-allowed; }
+        .purchase-btn:hover {
+            background: var(--primary-hover); transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+        }
+        [data-theme="dark"] .purchase-btn { box-shadow: 0 5px 15px rgba(56, 189, 248, 0.2); }
+        [data-theme="dark"] .purchase-btn:hover { box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3); }
+        .purchase-btn:disabled { background: #aaa; cursor: not-allowed; transform: none; box-shadow: none; }
 
+        /* RENEWAL SECTION STYLES */
+        .renewal-configurator {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 20px; padding: 30px; text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+            border-top: 4px solid var(--primary-color);
+            transition: border-top-color var(--transition-speed);
+        }
+        .renewal-configurator .plan-type-selector {
+            display: flex; justify-content: center; gap: 10px; margin-bottom: 30px;
+        }
+        .renewal-configurator .plan-type-selector button {
+            background: transparent; border: 1px solid var(--border-color);
+            color: var(--text-secondary); padding: 8px 20px;
+            border-radius: 20px; cursor: pointer; font-weight: 500;
+            transition: all var(--transition-speed);
+        }
+        .renewal-configurator .plan-type-selector button.active {
+            background: var(--primary-color); color: white; border-color: var(--primary-color);
+        }
+        .plan-slider {
+            -webkit-appearance: none; appearance: none; width: 100%; height: 8px;
+            background: var(--border-color); border-radius: 5px; outline: none; margin: 30px 0;
+        }
+        .plan-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 24px; height: 24px;
+            border-radius: 50%; background: var(--primary-color); cursor: pointer;
+            border: 4px solid var(--card-bg);
+            transition: background-color var(--transition-speed);
+        }
+        .plan-slider::-moz-range-thumb {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--primary-color); cursor: pointer;
+            border: 4px solid var(--card-bg);
+            transition: background-color var(--transition-speed);
+        }
+        .plan-info-display { margin-bottom: 30px; }
+        .plan-info-display h3 { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); transition: color var(--transition-speed); }
+        .plan-info-display p { color: var(--text-secondary); font-size: 1.1rem; }
+        #renewal-identifier-input {
+            width: 100%; max-width: 400px; padding: 12px; border-radius: 8px;
+            border: 1px solid var(--border-color); background: var(--bg-color);
+            color: var(--text-primary); margin-bottom: 25px;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+        #renewal-identifier-input:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        }
+        [data-theme="dark"] #renewal-identifier-input:focus { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25); }
+        #renew-btn { margin: 0 auto; } /* Inherits .purchase-btn styles */
+
+        /* MODAL (Popup) */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center;
             z-index: 1000; backdrop-filter: blur(5px);
         }
         .modal.show { display: flex; animation: fadeIn 0.3s; }
-        .modal-content { background: var(--bg-color); padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; animation: slideIn 0.3s; }
-        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-content h3 { margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; }
-        .form-group input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); }
-        .modal-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
-        .modal-actions button { flex: 1; padding: 12px; border-radius: 8px; border: none; font-size: 1rem; cursor: pointer; }
-        #skip-btn { background: transparent; border: 1px solid #aaa; color: var(--text-color); }
-        #confirm-btn { background: #007bff; color: white; }
-        
-        .renew-container {
-            background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color); border-radius: 20px; padding: 40px; text-align: center;
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px; border-radius: 15px; width: 90%; max-width: 400px;
+            animation: slideIn 0.3s; border: 1px solid var(--border-color);
         }
-        .renew-container h2 { margin-bottom: 15px; }
-        .renew-container p { margin-bottom: 25px; opacity: 0.8; }
-        .renew-identifier-input { width: 100%; max-width: 400px; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.1); color: var(--text-color); margin-bottom: 30px; text-align: center; }
-        .plan-type-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
-        .plan-type-btn { background: rgba(0,0,0,0.1); border: 1px solid var(--border-color); padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: all 0.2s; }
-        .plan-type-btn.active { background: var(--slider-thumb-color); color: white; border-color: var(--slider-thumb-color); }
-        
-        .slider-container { padding: 20px 0; }
-        .range-slider { width: 100%; -webkit-appearance: none; background: transparent; }
-        .range-slider::-webkit-slider-runnable-track { height: 10px; background: var(--slider-track-color); border-radius: 5px; transition: background-color 0.3s; }
-        .range-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: var(--slider-thumb-color); border-radius: 50%; margin-top: -7px; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.2); transition: background-color 0.3s; }
-        
-        .slider-details { margin-top: 20px; transition: all 0.3s; }
-        #renew-plan-name { font-size: 1.8rem; font-weight: 700; transition: color 0.3s; color: var(--slider-thumb-color); }
-        #renew-plan-price { font-size: 1.5rem; margin-top: 10px; }
-        #renew-plan-info { margin-top: 15px; opacity: 0.8; }
-        
+        @keyframes slideIn {
+            from { transform: translateY(-30px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .modal-content h3 { margin-bottom: 10px; }
+        .modal-content p { color: var(--text-secondary); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .form-group input {
+            width: 100%; padding: 12px; border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color); color: var(--text-primary);
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        }
+        [data-theme="dark"] .form-group input:focus { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25); }
+        .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px; }
+        .modal-actions button {
+            padding: 12px; border-radius: 8px; border: none; font-size: 1rem;
+            font-weight: 500; cursor: pointer; transition: all var(--transition-speed);
+        }
+        #skip-btn { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-primary); }
+        #skip-btn:hover { background-color: var(--border-color); }
+        #confirm-btn { background: var(--primary-color); color: white; }
+        #confirm-btn:hover { background: var(--primary-hover); }
+
+        /* TRACKING SECTION */
         .tracking-section {
-            background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color); border-radius: 20px; padding: 30px;
-            margin-top: 60px; text-align: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 60px;
+            text-align: center;
         }
         .tracking-section h2 { margin-bottom: 20px; }
-        .tracking-form { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        @media (min-width: 576px) { .tracking-form { flex-direction: row; } }
-        .tracking-form input { width:100%; flex-grow: 1; max-width: 400px; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.1); color: var(--text-color); }
-        .tracking-form button { width: 100%; background: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; }
-        @media (min-width: 576px) { .tracking-form { width: auto; } }
-        #tracking-results { margin-top: 20px; text-align: right; }
-        #tracking-results ul { list-style: none; padding: 0; }
-        #tracking-results li { background: var(--bg-color); padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem; }
-        
-        footer { text-align: center; margin-top: 50px; padding: 30px; border-top: 1px solid var(--border-color); }
+        .tracking-form { display: flex; gap: 10px; justify-content: center; max-width: 450px; margin: 0 auto; }
+        .tracking-form input {
+            flex-grow: 1; padding: 12px; border-radius: 8px;
+            border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-primary);
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed); text-align: left;
+        }
+        .tracking-form input:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        }
+        [data-theme="dark"] .tracking-form input:focus { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25); }
+        .tracking-form button {
+            background: var(--primary-color); color: white; padding: 12px 20px;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: 500;
+            transition: background-color var(--transition-speed);
+        }
+        .tracking-form button:hover { background-color: var(--primary-hover); }
+        #tracking-results { margin-top: 20px; text-align: right; color: var(--text-secondary); }
+        #tracking-results li {
+            background: var(--bg-color); padding: 15px; border-radius: 8px; margin-bottom: 10px;
+            border-right: 3px solid var(--primary-color);
+        }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
         .social-icons { margin-bottom: 20px; }
-        .social-icons a { margin: 0 10px; display: inline-block; transition: transform 0.2s; }
-        .social-icons a:hover { transform: translateY(-3px); }
-        .social-icons i { font-size: 24px; color: var(--text-color); opacity: 0.7; }
-        footer p { font-size: 0.9rem; opacity: 0.8; }
-        footer a { color: var(--text-color); text-decoration: underline; }
+        .social-icons a {
+            margin: 0 10px; display: inline-block;
+            transition: transform var(--transition-speed);
+            color: var(--text-secondary);
+        }
+        .social-icons a:hover {
+            transform: translateY(-3px);
+            color: var(--text-primary);
+        }
+        .social-icons svg { width: 33px; height: 33px; }
+        footer p { font-size: 0.9rem; margin-bottom: 5px; }
+        footer a { color: var(--text-primary); text-decoration: none; font-weight: 500; }
+        footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body data-theme="light">
@@ -150,51 +332,43 @@
         <header>
             <div class="theme-switcher">
                 <button id="theme-toggle" title="تغییر تم">
-                    <i data-lucide="moon"></i>
+                    <i id="theme-icon" data-lucide="moon"></i>
                 </button>
             </div>
-            <h1>اشتراک پرسرعت Ay VPN</h1>
-            <p>سرویس پایدار و امن، مناسب برای تمام دستگاه‌ها</p>
+            <h1>Ay VPN</h1>
+            <p>سرویس پایدار و امن، با پشتیبانی کامل، مناسب برای تمام دستگاه‌ها و اپراتورها</p>
         </header>
 
         <main>
             <div class="tabs">
-                <button class="tab-btn active" data-tab="unlimited">🚀 نامحدود</button>
-                <button class="tab-btn" data-tab="national">🇮🇷 اینترنت ملی</button>
-                <button class="tab-btn" data-tab="renew">🔄 تمدید اشتراک</button>
+                <button class="tab-btn active" data-tab="unlimited"><i data-lucide="rocket"></i>نامحدود</button>
+                <button class="tab-btn" data-tab="national"><i data-lucide="globe-2"></i>ملی</button>
+                <button class="tab-btn" data-tab="renew"><i data-lucide="history"></i>تمدید</button>
             </div>
 
             <form id="payment-form">
-                <div id="unlimited" class="tab-content active plans-grid"></div>
-                <div id="national" class="tab-content plans-grid"></div>
-                
-                <div id="renew" class="tab-content">
-                    <div class="renew-container">
-                        <h2>تمدید اشتراک</h2>
-                        <p>برای تمدید، ابتدا مشخصه اشتراک قبلی خود (لینک، ایمیل یا شماره پیگیری) را وارد کنید.</p>
-                        <input type="text" id="renew-identifier" class="renew-identifier-input" placeholder="مشخصه اشتراک قبلی...">
-                        
-                        <div class="plan-type-selector">
-                            <button type="button" class="plan-type-btn active" data-type="unlimited">نامحدود</button>
-                            <button type="button" class="plan-type-btn" data-type="national">ملی</button>
-                        </div>
-
-                        <div class="slider-container">
-                            <input type="range" min="0" max="5" value="0" step="1" class="range-slider" id="renew-slider">
-                        </div>
-                        
-                        <div class="slider-details">
-                            <div id="renew-plan-name">پلن را انتخاب کنید</div>
-                            <div id="renew-plan-price"></div>
-                            <div id="renew-plan-info"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <button type="submit" class="purchase-btn" id="purchase-btn">خرید / تمدید اشتراک</button>
+                <div id="unlimited" class="tab-content active"></div>
+                <div id="national" class="tab-content"></div>
+                <button type="submit" class="purchase-btn" id="purchase-btn">خرید اشتراک</button>
             </form>
 
-            <section class="tracking-section" id="tracking">
+            <div id="renew" class="tab-content">
+                <div class="renewal-configurator">
+                    <div class="plan-type-selector">
+                        <button class="active" data-type="unlimited">🚀 نامحدود</button>
+                        <button data-type="national">🇮🇷 ملی</button>
+                    </div>
+                    <div class="plan-info-display">
+                        <h3 id="selected-plan-name"></h3>
+                        <p id="selected-plan-price"></p>
+                    </div>
+                    <input type="range" class="plan-slider" id="plan-slider" min="0" value="0">
+                    <input type="text" id="renewal-identifier-input" placeholder="شناسه اشتراک قبلی (لینک، ایمیل و...)" required>
+                    <button class="purchase-btn" id="renew-btn">تمدید اشتراک</button>
+                </div>
+            </div>
+
+            <section class="tracking-section">
                 <h2>پیگیری خرید</h2>
                 <form id="tracking-form" class="tracking-form">
                     <input type="text" id="tracking-id-input" placeholder="شماره پیگیری خود را وارد کنید..." required>
@@ -206,33 +380,22 @@
 
         <footer>
             <div class="social-icons">
-                <a href="https://t.me/Ay_VPN" target="_blank" title="Telegram Channel"><i data-lucide="send"></i></a>
-                <a href="https://t.me/AyVPNsupport" target="_blank" title="Support"><i data-lucide="life-buoy"></i></a>
-                <a href="https://wa.me/989035132322" target="_blank" title="WhatsApp"><i data-lucide="phone"></i></a>
+                <a href="https://t.me/AyVPNsupport" target="_blank" title="Support"><i data-lucide="user"></i></a>
+                <a href="https://t.me/AyVPN_Bot" target="_blank" title="Telegram"><i data-lucide="send"></i></a>
+                <a href="https://wa.me/your-whatsapp-number" target="_blank" title="WhatsApp"><i data-lucide="message-circle"></i></a>
             </div>
-            <p>&copy; 2025 تمام حقوق برای <a href="https://shammay.ir" target="_blank">Ay Technic</a> محفوظ است.</p>
-            <p>پشتیبانی: <a href="https://t.me/AyVPNsupport" target="_blank">@AyVPNsupport</a></p>
+            <p>&copy; تمام حقوق برای <a href="https://shammay.ir" target="_blank">Ay Technic</a> محفوظ است.</p>
         </footer>
-
     </div>
 
     <div class="modal" id="user-info-modal">
         <div class="modal-content">
             <h3>تکمیل اطلاعات (اختیاری)</h3>
-            <p style="font-size:0.9rem; opacity:0.8; margin-bottom: 20px;">با وارد کردن اطلاعات، می‌توانید خریدهای قبلی خود را مشاهده و پیگیری کنید.</p>
+            <p>با وارد کردن اطلاعات، می‌توانید خریدهای قبلی خود را مشاهده و پیگیری کنید.</p>
             <form id="user-info-form">
-                <div class="form-group">
-                    <label for="name">نام</label>
-                    <input type="text" id="name" placeholder="مثال: شامای">
-                </div>
-                <div class="form-group">
-                    <label for="email">ایمیل</label>
-                    <input type="email" id="email" placeholder="shammay@example.com">
-                </div>
-                <div class="form-group">
-                    <label for="phone">شماره تماس</label>
-                    <input type="tel" id="phone" placeholder="09123456789">
-                </div>
+                <div class="form-group"><label for="name">نام</label><input type="text" id="name" placeholder="مثال: Aylin"></div>
+                <div class="form-group"><label for="email">ایمیل</label><input type="email" id="email" placeholder="esm@gmail.com"></div>
+                <div class="form-group"><label for="phone">شماره تماس</label><input type="tel" id="phone" placeholder="09123456789" dir="ltr" style="text-align:right;"></div>
                 <div class="modal-actions">
                     <button type="button" id="skip-btn">رد شدن</button>
                     <button type="submit" id="confirm-btn">تایید و ادامه</button>
@@ -242,229 +405,283 @@
     </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- DATA & CONFIG ---
-        const plansData = {
-            unlimited: [
-                { id: 1, duration: '۱ ماهه', price: 120000, desc: 'اشتراک ۳۰ روزه', icon: '💎', color: '#007bff' },
-                { id: 2, duration: '۲ ماهه', price: 220000, desc: 'اشتراک ۶۰ روزه', icon: '🚀', color: '#28a745' },
-                { id: 3, duration: '۳ ماهه', price: 340000, desc: 'اشتراک ۹۰ روزه', icon: '🌟', color: '#ffc107' },
-                { id: 4, duration: '۶ ماهه', price: 600000, desc: 'اشتراک ۱۸۰ روزه', icon: '🔥', color: '#dc3545' },
-                { id: 5, duration: '۱ ساله', price: 1000000, desc: 'اشتراک ۳۶۵ روزه', icon: '🛡️', color: '#17a2b8' },
-                { id: 6, duration: '۲ ساله', price: 2000000, desc: 'اشتراک ۷۳۰ روزه', icon: '👑', color: '#6c757d' }
-            ],
-            national: [ // Placeholder for National plans
-                { id: 7, duration: '۱ ماهه ملی', price: 120000, desc: 'اشتراک ملی ۳۰ روزه', icon: '🇮🇷', color: '#0056b3' },
-                { id: 8, duration: '۳ ماهه ملی', price: 340000, desc: 'اشتراک ملی ۹۰ روزه', icon: '🇮🇷', color: '#003d82' },
-            ]
-        };
+document.addEventListener('DOMContentLoaded', () => {
 
-        // --- DOM ELEMENTS ---
-        const themeToggle = document.getElementById('theme-toggle');
-        const tabs = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-        const purchaseBtn = document.getElementById('purchase-btn');
-        const modal = document.getElementById('user-info-modal');
-        const userInfoForm = document.getElementById('user-info-form');
-        const skipBtn = document.getElementById('skip-btn');
-        const trackingForm = document.getElementById('tracking-form');
-        const trackingInput = document.getElementById('tracking-id-input');
-        const trackingResults = document.getElementById('tracking-results');
-        const renewSlider = document.getElementById('renew-slider');
-        const planTypeBtns = document.querySelectorAll('.plan-type-btn');
-        const renewIdentifierInput = document.getElementById('renew-identifier');
-        const renewPlanName = document.getElementById('renew-plan-name');
-        const renewPlanPrice = document.getElementById('renew-plan-price');
-        const renewPlanInfo = document.getElementById('renew-plan-info');
-        
-        let currentRenewType = 'unlimited';
-        let selectedRenewPlan = null;
-        let paymentData = {};
+    // --- DATA & CONFIG ---
+    const plansData = [
+        { id: 1, duration: '۱ ماهه', price: 12000, desc: 'اشتراک ۳۰ روزه', icon: 'gem', type: 'unlimited', color: '#0d6efd' },
+        { id: 2, duration: '۲ ماهه', price: 220000, desc: 'اشتراک ۶۰ روزه', icon: 'zap', type: 'unlimited', color: '#198754' },
+        { id: 3, duration: '۳ ماهه', price: 340000, desc: 'اشتراک ۹۰ روزه', icon: 'star', type: 'unlimited', color: '#6f42c1' },
+        { id: 4, duration: '۶ ماهه', price: 600000, desc: 'اشتراک ۱۸۰ روزه', icon: 'flame', type: 'unlimited', color: '#ffc107' },
+        { id: 5, duration: '۱ ساله', price: 10000, desc: 'اشتراک ۳۶۵ روزه', icon: 'shield', type: 'unlimited', color: '#dc3545' },
+        { id: 6, duration: '۲ ساله', price: 2000000, desc: 'اشتراک ۷۳۰ روزه', icon: 'crown', type: 'unlimited', color: '#fd7e14' }
+    ];
+    const nationalPlansData = [
+        { id: 7, duration: '۱ ماهه ملی', price: 120000, desc: 'اشتراک ملی ۳۰ روزه', icon: 'globe', type: 'national', color: '#0d6efd' },
+        { id: 8, duration: '۳ ماهه ملی', price: 340000, desc: 'اشتراک ملی ۹۰ روزه', icon: 'server', type: 'national', color: '#6f42c1' },
+    ];
+    const allPlans = { unlimited: plansData, national: nationalPlansData };
 
-        // --- THEME SWITCHER ---
-        const applyTheme = (theme) => {
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            themeToggle.innerHTML = theme === 'light' ? '<i data-lucide="moon"></i>' : '<i data-lucide="sun"></i>';
-            lucide.createIcons();
-        };
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        applyTheme(savedTheme);
-        themeToggle.addEventListener('click', () => {
-            const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            applyTheme(newTheme);
-        });
+    // --- DOM ELEMENTS ---
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const tabs = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const paymentForm = document.getElementById('payment-form');
+    const purchaseBtn = document.getElementById('purchase-btn');
+    const modal = document.getElementById('user-info-modal');
+    const userInfoForm = document.getElementById('user-info-form');
+    const skipBtn = document.getElementById('skip-btn');
+    const trackingForm = document.getElementById('tracking-form');
+    const trackingInput = document.getElementById('tracking-id-input');
+    const trackingResults = document.getElementById('tracking-results');
+    // Renewal Elements
+    const renewalConfigurator = document.querySelector('.renewal-configurator');
+    const planTypeButtons = document.querySelectorAll('.plan-type-selector button');
+    const planSlider = document.getElementById('plan-slider');
+    const selectedPlanName = document.getElementById('selected-plan-name');
+    const selectedPlanPrice = document.getElementById('selected-plan-price');
+    const renewalIdentifierInput = document.getElementById('renewal-identifier-input');
+    const renewBtn = document.getElementById('renew-btn');
 
-        // --- DYNAMIC PLAN RENDERING ---
-        function renderPlans(plans, containerId) {
-            const container = document.getElementById(containerId);
-            if(!container) return;
-            container.innerHTML = plans.map(plan => `
-                <label class="plan-card" data-color="${plan.color}" style="--selected-color: ${plan.color};">
-                    <input type="radio" name="plan" value="${plan.price}" data-description="${plan.desc}">
-                    <div class="plan-icon">${plan.icon}</div>
-                    <div class="plan-duration">${plan.duration}</div>
-                    <ul class="plan-features">
-                        <li><i data-lucide="shield-check"></i> آی پی ثابت</li>
-                        <li><i data-lucide="zap"></i> پر سرعت</li>
-                        <li><i data-lucide="server"></i> چند سروره</li>
-                        <li><i data-lucide="infinity"></i> نامحدود</li>
-                    </ul>
-                    <div class="os-icons">
-                        <i data-lucide="android"></i>
-                        <i data-lucide="apple"></i>
-                        <i data-lucide="windows"></i>
-                    </div>
-                    <div class="plan-price">${new Intl.NumberFormat('fa-IR').format(plan.price)} <span style="font-size:1rem;">تومان</span></div>
-                </label>
-            `).join('');
-            
-            container.querySelectorAll('.plan-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    card.querySelector('input').checked = true;
-                });
-            });
-            if (container.querySelector('.plan-card')) {
-                container.querySelector('.plan-card').click();
-            }
-        }
-        
-        // --- TABS LOGIC ---
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                tabContents.forEach(content => content.classList.remove('active'));
-                document.getElementById(tab.dataset.tab).classList.add('active');
-            });
-        });
-
-        // --- RENEW SLIDER LOGIC ---
-        function setupSlider(type) {
-            currentRenewType = type;
-            const plans = plansData[type];
-            renewSlider.max = plans.length - 1;
-            renewSlider.value = 0;
-            updateSliderDetails(0);
-
-            planTypeBtns.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.type === type);
-            });
-        }
-
-        function updateSliderDetails(index) {
-            const plans = plansData[currentRenewType];
-            const plan = plans[parseInt(index)];
-            if (!plan) return;
-            selectedRenewPlan = plan;
-
-            const color = plan.color || '#007bff';
-            document.documentElement.style.setProperty('--slider-thumb-color', color);
-            document.documentElement.style.setProperty('--slider-track-color', `${color}33`);
-
-            renewPlanName.innerText = plan.duration;
-            renewPlanPrice.innerHTML = `${new Intl.NumberFormat('fa-IR').format(plan.price)} <span style="font-size:1rem;">تومان</span>`;
-            renewPlanInfo.innerText = `سرویس انتخابی برای تمدید: ${plan.duration}`;
-        }
-
-        planTypeBtns.forEach(btn => btn.addEventListener('click', () => setupSlider(btn.dataset.type)));
-        renewSlider.addEventListener('input', (e) => updateSliderDetails(e.target.value));
-
-        // --- PAYMENT & MODAL LOGIC ---
-        purchaseBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
-
-            if (activeTab === 'unlimited' || activeTab === 'national') {
-                const selectedPlanInput = document.querySelector(`#${activeTab} input[name="plan"]:checked`);
-                if (!selectedPlanInput) { alert('لطفا یک پلن را انتخاب کنید.'); return; }
-                paymentData = { amount: selectedPlanInput.value, description: selectedPlanInput.dataset.description };
-            } else { // Renew Tab
-                const renewalIdentifier = renewIdentifierInput.value.trim();
-                if (!renewalIdentifier) { alert('لطفا مشخصه اشتراک قبلی خود را برای تمدید وارد کنید.'); return; }
-                if (!selectedRenewPlan) { alert('خطا: پلن تمدید انتخاب نشده است.'); return; }
-                paymentData = {
-                    amount: selectedRenewPlan.price,
-                    description: `تمدید اشتراک: ${selectedRenewPlan.desc}`,
-                    renewalIdentifier: renewalIdentifier,
-                    requestedPlan: selectedRenewPlan.duration,
-                };
-            }
-            modal.classList.add('show');
-        });
-
-        skipBtn.addEventListener('click', () => {
-            modal.classList.remove('show');
-            startPayment();
-        });
-
-        userInfoForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            modal.classList.remove('show');
-            paymentData.name = document.getElementById('name').value;
-            paymentData.email = document.getElementById('email').value;
-            paymentData.phone = document.getElementById('phone').value;
-            startPayment();
-        });
-
-        modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
-
-        async function startPayment() {
-            purchaseBtn.disabled = true;
-            purchaseBtn.innerText = 'در حال انتقال...';
-
-            try {
-                const response = await fetch('/api/start-payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paymentData),
-                });
-                const data = await response.json();
-                if (response.ok && data.authority) {
-                    window.location.href = `https://www.zarinpal.com/pg/StartPay/${data.authority}`;
-                } else {
-                    throw new Error(data.details || 'خطا در ارتباط با درگاه پرداخت.');
-                }
-            } catch (error) {
-                alert('خطا: ' + error.message);
-                purchaseBtn.disabled = false;
-                purchaseBtn.innerText = 'خرید / تمدید اشتراک';
-            }
-        }
-
-        // --- TRACKING LOGIC ---
-        trackingForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const trackingId = trackingInput.value.trim();
-            if (!trackingId) return;
-            trackingResults.innerHTML = '<p>در حال جستجو...</p>';
-
-            try {
-                const response = await fetch(`/api/track?trackingId=${trackingId}`);
-                const data = await response.json();
-
-                if (!response.ok) throw new Error(data.error || 'خطایی رخ داد.');
-                
-                let html = '<h3>نتایج یافت شده:</h3><ul>';
-                data.forEach(p => {
-                    html += `<li><strong>پلن:</strong> ${p.plan} | <strong>تاریخ:</strong> ${new Date(p.date).toLocaleDateString('fa-IR')} | <strong>لینک:</strong> <code>${p.link}</code></li>`;
-                });
-                html += '</ul>';
-                trackingResults.innerHTML = html;
-
-            } catch (error) {
-                trackingResults.innerHTML = `<p style="color:red;">خطا: ${error.message}</p>`;
-            }
-        });
-
-        // --- INITIALIZATION ---
-        renderPlans(plansData.unlimited, 'unlimited');
-        renderPlans(plansData.national, 'national');
-        setupSlider('unlimited');
+    // --- THEME SWITCHER ---
+    function applyTheme(theme) {
+        document.body.setAttribute('data-theme', theme);
+        themeIcon.setAttribute('data-lucide', theme === 'light' ? 'moon' : 'sun');
+        localStorage.setItem('theme', theme);
         lucide.createIcons();
+    }
+    themeToggle.addEventListener('click', () => {
+        const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        applyTheme(newTheme);
     });
+    const preferredTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(preferredTheme);
+
+    // --- DYNAMIC PLAN RENDERING ---
+    function renderPlans(plans, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        container.innerHTML = plans.map(plan => `
+            <label class="plan-card" data-plan="${plan.id}">
+                <input type="radio" name="plan" value="${plan.price}" data-description="${plan.desc}">
+                <div class="plan-icon"><i data-lucide="${plan.icon}"></i></div>
+                <div class="plan-duration">${plan.duration}</div>
+                <ul class="plan-features">
+                    <li>آی‌پے ثابت</li>
+                    <li>چند سروره</li>
+                    <li>ترافیک نامحدود</li>
+                    <li>سازگار با همه اپراتورها</li>
+                </ul>
+                <div class="os-icons">
+                     <i data-lucide="smartphone"></i>
+                     <i data-lucide="laptop"></i>
+                     <i data-lucide="globe"></i>
+                </div>
+                <div class="plan-price">${new Intl.NumberFormat('fa-IR').format(plan.price)} <span>تومان</span></div>
+            </label>
+        `).join('');
+        
+        container.querySelectorAll('.plan-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+                document.querySelectorAll('input[name="plan"]').forEach(radio => radio.checked = false);
+                card.classList.add('selected');
+                card.querySelector('input').checked = true;
+            });
+        });
+
+        lucide.createIcons();
+    }
+    renderPlans(plansData, 'unlimited');
+    renderPlans(nationalPlansData, 'national');
+
+    // --- TABS LOGIC (MODIFIED) ---
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            const activeTabId = tab.dataset.tab;
+
+            tabContents.forEach(content => {
+                content.classList.toggle('active', content.id === activeTabId);
+            });
+            
+            paymentForm.style.display = (activeTabId === 'renew') ? 'none' : 'block';
+
+            if (activeTabId !== 'renew' && !document.querySelector('input[name="plan"]:checked')) {
+                 const firstCardInTab = document.querySelector(`#${activeTabId} .plan-card`);
+                 if (firstCardInTab) {
+                     firstCardInTab.click();
+                 }
+            }
+        });
+    });
+
+    // --- Select first plan by default on initial load ---
+    if (document.querySelector('#unlimited .plan-card')) {
+        document.querySelector('#unlimited .plan-card').click();
+    }
+
+    // --- RENEWAL SLIDER LOGIC (NEW) ---
+    let currentRenewalType = 'unlimited';
+    
+    function setupSlider() {
+        const plans = allPlans[currentRenewalType];
+        planSlider.max = plans.length - 1;
+        planSlider.value = 0;
+        updateSliderUI();
+    }
+
+    function updateSliderUI() {
+        const plans = allPlans[currentRenewalType];
+        const selectedPlan = plans[planSlider.value];
+        if (!selectedPlan) return;
+
+        selectedPlanName.innerText = selectedPlan.duration;
+        selectedPlanPrice.innerText = `${new Intl.NumberFormat('fa-IR').format(selectedPlan.price)} تومان`;
+        
+        renewalConfigurator.style.borderTopColor = selectedPlan.color;
+        planSlider.style.setProperty('--primary-color', selectedPlan.color);
+        selectedPlanName.style.color = selectedPlan.color;
+    }
+
+    planTypeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            planTypeButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            currentRenewalType = button.dataset.type;
+            setupSlider();
+        });
+    });
+
+    planSlider.addEventListener('input', updateSliderUI);
+
+    setupSlider(); // Initial setup
+
+    // --- PAYMENT & MODAL LOGIC (MODIFIED) ---
+    let paymentData = {};
+
+    purchaseBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const selectedPlan = document.querySelector('input[name="plan"]:checked');
+        if (!selectedPlan) {
+            alert('لطفا یک پلن را انتخاب کنید.');
+            return;
+        }
+        paymentData = {
+            amount: selectedPlan.value,
+            description: selectedPlan.dataset.description,
+        };
+        modal.classList.add('show');
+    });
+    
+    renewBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const identifier = renewalIdentifierInput.value.trim();
+        if (!identifier) {
+            alert('لطفا شناسه اشتراک قبلی خود را وارد کنید.');
+            renewalIdentifierInput.focus();
+            return;
+        }
+        const selectedPlan = allPlans[currentRenewalType][planSlider.value];
+        paymentData = {
+            amount: selectedPlan.price,
+            description: `تمدید: ${selectedPlan.desc}`,
+            renewalIdentifier: identifier,
+            requestedPlan: selectedPlan.duration
+        };
+        modal.classList.add('show');
+    });
+
+    skipBtn.addEventListener('click', () => {
+        modal.classList.remove('show');
+        startPayment();
+    });
+
+    userInfoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        modal.classList.remove('show');
+        paymentData.name = document.getElementById('name').value;
+        paymentData.email = document.getElementById('email').value;
+        paymentData.phone = document.getElementById('phone').value;
+        startPayment();
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('show');
+    });
+
+    async function startPayment() {
+        const activeTabId = document.querySelector('.tab-btn.active').dataset.tab;
+        const btn = (activeTabId === 'renew') ? renewBtn : purchaseBtn;
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = 'در حال انتقال...';
+
+        try {
+            const response = await fetch('/api/start-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(paymentData),
+            });
+            const data = await response.json();
+            if (response.ok && data.authority) {
+                window.location.href = `https://www.zarinpal.com/pg/StartPay/${data.authority}`;
+            } else {
+                throw new Error(data.details || 'خطا در ارتباط با درگاه پرداخت.');
+            }
+        } catch (error) {
+            alert('خطا: ' + error.message);
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    }
+
+    // --- TRACKING LOGIC ---
+    trackingForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const trackingId = trackingInput.value.trim();
+        if (!trackingId) return;
+        trackingResults.innerHTML = '<p>در حال جستجو...</p>';
+
+        try {
+            const response = await fetch(`/api/track?trackingId=${trackingId}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'خطایی رخ داد.');
+            }
+
+            if (data.length === 0) {
+                trackingResults.innerHTML = '<p>خریدی با این شماره پیگیری یافت نشد.</p>';
+                return;
+            }
+
+            let html = '<h3>نتایج یافت شده:</h3><ul>';
+            data.forEach(p => {
+                html += `
+                    <li>
+                        <strong>پلن:</strong> ${p.plan} <br>
+                        <strong>تاریخ:</strong> ${new Date(p.date).toLocaleDateString('fa-IR')} <br>
+                        <strong>لینک:</strong> <code>${p.link}</code>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            trackingResults.innerHTML = html;
+
+        } catch (error) {
+            trackingResults.innerHTML = `<p style="color:red;">خطا: ${error.message}</p>`;
+        }
+    });
+
+    // --- Final Icon Render ---
+    lucide.createIcons();
+});
 </script>
+
 </body>
 </html>
