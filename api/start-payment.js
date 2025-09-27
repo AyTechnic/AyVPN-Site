@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
     try {
-        const { amount, description, chat_id, name, email, phone } = req.body;
+        const { amount, description, chat_id, name, email, phone, renewalIdentifier, requestedPlan } = req.body;
         if (!amount) {
             return res.status(400).json({ error: 'Amount is required' });
         }
@@ -15,11 +15,13 @@ module.exports = async (req, res) => {
         const protocol = host.startsWith('localhost') ? 'http' : 'https';
         
         const queryParams = new URLSearchParams({
-            amount, // ما همچنان مبلغ تومانی را به مرحله بعد می‌فرستیم
+            amount,
             chat_id: chat_id || 'none',
             name: name || '',
             email: email || '',
-            phone: phone || ''
+            phone: phone || '',
+            renewalIdentifier: renewalIdentifier || '',
+            requestedPlan: requestedPlan || ''
         }).toString();
         
         const callback_url = `${protocol}://${host}/api/verify?${queryParams}`;
@@ -29,8 +31,7 @@ module.exports = async (req, res) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 merchant_id: ZARINPAL_MERCHANT_ID,
-                // --- تغییر کلیدی: مبلغ به ریال تبدیل می‌شود ---
-                amount: Number(amount) * 10,
+                amount: Number(amount),
                 callback_url: callback_url,
                 description: description,
             }),
