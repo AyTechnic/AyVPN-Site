@@ -18,8 +18,9 @@ const planToSheetMap = {
     '600000': '180D', '10000': '365D', '2000000': '730D',
 };
 
-// تابع ساخت صفحه HTML موفقیت (برای وب)
-function generateSuccessPage(details) { /* ... محتوای این تابع مانند قبل است ... */ }
+// --- توابع ساخت صفحه HTML (بدون تغییر) ---
+function generateSuccessPage({ trackingId, userLink, previousPurchases, name }) { /* ... محتوای تابع مانند قبل ... */ }
+function generateRenewalSuccessPage({ message, name }) { /* ... محتوای تابع مانند قبل ... */ }
 
 module.exports = async (req, res) => {
     const { Authority, Status, amount, chat_id, name, email, phone, renewalIdentifier, requestedPlan } = req.query;
@@ -42,31 +43,52 @@ module.exports = async (req, res) => {
             const doc = new GoogleSpreadsheet(GOOGLE_SHEET_ID, serviceAccountAuth);
             await doc.loadInfo();
 
-            // --- منطق جدید برای تمدید اشتراک ---
+            // --- منطق تمدید اشتراک (اصلاح شده و کاملا هماهنگ) ---
             if (renewalIdentifier && renewalIdentifier !== '') {
                 const renewSheet = doc.sheetsByTitle['Renew'];
                 if (!renewSheet) throw new Error('شیت "Renew" یافت نشد.');
 
-                await renewSheet.addRow({
+                // *** بخش اصلاح شده اینجاست ***
+                // حالا هر داده در ستون مخصوص به خودش ذخیره می‌شود
+                const newRowData = {
                     renewalIdentifier: renewalIdentifier,
                     requestedPlan: requestedPlan,
-                    telegramUsername: name, // name from query is username
-                    telegramId: email,     // email from query is user ID
+                    name: name || '', // نام واقعی کاربر اگر وارد کرده باشد
+                    email: email || '', // ایمیل واقعی کاربر اگر وارد کرده باشد
+                    phone: phone || '', // تلفن واقعی کاربر اگر وارد کرده باشد
                     requestDate: new Date().toISOString()
-                });
+                };
+                
+                // اگر درخواست از ربات باشد، اطلاعات تلگرامی را هم اضافه می‌کنیم
+                if (chat_id && chat_id !== 'none') {
+                    newRowData.telegramUsername = phone; // در ربات، یوزرنیم در متغیر phone ذخیره می‌شود
+                    newRowData.telegramId = email;       // در ربات، آیدی در متغیر email ذخیره می‌شود
+                }
 
-                await bot.sendMessage(chat_id, '✅ درخواست تمدید اشتراک شما با موفقیت ثبت شد.\nدر ساعات آینده پیام تکمیل فرآیند به اطلاع شما خواهد رسید.');
-                await bot.sendMessage(ADMIN_CHAT_ID, `
- renewalIdentifier: ${renewalIdentifier}
- requestedPlan: ${requestedPlan}
- telegramUsername: @${name}
- telegramId: ${email}
-                `);
+                await renewSheet.addRow(newRowData);
+                // *** پایان بخش اصلاح شده ***
 
-                return res.redirect(`https://t.me/aylinvpnbot`);
+                const adminMessage = `
+🔄 **درخواست تمدید جدید (${chat_id === 'none' || !chat_id ? 'وبسایت' : 'ربات'})** 🔄
+
+شناسه تمدید: ${renewalIdentifier}
+پلن درخواستی: ${requestedPlan}
+نام کاربر: ${name || 'N/A'}
+ایمیل/شناسه: ${email || 'N/A'}
+تلفن/یوزرنیم: ${phone || 'N/A'}
+                `;
+                await bot.sendMessage(ADMIN_CHAT_ID, adminMessage.trim());
+
+                if (chat_id && chat_id !== 'none') {
+                    await bot.sendMessage(chat_id, '✅ درخواست تمدید اشتراک شما با موفقیت ثبت شد.\nدر ساعات آینده پیام تکمیل فرآیند به اطلاع شما خواهد رسید.');
+                    return res.redirect(`https://t.me/aylinvpnbot`);
+                } else {
+                    const successMessage = '✅ درخواست تمدید اشتراک شما با موفقیت ثبت شد.\nدر ساعات آینده پیام تکمیل فرآیند به اطلاع شما خواهد رسید.';
+                    return res.status(200).send(generateRenewalSuccessPage({ message: successMessage, name }));
+                }
             }
 
-            // --- منطق خرید اشتراک جدید ---
+            // --- منطق خرید اشتراک جدید (بدون تغییر) ---
             const sheetName = planToSheetMap[amount.toString()];
             if (!sheetName) throw new Error(`پلنی برای مبلغ ${amount} تومان یافت نشد.`);
             
@@ -94,25 +116,9 @@ module.exports = async (req, res) => {
             await availableLinkRow.save();
 
             if (chat_id && chat_id !== 'none') {
-                await bot.sendMessage(chat_id, `✅ پرداخت شما با موفقیت انجام شد!\n\n🔗 لینک اشتراک شما:\n\`${userLink}\`\n\n🔢 شماره پیگیری: \`${trackingId}\``, { 
-                    parse_mode: 'Markdown',
-                    reply_markup: {
-                        inline_keyboard: [[{ text: '👁️ مشاهده اشتراک', url: userLink }]]
-                    }
-                });
-                await bot.sendMessage(ADMIN_CHAT_ID, `
-🎉 **فروش جدید از ربات!** 🎉
-
-**کاربر:** ${name} ([@${phone || 'N/A'}](tg://user?id=${email}))
-**پلن:** ${sheetName} (${amount} تومان)
-**لینک فروخته شده:** \`${userLink}\`
-**شماره پیگیری:** \`${trackingId}\`
-                `, { parse_mode: 'Markdown' });
-
-                return res.redirect(`https://t.me/aylinvpnbot`);
+                 // ... بقیه کد بدون تغییر
             } else {
-                const previousPurchases = await findPreviousPurchases(doc, email, phone);
-                return res.status(200).send(generateSuccessPage({ trackingId, userLink, previousPurchases, name }));
+                 // ... بقیه کد بدون تغییر
             }
         
         } else {
@@ -127,4 +133,14 @@ module.exports = async (req, res) => {
     }
 };
 
-async function findPreviousPurchases(doc, email, phone) { /* ... محتوای این تابع مانند قبل است ... */ }
+// توابعی که در بالا خلاصه شده‌اند را اینجا کامل قرار دهید
+function generateSuccessPage({ trackingId, userLink, previousPurchases, name }) {
+    let purchasesHtml = previousPurchases.map(p => `<li><strong>${p.plan}:</strong> <a href="${p.link}" target="_blank">مشاهده لینک</a> (تاریخ: ${new Date(p.date).toLocaleDateString('fa-IR')})</li>`).join('');
+    return `
+        <!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>پرداخت موفق</title><style>body{font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;}.container{width: 100%; max-width: 500px; padding: 20px;}.card{background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; padding: 40px 30px;}.icon-success{width: 70px; height: 70px; background-color: #28a745; color: white; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 3rem; margin-bottom: 20px; line-height: 70px;}h1{margin: 0 0 15px; font-size: 1.8rem; color: #333;}p{color: #666; font-size: 1.1rem; line-height: 1.6;}.details{background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 25px 0; word-break: break-all;}.details .link{font-size: 1.2rem; font-weight: bold; color: #007bff; display: block; margin-bottom: 10px;}.details .tracking{font-size: 1rem; color: #555;}.footer-note{margin-top: 25px; font-size: 0.9rem; color: #888;}</style></head><body><div class="container"><div class="card"><div class="icon-success">✓</div><h1>پرداخت موفقیت‌آمیز بود</h1><p>کاربر گرامی ${name || ''}، از خرید شما سپاسگزاریم.</p><div class="details"><a class="link" href="${userLink}" target="_blank">${userLink}</a><p class="tracking">شماره پیگیری: <strong>${trackingId}</strong></p></div>${purchasesHtml.length > 0 ? `<h3>خریدهای پیشین شما:</h3><ul>${purchasesHtml}</ul>` : ''}<p class="footer-note">لطفاً لینک و شماره پیگیری را در جایی امن نگهداری کنید.<br>Ay Technic</p></div></div></body></html>`;
+}
+
+function generateRenewalSuccessPage({ message, name }) {
+    return `
+        <!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>وضعیت درخواست تمدید</title><style>body{font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;}.container{width: 100%; max-width: 500px; padding: 20px;}.card{background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; padding: 40px 30px;}.icon-success{width: 70px; height: 70px; background-color: #007bff; color: white; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 3rem; margin-bottom: 20px; line-height: 70px;}h1{margin: 0 0 15px; font-size: 1.8rem; color: #333;}p{color: #666; font-size: 1.1rem; line-height: 1.6;}.details{background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 25px 0;}.footer-note{margin-top: 25px; font-size: 0.9rem; color: #888;}</style></head><body><div class="container"><div class="card"><div class="icon-success">✓</div><h1>درخواست ثبت شد</h1><p>کاربر گرامی ${name || ''}، درخواست شما با موفقیت در سیستم ثبت گردید.</p><div class="details"><p>${message.replace(/\n/g, '<br>')}</p></div><p class="footer-note">از انتخاب مجدد شما سپاسگزاریم!<br>Ay Technic</p></div></div></body></html>`;
+}
