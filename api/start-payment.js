@@ -6,7 +6,8 @@ module.exports = async (req, res) => {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
     try {
-        const { amount, description, chat_id, name, email, phone, renewalIdentifier, requestedPlan } = req.body;
+        // اضافه کردن coupenCode به پارامترهای دریافتی
+        const { amount, description, chat_id, name, email, phone, renewalIdentifier, requestedPlan, coupenCode } = req.body;
         if (!amount) {
             return res.status(400).json({ error: 'Amount is required' });
         }
@@ -21,7 +22,8 @@ module.exports = async (req, res) => {
             email: email || '',
             phone: phone || '',
             renewalIdentifier: renewalIdentifier || '',
-            requestedPlan: requestedPlan || ''
+            requestedPlan: requestedPlan || '',
+            coupenCode: coupenCode || '' // ارسال کد کوپن به verify.js
         }).toString();
         
         const callback_url = `${protocol}://${host}/api/verify?${queryParams}`;
