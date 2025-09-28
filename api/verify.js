@@ -132,7 +132,7 @@ module.exports = async (req, res) => {
 
         const verificationResponse = await fetch(`https://api.zarinpal.com/pg/v4/payment/verify.json`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ merchant_id: ZARINPAL_MERCHANT_ID, authority: Authority, amount: Number(amount) * 10 })
+            body: JSON.stringify({ merchant_id: ZARINPAL_MERCHANT_ID, authority: Authority, amount: Number(amount) })
         });
         const result = await verificationResponse.json();
         const { data } = result;
