@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>خرید اشتراک Ay VPN</title>
+    <title>خرید و تمدید اشتراک Ay VPN</title>
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
@@ -70,12 +70,7 @@
             --primary-hover: var(--primary-hover-dark);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: var(--font-family);
             background-color: var(--bg-color);
@@ -84,184 +79,156 @@
             line-height: 1.7;
             overflow-x: hidden;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px;
-        }
-        @media (max-width: 768px) {
-            .container { padding: 20px; }
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px; }
+        @media (max-width: 768px) { .container { padding: 20px; } }
 
         /* HEADER */
-        header {
-            text-align: center;
-            margin-bottom: 50px;
-            position: relative;
-        }
-        header h1 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        header p {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        .theme-switcher {
-            position: absolute;
-            top: 0;
-            left: 10px;
-        }
+        header { text-align: center; margin-bottom: 50px; position: relative; }
+        header h1 { font-size: 2.8rem; font-weight: 700; margin-bottom: 8px; }
+        header p { font-size: 1.1rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto; }
+        .theme-switcher { position: absolute; top: 0; left: 10px; }
         #theme-toggle {
-            cursor: pointer;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            cursor: pointer; background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 50%; width: 44px; height: 44px;
+            display: flex; justify-content: center; align-items: center;
             transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
         #theme-toggle:hover { background-color: var(--bg-color); }
-        #theme-toggle svg {
-            width: 22px;
-            height: 22px;
-            color: var(--text-primary);
-            transition: color var(--transition-speed);
-        }
+        #theme-toggle svg { width: 22px; height: 22px; color: var(--text-primary); transition: color var(--transition-speed); }
 
         /* TABS */
         .tabs {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 40px;
-            background-color: var(--card-bg);
-            border-radius: 50px;
-            padding: 8px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-            border: 1px solid var(--border-color);
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;
+            margin-bottom: 40px; background-color: var(--card-bg);
+            border-radius: 50px; padding: 8px; width: fit-content;
+            margin-left: auto; margin-right: auto; border: 1px solid var(--border-color);
         }
         .tab-btn {
-            background: transparent;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 30px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all var(--transition-speed);
-            font-weight: 500;
-            color: var(--text-secondary);
+            background: transparent; border: none; padding: 10px 25px;
+            border-radius: 30px; font-size: 1rem; cursor: pointer;
+            transition: all var(--transition-speed); font-weight: 500;
+            color: var(--text-secondary); display: flex; align-items: center; gap: 8px;
         }
-        .tab-btn.active {
-            background: var(--primary-color);
-            color: white;
-            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
-        }
+        .tab-btn.active { background: var(--primary-color); color: white; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2); }
         [data-theme="dark"] .tab-btn.active { box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2); }
 
-        /* PLANS GRID */
+        /* PLANS GRID & TAB CONTENT */
         .tab-content { display: none; }
         .tab-content.active {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            animation: fadeIn 0.5s ease-in-out;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px; animation: fadeIn 0.5s ease-in-out;
         }
+        #renew.active { display: block; } /* Special case for renew tab */
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .plan-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-            transition: all var(--transition-speed);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            border-top-width: 4px;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 20px; padding: 30px; text-align: center;
+            transition: all var(--transition-speed); cursor: pointer;
+            position: relative; overflow: hidden; border-top-width: 4px;
             border-top-color: var(--plan-color);
         }
-        .plan-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-        }
+        .plan-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); }
         [data-theme="dark"] .plan-card:hover { box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); }
-        
         .plan-card.selected {
-            border-color: var(--primary-color);
-            border-top-color: var(--primary-color);
+            border-color: var(--primary-color); border-top-color: var(--primary-color);
             box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
         }
         [data-theme="dark"] .plan-card.selected { box-shadow: 0 8px 25px rgba(56, 189, 248, 0.15); }
         
-        /* Plan-specific colors */
-        [data-plan="1"], [data-plan="7"] { --plan-color: #0d6efd; }
-        [data-plan="2"] { --plan-color: #198754; }
-        [data-plan="3"], [data-plan="8"] { --plan-color: #6f42c1; }
-        [data-plan="4"] { --plan-color: #ffc107; }
-        [data-plan="5"] { --plan-color: #dc3545; }
-        [data-plan="6"] { --plan-color: #fd7e14; }
+        [data-plan-id="1"] { --plan-color: #0d6efd; }
+        [data-plan-id="2"] { --plan-color: #198754; }
+        [data-plan-id="3"] { --plan-color: #6f42c1; }
+        [data-plan-id="4"] { --plan-color: #ffc107; }
+        [data-plan-id="5"] { --plan-color: #dc3545; }
+        [data-plan-id="6"] { --plan-color: #fd7e14; }
+        [data-plan-id="7"] { --plan-color: #0d6efd; }
+        [data-plan-id="8"] { --plan-color: #6f42c1; }
+
 
         .plan-card input { display: none; }
-        
         .plan-icon { margin-bottom: 15px; }
         .plan-icon svg { width: 48px; height: 48px; color: var(--plan-color); }
         .plan-duration { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); }
         .plan-features { list-style: none; padding: 0; margin: 25px 0; font-size: 0.95rem; color: var(--text-secondary); }
         .plan-features li { margin-bottom: 10px; }
-        
         .os-icons { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
         .os-icons svg { width: 24px; height: 24px; color: var(--text-secondary); opacity: 0.7; }
-        
         .plan-price { font-size: 2.2rem; font-weight: 700; color: var(--text-primary); }
         .plan-price span { font-size: 1rem; font-weight: 400; color: var(--text-secondary); }
         
         /* Purchase Button */
         .purchase-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: 500;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all var(--transition-speed);
-            display: block;
-            width: fit-content;
-            margin: 50px auto 0;
+            background: var(--primary-color); color: white; border: none;
+            padding: 15px 40px; font-size: 1.2rem; font-weight: 500;
+            border-radius: 50px; cursor: pointer; transition: all var(--transition-speed);
+            display: block; width: fit-content; margin: 50px auto 0;
             box-shadow: 0 5px 15px rgba(0, 123, 255, 0.2);
         }
         .purchase-btn:hover {
-            background: var(--primary-hover);
-            transform: translateY(-3px);
+            background: var(--primary-hover); transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
         }
-        [data-theme="dark"] .purchase-btn {
-            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.2);
+        [data-theme="dark"] .purchase-btn { box-shadow: 0 5px 15px rgba(56, 189, 248, 0.2); }
+        [data-theme="dark"] .purchase-btn:hover { box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3); }
+        .purchase-btn:disabled { background: #aaa; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* RENEWAL SECTION STYLES */
+        .renewal-configurator {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 20px; padding: 30px; text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+            border-top: 4px solid var(--primary-color);
+            transition: border-top-color var(--transition-speed);
         }
-        [data-theme="dark"] .purchase-btn:hover {
-            box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
+        .renewal-configurator .plan-type-selector {
+            display: flex; justify-content: center; gap: 10px; margin-bottom: 30px;
         }
-        .purchase-btn:disabled {
-            background: #aaa;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+        .renewal-configurator .plan-type-selector button {
+            background: transparent; border: 1px solid var(--border-color);
+            color: var(--text-secondary); padding: 8px 20px;
+            border-radius: 20px; cursor: pointer; font-weight: 500;
+            transition: all var(--transition-speed);
         }
+        .renewal-configurator .plan-type-selector button.active {
+            background: var(--primary-color); color: white; border-color: var(--primary-color);
+        }
+        .plan-slider {
+            -webkit-appearance: none; appearance: none; width: 100%; height: 8px;
+            background: var(--border-color); border-radius: 5px; outline: none; margin: 30px 0;
+        }
+        .plan-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 24px; height: 24px;
+            border-radius: 50%; background: var(--primary-color); cursor: pointer;
+            border: 4px solid var(--card-bg);
+            transition: background-color var(--transition-speed);
+        }
+        .plan-slider::-moz-range-thumb {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--primary-color); cursor: pointer;
+            border: 4px solid var(--card-bg);
+            transition: background-color var(--transition-speed);
+        }
+        .plan-info-display { margin-bottom: 30px; }
+        .plan-info-display h3 { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); transition: color var(--transition-speed); }
+        .plan-info-display p { color: var(--text-secondary); font-size: 1.1rem; }
+        #renewal-identifier-input {
+            width: 100%; max-width: 400px; padding: 12px; border-radius: 8px;
+            border: 1px solid var(--border-color); background: var(--bg-color);
+            color: var(--text-primary); margin-bottom: 25px;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+            text-align: left;
+        }
+        #renewal-identifier-input:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        }
+        [data-theme="dark"] #renewal-identifier-input:focus { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25); }
+        #renew-btn { margin: 0 auto; } /* Inherits .purchase-btn styles */
 
         /* MODAL (Popup) */
         .modal {
@@ -378,18 +345,32 @@
 
         <main>
             <div class="tabs">
-                <button class="tab-btn active" data-tab="unlimited">🚀 نامحدود</button>
-                <button class="tab-btn" data-tab="national">🇮🇷 اینترنت ملی</button>
+                <button class="tab-btn active" data-tab="unlimited"><i data-lucide="rocket"></i>نامحدود</button>
+                <button class="tab-btn" data-tab="national"><i data-lucide="globe-2"></i>ملی</button>
+                <button class="tab-btn" data-tab="renew"><i data-lucide="history"></i>تمدید</button>
             </div>
 
             <form id="payment-form">
-                <div id="unlimited" class="tab-content active">
-                    </div>
-                <div id="national" class="tab-content">
-                    </div>
-                
+                <div id="unlimited" class="tab-content active"></div>
+                <div id="national" class="tab-content"></div>
                 <button type="submit" class="purchase-btn" id="purchase-btn">خرید اشتراک</button>
             </form>
+
+            <div id="renew" class="tab-content">
+                <div class="renewal-configurator">
+                    <div class="plan-type-selector">
+                        <button class="active" data-type="unlimited">🚀 نامحدود</button>
+                        <button data-type="national">🇮🇷 ملی</button>
+                    </div>
+                    <div class="plan-info-display">
+                        <h3 id="selected-plan-name"></h3>
+                        <p id="selected-plan-price"></p>
+                    </div>
+                    <input type="range" class="plan-slider" id="plan-slider" min="0" value="0">
+                    <input type="text" id="renewal-identifier-input" placeholder="شناسه اشتراک قبلی (لینک، ایمیل و...)" required>
+                    <button class="purchase-btn" id="renew-btn">تمدید اشتراک</button>
+                </div>
+            </div>
 
             <section class="tracking-section">
                 <h2>پیگیری خرید</h2>
@@ -403,19 +384,12 @@
 
         <footer>
             <div class="social-icons">
-                <a href="https://t.me/AyVPNsupport" target="_blank" title="Support">
-                    <i data-lucide="user"></i>
-                </a>
-                <a href="https://t.me/AyVPN_Bot" target="_blank" title="Telegram">
-                    <i data-lucide="send"></i>
-                </a>
-                <a href="https://wa.me/your-whatsapp-number" target="_blank" title="WhatsApp">
-                     <i data-lucide="message-circle"></i>
-                </a>
+                <a href="https://t.me/AyVPNsupport" target="_blank" title="Support"><i data-lucide="user"></i></a>
+                <a href="https://t.me/AyVPN_Bot" target="_blank" title="Telegram"><i data-lucide="send"></i></a>
+                <a href="https://wa.me/your-whatsapp-number" target="_blank" title="WhatsApp"><i data-lucide="message-circle"></i></a>
             </div>
             <p>&copy; تمام حقوق برای <a href="https://shammay.ir" target="_blank">Ay Technic</a> محفوظ است.</p>
         </footer>
-
     </div>
 
     <div class="modal" id="user-info-modal">
@@ -423,18 +397,9 @@
             <h3>تکمیل اطلاعات (اختیاری)</h3>
             <p>با وارد کردن اطلاعات، می‌توانید خریدهای قبلی خود را مشاهده و پیگیری کنید.</p>
             <form id="user-info-form">
-                <div class="form-group">
-                    <label for="name">نام</label>
-                    <input type="text" id="name" placeholder="مثال: Aylin">
-                </div>
-                <div class="form-group">
-                    <label for="email">ایمیل</label>
-                    <input type="email" id="email" placeholder="esm@gmail.com">
-                </div>
-                <div class="form-group">
-                    <label for="phone">شماره تماس</label>
-                    <input type="tel" id="phone" placeholder="09123456789" dir="ltr" style="text-align:right;">
-                </div>
+                <div class="form-group"><label for="name">نام</label><input type="text" id="name" placeholder="مثال: Aylin"></div>
+                <div class="form-group"><label for="email">ایمیل</label><input type="email" id="email" placeholder="esm@gmail.com"></div>
+                <div class="form-group"><label for="phone">شماره تماس</label><input type="tel" id="phone" placeholder="09123456789" dir="ltr" style="text-align:right;"></div>
                 <div class="modal-actions">
                     <button type="button" id="skip-btn">رد شدن</button>
                     <button type="submit" id="confirm-btn">تایید و ادامه</button>
@@ -447,26 +412,27 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- DATA & CONFIG ---
-    // Icon names are from the Lucide library (lucide.dev)
+    // Icons from lucide.dev. Colors are for the renewal slider UI.
     const plansData = [
-        { id: 1, duration: '۱ ماهه', price: 12000, desc: 'اشتراک ۳۰ روزه', icon: 'gem', type: 'unlimited' },
-        { id: 2, duration: '۲ ماهه', price: 220000, desc: 'اشتراک ۶۰ روزه', icon: 'zap', type: 'unlimited' },
-        { id: 3, duration: '۳ ماهه', price: 340000, desc: 'اشتراک ۹۰ روزه', icon: 'star', type: 'unlimited' },
-        { id: 4, duration: '۶ ماهه', price: 600000, desc: 'اشتراک ۱۸۰ روزه', icon: 'flame', type: 'unlimited' },
-        { id: 5, duration: '۱ ساله', price: 10000, desc: 'اشتراک ۳۶۵ روزه', icon: 'shield', type: 'unlimited' },
-        { id: 6, duration: '۲ ساله', price: 2000000, desc: 'اشتراک ۷۳۰ روزه', icon: 'crown', type: 'unlimited' }
+        { id: 1, duration: '۱ ماهه', price: 120000, desc: 'اشتراک ۳۰ روزه', icon: 'gem', type: 'unlimited', color: '#0d6efd' },
+        { id: 2, duration: '۲ ماهه', price: 220000, desc: 'اشتراک ۶۰ روزه', icon: 'zap', type: 'unlimited', color: '#198754' },
+        { id: 3, duration: '۳ ماهه', price: 340000, desc: 'اشتراک ۹۰ روزه', icon: 'star', type: 'unlimited', color: '#6f42c1' },
+        { id: 4, duration: '۶ ماهه', price: 600000, desc: 'اشتراک ۱۸۰ روزه', icon: 'flame', type: 'unlimited', color: '#ffc107' },
+        { id: 5, duration: '۱ ساله', price: 1000000, desc: 'اشتراک ۳۶۵ روزه', icon: 'shield', type: 'unlimited', color: '#dc3545' },
+        { id: 6, duration: '۲ ساله', price: 2000000, desc: 'اشتراک ۷۳۰ روزه', icon: 'crown', type: 'unlimited', color: '#fd7e14' }
     ];
-
     const nationalPlansData = [
-        { id: 7, duration: '۱ ماهه ملی', price: 120000, desc: 'اشتراک ملی ۳۰ روزه', icon: 'globe', type: 'national' },
-        { id: 8, duration: '۳ ماهه ملی', price: 340000, desc: 'اشتراک ملی ۹۰ روزه', icon: 'server', type: 'national' },
+        { id: 7, duration: '۱ ماهه ملی', price: 120000, desc: 'اشتراک ملی ۳۰ روزه', icon: 'globe', type: 'national', color: '#0d6efd' },
+        { id: 8, duration: '۳ ماهه ملی', price: 340000, desc: 'اشتراک ملی ۹۰ روزه', icon: 'server', type: 'national', color: '#6f42c1' },
     ];
+    const allPlans = { unlimited: plansData, national: nationalPlansData };
 
     // --- DOM ELEMENTS ---
     const themeToggle = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
     const tabs = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
+    const paymentForm = document.getElementById('payment-form');
     const purchaseBtn = document.getElementById('purchase-btn');
     const modal = document.getElementById('user-info-modal');
     const userInfoForm = document.getElementById('user-info-form');
@@ -474,21 +440,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const trackingForm = document.getElementById('tracking-form');
     const trackingInput = document.getElementById('tracking-id-input');
     const trackingResults = document.getElementById('tracking-results');
+    // Renewal Elements
+    const renewalConfigurator = document.querySelector('.renewal-configurator');
+    const planTypeButtons = document.querySelectorAll('.plan-type-selector button');
+    const planSlider = document.getElementById('plan-slider');
+    const selectedPlanName = document.getElementById('selected-plan-name');
+    const selectedPlanPrice = document.getElementById('selected-plan-price');
+    const renewalIdentifierInput = document.getElementById('renewal-identifier-input');
+    const renewBtn = document.getElementById('renew-btn');
 
     // --- THEME SWITCHER ---
     function applyTheme(theme) {
         document.body.setAttribute('data-theme', theme);
         themeIcon.setAttribute('data-lucide', theme === 'light' ? 'moon' : 'sun');
         localStorage.setItem('theme', theme);
-        // Re-render icons after changing the attribute
         lucide.createIcons();
     }
-
     themeToggle.addEventListener('click', () => {
         const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
         applyTheme(newTheme);
     });
-    
     const preferredTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     applyTheme(preferredTheme);
 
@@ -498,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
         
         container.innerHTML = plans.map(plan => `
-            <label class="plan-card" data-plan="${plan.id}">
+            <label class="plan-card" data-plan-id="${plan.id}">
                 <input type="radio" name="plan" value="${plan.price}" data-description="${plan.desc}">
                 <div class="plan-icon"><i data-lucide="${plan.icon}"></i></div>
                 <div class="plan-duration">${plan.duration}</div>
@@ -517,23 +488,17 @@ document.addEventListener('DOMContentLoaded', () => {
             </label>
         `).join('');
         
-        // Add click listeners to cards
         container.querySelectorAll('.plan-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                // Unselect all cards in all tabs first
+            card.addEventListener('click', () => {
                 document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
                 document.querySelectorAll('input[name="plan"]').forEach(radio => radio.checked = false);
-                
-                // Select the clicked card
                 card.classList.add('selected');
                 card.querySelector('input').checked = true;
             });
         });
 
-        // After rendering, convert all <i> tags to SVG
         lucide.createIcons();
     }
-
     renderPlans(plansData, 'unlimited');
     renderPlans(nationalPlansData, 'national');
 
@@ -543,17 +508,20 @@ document.addEventListener('DOMContentLoaded', () => {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             
-            let foundSelected = false;
+            const activeTabId = tab.dataset.tab;
+
             tabContents.forEach(content => {
-                content.classList.remove('active');
-                if (content.id === tab.dataset.tab) {
-                    content.classList.add('active');
-                    // Automatically select the first plan in the new active tab if no plan is selected
-                    if (!document.querySelector('input[name="plan"]:checked') && content.querySelector('.plan-card')) {
-                         content.querySelector('.plan-card').click();
-                    }
-                }
+                content.classList.toggle('active', content.id === activeTabId);
             });
+            
+            paymentForm.style.display = (activeTabId === 'renew') ? 'none' : 'block';
+
+            if (activeTabId !== 'renew' && !document.querySelector('input[name="plan"]:checked')) {
+                 const firstCardInTab = document.querySelector(`#${activeTabId} .plan-card`);
+                 if (firstCardInTab) {
+                     firstCardInTab.click();
+                 }
+            }
         });
     });
 
@@ -561,6 +529,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('#unlimited .plan-card')) {
         document.querySelector('#unlimited .plan-card').click();
     }
+
+    // --- RENEWAL SLIDER LOGIC ---
+    let currentRenewalType = 'unlimited';
+    
+    function setupSlider() {
+        const plans = allPlans[currentRenewalType];
+        planSlider.max = plans.length - 1;
+        planSlider.value = 0;
+        updateSliderUI();
+    }
+
+    function updateSliderUI() {
+        const plans = allPlans[currentRenewalType];
+        const selectedPlan = plans[planSlider.value];
+        if (!selectedPlan) return;
+
+        selectedPlanName.innerText = selectedPlan.duration;
+        selectedPlanPrice.innerText = `${new Intl.NumberFormat('fa-IR').format(selectedPlan.price)} تومان`;
+        
+        // Dynamically update colors for better UX
+        const newColor = selectedPlan.color;
+        renewalConfigurator.style.borderTopColor = newColor;
+        selectedPlanName.style.color = newColor;
+        // This is a way to set CSS variable for thumb color
+        planSlider.style.setProperty('--primary-color', newColor);
+    }
+
+    planTypeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            planTypeButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            currentRenewalType = button.dataset.type;
+            setupSlider();
+        });
+    });
+
+    planSlider.addEventListener('input', updateSliderUI);
+    setupSlider(); // Initial setup
 
     // --- PAYMENT & MODAL LOGIC ---
     let paymentData = {};
@@ -575,6 +581,24 @@ document.addEventListener('DOMContentLoaded', () => {
         paymentData = {
             amount: selectedPlan.value,
             description: selectedPlan.dataset.description,
+        };
+        modal.classList.add('show');
+    });
+    
+    renewBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const identifier = renewalIdentifierInput.value.trim();
+        if (!identifier) {
+            alert('لطفا شناسه اشتراک قبلی خود را وارد کنید.');
+            renewalIdentifierInput.focus();
+            return;
+        }
+        const selectedPlan = allPlans[currentRenewalType][planSlider.value];
+        paymentData = {
+            amount: selectedPlan.price,
+            description: `تمدید: ${selectedPlan.desc}`,
+            renewalIdentifier: identifier,
+            requestedPlan: selectedPlan.duration
         };
         modal.classList.add('show');
     });
@@ -598,11 +622,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function startPayment() {
-        purchaseBtn.disabled = true;
-        purchaseBtn.innerText = 'در حال انتقال...';
+        const activeTabId = document.querySelector('.tab-btn.active').dataset.tab;
+        const btn = (activeTabId === 'renew') ? renewBtn : purchaseBtn;
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = 'در حال انتقال...';
 
         try {
-            // This is a placeholder for your actual API endpoint
             const response = await fetch('/api/start-payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -616,8 +642,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             alert('خطا: ' + error.message);
-            purchaseBtn.disabled = false;
-            purchaseBtn.innerText = 'خرید و دریافت آنی';
+            btn.disabled = false;
+            btn.innerText = originalText;
         }
     }
 
@@ -629,7 +655,6 @@ document.addEventListener('DOMContentLoaded', () => {
         trackingResults.innerHTML = '<p>در حال جستجو...</p>';
 
         try {
-            // This is a placeholder for your actual API endpoint
             const response = await fetch(`/api/track?trackingId=${trackingId}`);
             const data = await response.json();
 
@@ -660,6 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    lucide.createIcons();
 });
 </script>
 
