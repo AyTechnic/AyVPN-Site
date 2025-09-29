@@ -6,8 +6,9 @@ module.exports = async (req, res) => {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
     try {
-        // اضافه کردن coupenCode به پارامترهای دریافتی
-        const { amount, description, chat_id, name, email, phone, renewalIdentifier, requestedPlan, coupenCode } = req.body;
+        // دریافت پارامترهای جدید: userCount و اصلاح خطای املایی coupenCode به couponCode
+        const { amount, description, chat_id, name, email, phone, renewalIdentifier, requestedPlan, couponCode, userCount } = req.body;
+        
         if (!amount) {
             return res.status(400).json({ error: 'Amount is required' });
         }
@@ -15,6 +16,7 @@ module.exports = async (req, res) => {
         const host = req.headers.host;
         const protocol = host.startsWith('localhost') ? 'http' : 'https';
         
+        // ارسال تمام پارامترها به verify.js
         const queryParams = new URLSearchParams({
             amount,
             chat_id: chat_id || 'none',
@@ -22,8 +24,9 @@ module.exports = async (req, res) => {
             email: email || '',
             phone: phone || '',
             renewalIdentifier: renewalIdentifier || '',
-            requestedPlan: requestedPlan || '',
-            coupenCode: coupenCode || '' // ارسال کد کوپن به verify.js
+            requestedPlan: requestedPlan || '', // base amount of plan
+            couponCode: couponCode || '', // ارسال کد کوپن به verify.js (FIXED TYPO)
+            userCount: userCount || 1 // NEW: user count
         }).toString();
         
         const callback_url = `${protocol}://${host}/api/verify?${queryParams}`;
@@ -33,9 +36,10 @@ module.exports = async (req, res) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 merchant_id: ZARINPAL_MERCHANT_ID,
-                amount: Number(amount),
+                amount: Number(amount) * 10, // CRITICAL FIX: Toman to Rial (x10)
+                // FIX: Use a more detailed description including user count
+                description: description || `خرید اشتراک ${requestedPlan} (${userCount || 1} کاربره)`, 
                 callback_url: callback_url,
-                description: description,
             }),
         });
         const result = await response.json();
@@ -44,7 +48,7 @@ module.exports = async (req, res) => {
             res.status(200).json({ authority: data.authority });
         } else {
             console.error('Zarinpal Error:', result.errors);
-            throw new Error(`Zarinpal request failed with code: ${data.code || result.errors.code}`);
+            throw new Error(`Zarinpal request failed with code: ${data.code || result.errors.code || result.errors[0]?.code}`);
         }
     } catch (error) {
         console.error('Error starting payment:', error.message);

@@ -5,9 +5,10 @@ const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY;
 
+// CRITICAL FIX: Corrected Toman values (12000 -> 120000, 10000 -> 1000000)
 const planToSheetMap = {
-    '12000': '30D', '220000': '60D', '340000': '90D',
-    '600000': '180D', '10000': '365D', '2000000': '730D',
+    '120000': '30D', '220000': '60D', '340000': '90D',
+    '600000': '180D', '1000000': '365D', '2000000': '730D',
 };
 
 module.exports = async (req, res) => {
@@ -40,7 +41,8 @@ module.exports = async (req, res) => {
                         name: foundRow.get('name'),
                         email: foundRow.get('email'),
                         phone: foundRow.get('phone'),
-                        trackingId: foundRow.get('trackingId')
+                        trackingId: foundRow.get('trackingId'),
+                        userCount: foundRow.get('userCount') || 1 // NEW: User Count
                     });
                 }
             }
