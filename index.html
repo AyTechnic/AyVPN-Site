@@ -81,8 +81,8 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px; }
-        @media (max-width: 768px) { .container { padding: 20px; } }
+
+
 
         /* HEADER */
         header { text-align: center; margin-bottom: 40px; position: relative; }
@@ -217,6 +217,45 @@
         /* small screens layout */
         @media (max-width: 900px) {
             .tab-content.active { grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); }
+            
+        /* استایل جذاب برای همه ورودی‌ها */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="search"],
+textarea,
+select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background: #fff;
+  color: #333;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+  outline: none;
+}
+
+/* استایل placeholder ها */
+input::placeholder,
+textarea::placeholder {
+  color: #999;
+  font-style: italic;
+  transition: color 0.3s ease;
+}
+
+input:focus::placeholder,
+textarea:focus::placeholder {
+  color: #bbb;
+}
         }
     </style>
 </head>
@@ -262,39 +301,39 @@
         </div>
 
         <!-- RENEWAL TAB -->
-        <div id="renew" class="tab-content">
-            <div class="renewal-configurator" id="renewal-configurator">
-                <div class="plan-type-selector" id="renew-plan-type">
-                    <button class="active" data-type="unlimited">🚀 نامحدود</button>
-                    <button data-type="national">🇮🇷 ملی</button>
-                </div>
-
-                <div class="plan-info-display">
-                    <h3 id="selected-plan-name">انتخاب مدت</h3>
-                    <p id="selected-plan-price">قیمت</p>
-                </div>
-
-                <input type="range" class="plan-slider" id="plan-slider" min="0" value="0">
-
-                <input type="text" id="renewal-identifier-input" placeholder="شناسه اشتراک قبلی (لینک، ایمیل یا شماره پیگیری)" style="margin-top:12px; text-align:left;" dir="ltr">
-
-                <div style="text-align:center; margin-top:12px;">
-                    <div class="coupon-toggle" id="renew-coupon-toggle" style="justify-content:center;"> 
-                        <svg data-lucide="tag" style="width:16px;height:16px;"></svg>
-                        کد تخفیف دارم
+<div id="renew" class="tab-content">
+                <div class="renewal-configurator" id="renewal-configurator">
+                    <div class="plan-type-selector" id="renew-plan-type">
+                        <button class="active" data-type="unlimited">🚀 نامحدود</button>
+                        <button data-type="national">🇮🇷 ملی</button>
                     </div>
-                    <div id="renew-coupon-container" style="display:none; margin-top:8px;">
-                        <div class="coupon-input-group" style="justify-content:center;">
-                            <input type="text" id="renew-coupon-input" placeholder="کد کوپن را وارد کنید" dir="ltr">
-                            <button id="renew-apply-coupon">اعمال</button>
+
+                    <div class="plan-info-display">
+                        <h3 id="selected-plan-name">انتخاب مدت</h3>
+                        <p id="selected-plan-price">قیمت</p>
+                    </div>
+
+                    <input type="range" class="plan-slider" id="plan-slider" min="0" value="0">
+
+                    <input type="text" id="renewal-identifier-input" placeholder="شناسه اشتراک قبلی (لینک، ایمیل یا شماره پیگیری)" style="margin-top:12px; text-align:left;" dir="ltr">
+
+                    <div style="text-align:center; margin-top:12px;">
+                        <div class="coupon-toggle" id="renew-coupon-toggle" style="justify-content:center;"> 
+                            <svg data-lucide="tag" style="width:16px;height:16px;"></svg>
+                            کد تخفیف دارم
                         </div>
-                        <div id="renew-coupon-feedback" class="coupon-feedback" style="display:none;"></div>
+                        <div id="renew-coupon-container" style="display:none; margin-top:8px;">
+                            <div class="coupon-input-group" style="justify-content:center;">
+                                <input type="text" id="renew-coupon-input" placeholder="کد کوپن را وارد کنید" dir="ltr">
+                                <button id="renew-apply-coupon">اعمال</button>
+                            </div>
+                            <div id="renew-coupon-feedback" class="coupon-feedback" style="display:none;"></div>
+                        </div>
                     </div>
-                </div>
 
-                <button class="purchase-btn" id="renew-btn" style="margin-top:16px;" disabled>تکمیل و پرداخت تمدید</button>
+                    <button class="purchase-btn" id="renew-btn" style="margin-top:16px;" disabled>تکمیل و پرداخت تمدید</button>
+                </div>
             </div>
-        </div>
 
         <!-- TRACK TAB -->
         <div id="track" class="tab-content">
@@ -310,6 +349,11 @@
 
         <footer>
             <p>&copy; تمام حقوق برای <a href="https://shammay.ir" target="_blank">Ay Technic</a> محفوظ است.</p>
+            <div style="margin-top:8px; display:flex; justify-content:center; gap:12px;">
+                <a href="#" title="تلگرام" aria-label="Telegram"><svg data-lucide="send" style="width:18px;height:18px"></svg></a>
+                <a href="#" title="اینستاگرام" aria-label="Instagram"><svg data-lucide="instagram" style="width:18px;height:18px"></svg></a>
+                <a href="#" title="گیت‌هاب" aria-label="GitHub"><svg data-lucide="github" style="width:18px;height:18px"></svg></a>
+            </div>
         </footer>
     </div>
 
