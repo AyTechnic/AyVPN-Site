@@ -15,18 +15,18 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN);
 
 // --- نگاشت‌های فیکس شده برای تعیین شیت مقصد ---
 
-// نگاشت قدیمی بر اساس مبلغ: فقط برای توابع جستجوی تاریخچه (به دلیل ساختار داده موجود)
+// نگاشت قدیمی بر اساس مبلغ: فقط برای توابع جستجوی تاریخچه (findUserHistory)
 const planToSheetMap = {
-    '120000': '30D', '220000': '60D', '340000': '90D', // توجه: قیمت‌های ۱ کاربره را اینجا نگه دارید
+    '120000': '30D', '220000': '60D', '340000': '90D', 
     '600000': '180D', '1000000': '365D', '2000000': '730D',
 };
 
 // **FIX:** نگاشت جدید بر اساس requestedPlan (که از URL دریافت می‌شود)
-// این نگاشت، تعیین کننده شیت نهایی برای ثبت خرید جدید یا تمدید است.
+// این نگاشت، تعیین کننده شیت نهایی برای ثبت خرید جدید است.
 const planRequestToSheetMap = {
     '1M': '30D', '2M': '60D', '3M': '90D',
     '6M': '180D', '1Y': '365D', '2Y': '730D',
-    // فرض بر این است که پلن‌های ملی (1M-N, 3M-N) از همان شیت‌های استاندارد استفاده می‌کنند.
+    // پلن‌های ملی (1M-N, 3M-N) از همان شیت‌های استاندارد استفاده می‌کنند.
     '1M-N': '30D', 
     '3M-N': '90D', 
 };
@@ -55,8 +55,7 @@ async function getOrCreateDoc() {
 }
 
 /**
- * **FIX:** به‌روزرسانی موجودی کوپن پس از خرید موفق
- * @param {GoogleSpreadsheet} doc
+ * **NEW:** به‌روزرسانی موجودی کوپن پس از خرید موفق
  * @param {object} appliedCoupon - شامل row و اطلاعات کوپن
  */
 async function updateCouponUsage(appliedCoupon) {
@@ -64,12 +63,13 @@ async function updateCouponUsage(appliedCoupon) {
 
     const couponRow = appliedCoupon.originalRow;
 
-    if (couponRow.get('manyTimes') && couponRow.get('manyTimes') !== 'Unlimited') {
+    // 1. کاهش تعداد استفاده (manyTimes)
+    if (couponRow.get('manyTimes') && couponRow.get('manyTimes').toLowerCase() !== 'unlimited') {
         let manyTimes = couponRow.get('manyTimes');
         let usedCount = 0;
         
+        // حالت '3(2)' که 3 کل استفاده و 2 باقی مانده است
         if (manyTimes.includes('(')) {
-            // حالت '3(2)' که 3 کل استفاده و 2 باقی مانده است
             const parts = manyTimes.match(/(\d+)\((\d+)\)/);
             if (parts) {
                 const total = parseInt(parts[1]);
@@ -84,15 +84,15 @@ async function updateCouponUsage(appliedCoupon) {
         }
     }
     
-    // اگر کوپن بر اساس مبلغ باشد، موجودی مبلغ آن را کاهش می‌دهیم
+    // 2. کاهش موجودی مبلغ (price-based coupon)
     if (appliedCoupon.type === 'price' && couponRow.get('price') && couponRow.get('price').includes('(')) {
         const priceStr = couponRow.get('price');
-        const parts = priceStr.match(/(\d+)\s*\((.*)\)/); // مثال: 100000(موجودی)
+        const parts = priceStr.match(/(\d+)\s*(\((.*)\))?/); // مثال: 100000(موجودی)
         if (parts) {
             const remainingBalance = parseInt(parts[1]);
-            const note = parts[2];
+            const note = parts[2] || '';
             const newBalance = remainingBalance - appliedCoupon.discount;
-            couponRow.set('price', `${Math.max(0, newBalance)}`); // حذف Note برای سادگی
+            couponRow.set('price', `${Math.max(0, newBalance)}${note ? `(${note})` : ''}`);
         }
     }
 
@@ -123,6 +123,7 @@ async function renewSubscription(doc, renewalIdentifier, requestedPlan, purchase
         if (sheet) {
             await sheet.loadHeaderRow(1); 
             const rows = await sheet.getRows();
+            // فرض می‌کنیم renewalIdentifier همان trackingId خرید اصلی است
             originalRow = rows.find(row => row.get('trackingId') === renewalIdentifier); 
             
             if (originalRow) {
@@ -141,8 +142,8 @@ async function renewSubscription(doc, renewalIdentifier, requestedPlan, purchase
     let baseDate = new Date(purchaseDate); 
     
     if (currentExpiryStr) {
-        // تبدیل تاریخ انقضای شمسی/میلادی به آبجکت Date
-        // فرض می‌کنیم فرمت DD/MM/YYYY میلادی است (در این مثال).
+        // تبدیل تاریخ انقضای موجود به آبجکت Date
+        // فرض می‌کنیم فرمت DD/MM/YYYY میلادی است.
         const parts = currentExpiryStr.match(/(\d+)\/(\d+)\/(\d+)/);
         const currentExpiry = parts ? new Date(`${parts[2]}/${parts[1]}/${parts[3]}`) : new Date(currentExpiryStr);
         
@@ -177,7 +178,7 @@ async function renewSubscription(doc, renewalIdentifier, requestedPlan, purchase
 }
 
 
-// --- تابع checkAndApplyCoupon (تغییرات جزئی برای سادگی) ---
+// --- تابع checkAndApplyCoupon ---
 async function checkAndApplyCoupon(doc, couponCode, amount) {
     if (!couponCode) return { finalAmount: amount, appliedCoupon: null, error: null };
     
@@ -192,17 +193,28 @@ async function checkAndApplyCoupon(doc, couponCode, amount) {
         if (!couponRow) {
             return { finalAmount: amount, appliedCoupon: null, error: `کد تخفیف ${couponCode} نامعتبر است.` };
         }
-        // ... (بخش بررسی محدودیت‌ها و محاسبه تخفیف - همانند قبل) ...
+
         const percent = couponRow.get('percent');
         const price = couponRow.get('price');
-        // ... (بقیه منطق محاسبه تخفیف) ...
-
+        const manyTimes = couponRow.get('manyTimes');
         let discountAmount = 0;
         let finalAmount = amount;
         let type = 'percent';
 
         // 1. بررسی محدودیت‌ها
-        // ... (منطق بررسی manyTimes و price) ...
+        if (manyTimes && manyTimes.toLowerCase() !== 'unlimited') {
+            const usedCount = manyTimes.includes('(') ? parseInt(manyTimes.split('(')[1].replace(')', '')) : parseInt(manyTimes);
+            if (usedCount <= 0) {
+                return { finalAmount: amount, appliedCoupon: null, error: `تعداد استفاده از کوپن ${couponCode} به پایان رسیده است.` };
+            }
+        }
+        
+        if (price && price.includes('(')) {
+            const parts = price.match(/(\d+)\s*\((.*)\)/);
+            if (parts && parseInt(parts[1]) <= 0) {
+                 return { finalAmount: amount, appliedCoupon: null, error: `موجودی مبلغی کوپن ${couponCode} به پایان رسیده است.` };
+            }
+        }
 
         // 2. محاسبه تخفیف
         if (percent) {
@@ -242,11 +254,11 @@ async function checkAndApplyCoupon(doc, couponCode, amount) {
 
 // --- تابع findUserHistory (بدون تغییر) ---
 async function findUserHistory(doc, chat_id) {
-    // ... (همان منطق جستجوی قبلی) ...
     if (!chat_id || chat_id === 'none') return [];
     
     const allPurchases = [];
-    const allSheetTitles = Object.values(planToSheetMap).concat([RENEW_SHEET_TITLE]); // شامل Renew
+    // جستجو در تمام شیت‌های پلن اصلی و Renew
+    const allSheetTitles = Object.values(planToSheetMap).filter((v, i, a) => a.indexOf(v) === i).concat([RENEW_SHEET_TITLE]); 
 
     for (const sheetTitle of allSheetTitles) {
         const sheet = doc.sheetsByTitle[sheetTitle];
@@ -255,6 +267,7 @@ async function findUserHistory(doc, chat_id) {
             const rows = await sheet.getRows();
             rows.forEach(row => {
                 const rowChatId = row.get('chat_id');
+                // از email یا phone برای کاربران وب و از chat_id برای کاربران تلگرام استفاده می‌کنیم.
                 const identifierMatch = (chat_id === 'none' && (row.get('email') === chat_id || row.get('phone') === chat_id)) 
                                         || (chat_id !== 'none' && rowChatId && rowChatId.toString() === chat_id.toString());
 
@@ -280,18 +293,18 @@ module.exports = async (req, res) => {
     const {
         authority,
         Status,
-        amount: expectedAmountStr, // مبلغ مورد انتظار
+        amount: expectedAmountStr, 
         chat_id,
         name,
         email,
         phone,
-        renewalIdentifier, // شناسه تمدید (trackingId خرید قبلی)
-        requestedPlan, // پلن درخواستی (مثلا 1M)
+        renewalIdentifier, 
+        requestedPlan, 
         coupenCode,
         telegramUsername,
         telegramId,
-        users: usersStr, // تعداد کاربران
-        description // توضیحات
+        users: usersStr, 
+        description 
     } = req.query;
 
     const expectedAmount = Number(expectedAmountStr);
@@ -317,7 +330,7 @@ module.exports = async (req, res) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 merchant_id: ZARINPAL_MERCHANT_ID,
-                amount: expectedAmount, // توجه: مبلغ باید همان مبلغ فرستاده شده باشد
+                amount: expectedAmount, 
                 authority: authority,
             }),
         });
@@ -329,34 +342,59 @@ module.exports = async (req, res) => {
             return res.status(200).send(renderHTML('⚠️ خطای تایید پرداخت', `تراکنش ناموفق است. کد وضعیت: ${verificationStatus}.`, null, null, false));
         }
 
-        const trackingId = verifyResult.data.ref_id.toString(); // RefID زرین‌پال به عنوان Tracking ID
+        const trackingId = verifyResult.data.ref_id.toString(); 
 
         // 2. بررسی کوپن و به‌روزرسانی نهایی مبلغ
         let { finalAmount, appliedCoupon, error: couponError } = await checkAndApplyCoupon(doc, coupenCode, expectedAmount);
         
-        // **FIX:** اگر مبلغ پرداخت شده توسط کاربر (amount) با مبلغ نهایی بعد از اعمال کوپن (finalAmount) مطابقت نداشت، خطا بده.
-        // این چک حیاتی است تا تقلب یا خطای قیمت‌گذاری رخ ندهد.
+        // **FIX:** چک امنیتی مبلغ
         if (verifyResult.data.amount !== finalAmount) {
             await bot.sendMessage(ADMIN_CHAT_ID, `⚠️ خطای مبلغ در Verify: مبلغ تایید شده زرین‌پال (${verifyResult.data.amount}) با مبلغ نهایی محاسبه شده (${finalAmount}) مطابقت ندارد! (TID: ${trackingId})`);
-            return res.status(200).send(renderHTML('⚠️ خطای امنیتی مبلغ', `مبلغ پرداخت شده با مبلغ مورد انتظار مطابقت ندارد. لطفا با پشتیبانی Ay Technic تماس بگیرید.`, null, null, false));
+            return res.status(200).send(renderHTML('⚠️ خطای امنیتی مبلغ', `مبلغ پرداخت شده با مبلغ مورد انتظار مطابقت ندارد. لطفا با پشتیبانی Ay Technic تماس بگیرید.`, null, trackingId, false));
         }
         
         // 3. تعیین شیت مقصد اصلی و اجرای منطق تمدید/خرید جدید
         finalSheetTitle = planRequestToSheetMap[requestedPlan];
 
         if (renewalIdentifier && finalSheetTitle) {
-            // منطق تمدید: اگر شناسه تمدید (renewalIdentifier) وجود دارد.
+            // منطق تمدید
             renewalResult = await renewSubscription(doc, renewalIdentifier, requestedPlan, purchaseDate);
             userLink = renewalResult.originalLink;
             finalPlanName = `${requestedPlan} (تمدید پلن ${renewalResult.originalSheetTitle})`;
             isRenewalSuccess = true;
             
         } else if (finalSheetTitle) {
-            // منطق خرید جدید: اگر شناسه تمدید ندارد.
-            // **FIX:** در اینجا باید لینک اشتراک برای کاربر ایجاد شود. 
-            // فرض می‌کنیم تابع/سرویس تولید لینک در جای دیگری اجرا می‌شود و لینک در این متغیر قرار می‌گیرد.
+            // منطق خرید جدید
+            // **FIX:** تولید لینک اشتراک
             userLink = `https://link-generator.ir/aytechnic-${trackingId}`; 
             finalPlanName = `${requestedPlan} - ${users} کاربر`;
+            
+            // **NEW:** ثبت خرید جدید در شیت اصلی (فقط برای خرید جدید)
+            const mainSheet = doc.sheetsByTitle[finalSheetTitle];
+            if (mainSheet) {
+                await mainSheet.loadHeaderRow(1);
+                // محاسبه تاریخ انقضای اولیه
+                const durationDays = planDurationDays[requestedPlan];
+                const expiryBaseDate = new Date(purchaseDate);
+                expiryBaseDate.setDate(expiryBaseDate.getDate() + durationDays);
+                const expiryDate = `${expiryBaseDate.getDate().toString().padStart(2, '0')}/${(expiryBaseDate.getMonth() + 1).toString().padStart(2, '0')}/${expiryBaseDate.getFullYear()}`;
+
+                await mainSheet.addRow({
+                    'trackingId': trackingId,
+                    'purchaseDate': purchaseDate,
+                    'name': name || 'کاربر وب',
+                    'email': email || '',
+                    'phone': phone || '',
+                    'chat_id': telegramId || chat_id,
+                    'telegramUsername': telegramUsername || '',
+                    'link': userLink,
+                    'expiryDate': expiryDate,
+                    'status': 'used',
+                    'renewalCount': '0',
+                    'requestedPlan': requestedPlan,
+                    'users': users,
+                });
+            }
         }
 
         // 4. ثبت ردیف در شیت Renew (هم برای خرید جدید و هم تمدید)
@@ -394,7 +432,7 @@ module.exports = async (req, res) => {
                              `💵 مبلغ نهایی: ${verifyResult.data.amount.toLocaleString()} تومان\n` +
                              `🆔 شناسه پیگیری: ${trackingId}\n` +
                              `🎟 کوپن: ${coupenCode || 'ندارد'}\n` +
-                             `🗓 انقضای جدید: ${renewalResult ? renewalResult.newExpiryDate : 'نامشخص (باید در شیت اصلی ثبت شود)'}\n` +
+                             `🗓 انقضای جدید: ${renewalResult ? renewalResult.newExpiryDate : (finalSheetTitle && !isRenewalSuccess ? 'در شیت اصلی ثبت شد' : 'خطا در ثبت انقضا')}\n` +
                              `✉️ لینک: ${userLink}`;
 
         bot.sendMessage(ADMIN_CHAT_ID, adminMessage, { parse_mode: 'Markdown' });
