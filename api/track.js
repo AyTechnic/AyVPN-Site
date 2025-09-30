@@ -5,13 +5,11 @@ const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY;
 
-// CRITICAL FIX: Corrected Toman values (12000 -> 120000, 10000 -> 1000000)
-const planToSheetMap = {
-    '120000': '30D', '220000': '60D', '340000': '90D',
-    '600000': '180D', '1000000': '365D', '2000000': '730D',
-};
+// NEW: نگاشت ثابت نام پلن به نام شیت برای track
+const PLAN_SHEETS = ['30D', '60D', '90D', '180D', '365D', '730D', 'Renew'];
 
 module.exports = async (req, res) => {
+    // track.js برای پیگیری صرفاً trackingId را از query دریافت می‌کند
     const { trackingId } = req.query;
 
     if (!trackingId) {
@@ -28,21 +26,27 @@ module.exports = async (req, res) => {
         await doc.loadInfo();
 
         const purchases = [];
-        for (const sheetTitle of Object.values(planToSheetMap)) {
+        // جستجو در تمامی شیت‌های پلن
+        for (const sheetTitle of PLAN_SHEETS) {
             const sheet = doc.sheetsByTitle[sheetTitle];
             if (sheet) {
+                // اطمینان از بارگیری هدرهای صحیح
+                await sheet.loadHeaderRow(1);
+                
                 const rows = await sheet.getRows();
+                // فرض می‌کنیم trackingId در ستون trackingId ذخیره می‌شود
                 const foundRow = rows.find(row => row.get('trackingId') === trackingId);
+                
                 if (foundRow) {
                     purchases.push({
-                        plan: sheetTitle,
+                        // نام شیت برای نمایش پلن کافی است
+                        plan: sheetTitle, 
                         date: foundRow.get('purchaseDate'),
                         link: foundRow.get('link'),
                         name: foundRow.get('name'),
                         email: foundRow.get('email'),
                         phone: foundRow.get('phone'),
-                        trackingId: foundRow.get('trackingId'),
-                        userCount: foundRow.get('userCount') || 1 // NEW: User Count
+                        trackingId: foundRow.get('trackingId')
                     });
                 }
             }
