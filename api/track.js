@@ -5,11 +5,12 @@ const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY;
 
-// NEW: نگاشت ثابت نام پلن به نام شیت برای track
-const PLAN_SHEETS = ['30D', '60D', '90D', '180D', '365D', '730D', 'Renew'];
+const planToSheetMap = {
+    '12000': '30D', '220000': '60D', '340000': '90D',
+    '600000': '180D', '1000000': '365D', '2000000': '730D', // Updated '10000' to '1000000' for consistency (assuming original typo was corrected)
+};
 
 module.exports = async (req, res) => {
-    // track.js برای پیگیری صرفاً trackingId را از query دریافت می‌کند
     const { trackingId } = req.query;
 
     if (!trackingId) {
@@ -26,21 +27,14 @@ module.exports = async (req, res) => {
         await doc.loadInfo();
 
         const purchases = [];
-        // جستجو در تمامی شیت‌های پلن
-        for (const sheetTitle of PLAN_SHEETS) {
+        for (const sheetTitle of Object.values(planToSheetMap)) {
             const sheet = doc.sheetsByTitle[sheetTitle];
             if (sheet) {
-                // اطمینان از بارگیری هدرهای صحیح
-                await sheet.loadHeaderRow(1);
-                
                 const rows = await sheet.getRows();
-                // فرض می‌کنیم trackingId در ستون trackingId ذخیره می‌شود
                 const foundRow = rows.find(row => row.get('trackingId') === trackingId);
-                
                 if (foundRow) {
                     purchases.push({
-                        // نام شیت برای نمایش پلن کافی است
-                        plan: sheetTitle, 
+                        plan: sheetTitle,
                         date: foundRow.get('purchaseDate'),
                         link: foundRow.get('link'),
                         name: foundRow.get('name'),

@@ -3,526 +3,522 @@ const fetch = require('node-fetch');
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const APP_URL = process.env.APP_URL;
-const bot = new TelegramBot(TOKEN, { polling: true });
+const bot = new TelegramBot(TOKEN);
 
-// NEW: مدیریت وضعیت کاربر برای ورودی‌های چند مرحله‌ای (برای تمدید و پیگیری) و ذخیره تعداد کاربر
-const userStates = {};
+// --- توابع کمکی جدید ---
 
-// --- داده های ربات (ساختار بر اساس قیمت پایه ۱ کاربره) ---
-// قیمت‌ها برای ۱ کاربر است و در زمان انتخاب پلن نهایی در بات در *تعداد کاربران* ضرب می‌شوند.
-const plansData = [
-    { duration: '۱ ماهه', baseAmount: 120000, durationDays: 30, type: 'unlimited', icon: '💎', requestedPlan: '1M' },
-    { duration: '۲ ماهه', baseAmount: 220000, durationDays: 60, type: 'unlimited', icon: '🚀', requestedPlan: '2M' },
-    { duration: '۳ ماهه', baseAmount: 340000, durationDays: 90, type: 'unlimited', icon: '🌟', requestedPlan: '3M' },
-    { duration: '۶ ماهه', baseAmount: 600000, durationDays: 180, type: 'unlimited', icon: '🔥', requestedPlan: '6M' },
-    { duration: '۱ ساله', baseAmount: 1000000, durationDays: 365, type: 'unlimited', icon: '🛡️', requestedPlan: '1Y' },
-    { duration: '۲ ساله', baseAmount: 2000000, durationDays: 730, type: 'unlimited', icon: '👑', requestedPlan: '2Y' },
-    
-    // پلن‌های ملی
-    { duration: '۱ ماهه ملی', baseAmount: 120000, durationDays: 30, type: 'national', icon: '🇮🇷', requestedPlan: '1M-N' },
-    { duration: '۳ ماهه ملی', baseAmount: 340000, durationDays: 90, type: 'national', icon: '🇮🇷', requestedPlan: '3M-N' },
-];
+const formatAmount = (amount) => amount.toLocaleString('fa-IR');
 
-const plans = plansData.reduce((acc, p) => {
-    const type = p.type;
-    const text = `${p.icon} ${p.duration} (قیمت پایه: ${p.baseAmount.toLocaleString('fa-IR')} تومان)`; // نمایش قیمت پایه برای شفافیت
-    const amount = p.baseAmount;
-    
-    if (!acc[type]) acc[type] = [];
-    acc[type].push({ text, amount, requestedPlan: p.requestedPlan, type: type }); // ذخیره requestedPlan و type برای استفاده در callback
-    return acc;
-}, {});
+// تابع محاسبه قیمت چند کاربره
+const calculateMultiUserPrice = (basePrice, users) => {
+    // Price = Base Price + (Users - 1) * 50% of Base Price
+    const multiplier = 1 + (users - 1) * 0.5;
+    return Math.round(basePrice * multiplier / 1000) * 1000; // گرد کردن به نزدیکترین ۱۰۰۰ تومان
+};
 
-// --- داده های برنامه‌ها ---
+
+// --- داده های ربات (اضافه شدن code) ---
+const plans = {
+    unlimited: [
+        { text: '💎 ۱ ماهه - ۱۲۰,۰۰۰ تومان', code: '30D', amount: 120000 },
+        { text: '🚀 ۲ ماهه - ۲۲۰,۰۰۰ تومان', code: '60D', amount: 220000 },
+        { text: '🌟 ۳ ماهه - ۳۴۰,۰۰۰ تومان', code: '90D', amount: 340000 },
+        { text: '🔥 ۶ ماهه - ۶۰۰,۰۰۰ تومان', code: '180D', amount: 600000 },
+        { text: '🛡️ ۱ ساله - ۱,۰۰۰,۰۰۰ تومان', code: '365D', amount: 1000000 },
+        { text: '👑 ۲ ساله - ۲,۰۰۰,۰۰۰ تومان', code: '730D', amount: 2000000 },
+    ],
+    national: [
+        { text: '🇮🇷 ۱ ماهه ملی - ۱۲۰,۰۰۰ تومان', code: '30D', amount: 120000 },
+        { text: '🇮🇷 ۳ ماهه ملی - ۳۴۰,۰۰۰ تومان', code: '90D', amount: 340000 },
+    ]
+};
+
 const apps = {
     android: [
         { text: 'Ay VPN Plus', url: 'https://t.me/Ay_VPN/62' },
-        { text: 'v2rayNG', url: 'https://play.google.com/store/apps/details?id=com.v2ray.android' },
+        { text: 'v2rayNG', url: 'https://t.me/Ay_VPN/61' },
+        { text: 'NapsternetV', url: 'https://t.me/Ay_VPN/60' },
+        { text: 'Happ', url: 'https://t.me/Ay_VPN/59' },
     ],
     ios: [
-        { text: 'FoXray', url: 'https://apps.apple.com/us/app/foxray/id6477002517' },
-        { text: 'Streisand', url: 'https://apps.apple.com/us/app/streisand/id6450534064' },
+        { text: 'Streisand', url: 'https://apps.apple.com/app/streisand/id6450534064' },
+        { text: 'V2Box', url: 'https://apps.apple.com/app/v2box-v2ray-client/id6446814690' },
+        { text: 'Happ', url: 'https://t.me/Ay_VPN/58' },
     ],
     windows: [
-        { text: 'V2rayN', url: 'https://github.com/v2ray/v2rayN/releases' },
-    ],
-    mac: [
-        { text: 'V2rayU', url: 'https://github.com/yanue/V2rayU/releases' },
+        { text: 'Nekoray', url: 'https://t.me/Ay_VPN/57' },
+        { text: 'V2RayN', url: 'https://t.me/Ay_VPN/56' },
     ]
 };
+
+// --- متغیر برای مدیریت وضعیت کاربر در ربات ---
+let userStates = {};
+
+// --- توابع کمکی ---
+
+// تابع کمکی برای گرفتن کیبورد منوی اصلی (شامل «سرویس‌های من» در صورت وجود سابقه خرید)
+async function getMainMenuKeyboard(chatId, checkHistory = true) {
+    let hasHistory = false;
+    if (checkHistory) {
+         try {
+            // تماس با یک endpoint جدید یا verify.js برای بررسی تاریخچه
+            const historyResponse = await fetch(`${APP_URL}/api/verify?action=history&chat_id=${chatId}`);
+            const history = await historyResponse.json();
+            hasHistory = history && history.length > 0;
+        } catch (error) {
+            console.error('Error fetching history for main menu:', error);
+        }
+    }
+    
+    const menu = [
+        [{ text: '💎 اشتراک نامحدود | ثابت 💎', callback_data: 'menu_buy_unlimited' }],
+        [{ text: '🇮🇷 اشتراک اینترنت ملی 🇮🇷', callback_data: 'menu_buy_national' }],
+        [{ text: '🔄 تمدید اشتراک قبلی', callback_data: 'menu_renew' }],
+        ...(hasHistory ? [[{ text: '📜 سرویس‌های من', callback_data: 'menu_my_services' }]] : []), // قابلیت جدید
+        [{ text: '📱 برنامه های اتصال', callback_data: 'menu_apps' }],
+    ];
+    
+    return { reply_markup: { inline_keyboard: menu } };
+}
 
 const appsMenu = {
-    inline_keyboard: [
-        [{ text: '🤖 اندروید', callback_data: 'apps_android' }],
-        [{ text: '🍎 iOS', callback_data: 'apps_ios' }],
-        [{ text: '💻 ویندوز', callback_data: 'apps_windows' }],
-        [{ text: '🍏 مک', callback_data: 'apps_mac' }],
-        [{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]
-    ]
-};
-
-const mainMenu = {
-    inline_keyboard: [
-        [{ text: '🛍️ خرید اشتراک جدید', callback_data: 'menu_buy_unlimited' }], // شروع از انتخاب نوع پلن -> انتخاب تعداد کاربر
-        [{ text: '🔄 تمدید اشتراک', callback_data: 'menu_renew_info' }], 
-        [{ text: '🔑 پیگیری سفارش', callback_data: 'menu_my_services' }], // پیگیری با Tracking ID
-        [{ text: '📱 برنامه‌های مورد نیاز', callback_data: 'menu_apps' }],
-        [{ text: '💬 ارتباط با پشتیبانی', url: 'https://t.me/AyVPNsupport' }],
-    ]
-};
-
-// NEW: داده‌های تعداد کاربر (۱ تا ۸)
-const userCounts = [1, 2, 3, 4, 5, 6, 7, 8];
-
-// NEW: تابع ساخت کیبورد انتخاب تعداد کاربر
-function userCountKeyboard(flowType, planType) {
-    const keyboard = [];
-    const firstRow = userCounts.slice(0, 4).map(u => ({
-        text: `${u} کاربر`,
-        // ساختار: select_users_{count}_{flowType}_{planType}
-        callback_data: `select_users_${u}_${flowType}_${planType}` 
-    }));
-    const secondRow = userCounts.slice(4).map(u => ({
-        text: `${u} کاربر`,
-        callback_data: `select_users_${u}_${flowType}_${planType}`
-    }));
-
-    keyboard.push(firstRow);
-    keyboard.push(secondRow);
-    
-    // دکمه بازگشت
-    let backCallback = (flowType === 'new') ? `menu_buy_${planType}` : 'menu_main'; 
-    if (flowType === 'renew') backCallback = 'menu_renew_info';
-    
-    keyboard.push([{ text: '⬅️ بازگشت', callback_data: backCallback }]);
-    
-    return { inline_keyboard: keyboard };
-};
-
-
-// تابع جداگانه برای نمایش منوی انتخاب پلن خرید جدید
-function showBuyPlanMenu(chatId, messageId, state) {
-    const users = state.users;
-    const type = state.planType; // unlimited یا national
-    const planList = plans[type] || plans.unlimited;
-    
-    const keyboard = planList.map(p => {
-        // محاسبه مبلغ نهایی
-        const finalAmount = p.amount * users;
-        const text = `${p.text} (مبلغ نهایی: ${finalAmount.toLocaleString('fa-IR')} تومان)`;
-        // ساختار: start_payment_plan_{type}_{requestedPlan}_{finalAmount}_{flowType}
-        return [{ text: text, callback_data: `start_payment_plan_${p.type}_${p.requestedPlan}_${finalAmount}_new` }];
-    });
-    keyboard.push([{ text: '⬅️ بازگشت به انتخاب تعداد کاربر', callback_data: `menu_buy_${type}` }]);
-
-    const messageText = `🛍️ پلن‌های ${type === 'unlimited' ? 'نامحدود' : 'ملی'} برای خرید جدید:
-**تعداد کاربر انتخابی: ${users} نفر**
-
-لطفاً پلن مورد نظر خود را انتخاب کنید:`;
-    
-    // تنظیم وضعیت به مرحله آخر تا ورودی متنی دیگر را نپذیرد
-    userStates[chatId].step = 'FINAL_SELECTION'; 
-    
-    return bot.editMessageText(messageText, {
-        chat_id: chatId,
-        message_id: messageId,
-        reply_markup: { inline_keyboard: keyboard },
-        parse_mode: 'Markdown'
-    });
-}
-
-
-// تابع جداگانه برای نمایش منوی انتخاب پلن تمدید
-function showRenewalPlanMenu(chatId, messageId, state) {
-    const renewalIdentifier = state.renewalIdentifier;
-    const description = state.description || 'ندارد';
-    const users = state.users;
-
-    // تنظیم وضعیت به مرحله آخر تا ورودی متنی دیگر را نپذیرد
-    userStates[chatId].step = 'FINAL_SELECTION';
-
-    const allPlanList = [...plans.unlimited, ...plans.national].flat();
-    
-    const keyboard = allPlanList.map(p => {
-        // محاسبه مبلغ نهایی
-        const finalAmount = p.amount * users;
-        const text = `${p.text} (مبلغ نهایی: ${finalAmount.toLocaleString('fa-IR')} تومان)`;
-        // ساختار: start_payment_plan_{type}_{requestedPlan}_{finalAmount}_{flowType}
-        return [{ text: text, callback_data: `start_payment_plan_${p.type}_${p.requestedPlan}_${finalAmount}_renew` }];
-    });
-    
-    keyboard.push([{ text: '⬅️ بازگشت به انتخاب تعداد کاربر', callback_data: `go_to_user_count_renew` }]);
-    keyboard.push([{ text: 'بازگشت به منو اصلی', callback_data: 'menu_main' }]);
-
-    const messageText = `
-**🔄 تمدید اشتراک**
--------------------
-*شناسه تمدید:* \`${renewalIdentifier}\`
-*توضیحات:* ${description}
-**تعداد کاربر انتخابی: ${users} نفر**
-
-لطفاً پلن مورد نظر خود را برای **تمدید** انتخاب کنید.
-    `;
-
-    // اگر messageId موجود است، پیام را ویرایش کن، در غیر این صورت پیام جدید بفرست
-    if (messageId) {
-        return bot.editMessageText(messageText, {
-            chat_id: chatId,
-            message_id: messageId,
-            reply_markup: { inline_keyboard: keyboard },
-            parse_mode: 'Markdown'
-        });
-    } else {
-        return bot.sendMessage(chatId, messageText, {
-            reply_markup: { inline_keyboard: keyboard },
-            parse_mode: 'Markdown'
-        });
+    reply_markup: {
+        inline_keyboard: [
+            [{ text: '🤖 اندروید', callback_data: 'apps_android' }, { text: '🍏 آیفون', callback_data: 'apps_ios' }],
+            [{ text: '💻 ویندوز', callback_data: 'apps_windows' }],
+            [{ text: '🎓 آموزش اتصال', url: 'https://t.me/Ay_VPN' }],
+            [{ text: '⬅️ بازگشت به منوی اصلی', callback_data: 'menu_main' }],
+        ]
     }
-}
+};
 
+const backToMainMenuBtn = [[{ text: '⬅️ بازگشت به منوی اصلی', callback_data: 'menu_main' }]];
+const backToAppsMenuBtn = [[{ text: '⬅️ بازگشت به برنامه‌ها', callback_data: 'menu_apps' }]];
 
-// --- مدیریت ورودی‌های متنی (Text Listener) برای وضعیت‌های چند مرحله‌ای ---
-bot.on('text', async (msg) => {
-    const chatId = msg.chat.id;
-    const text = msg.text;
-
-    // اگر کاربر در یک وضعیت خاص نیست یا دستور /start زد، کاری انجام نده
-    if (!userStates[chatId] || text.startsWith('/')) {
-        return; 
-    }
-
-    const currentState = userStates[chatId];
-
-    // --- گام ۱: دریافت شناسه تمدید ---
-    if (currentState.step === 'AWAITING_RENEWAL_ID') {
-        const renewalIdentifier = text.trim();
-        if (renewalIdentifier.length < 5) {
-            return bot.sendMessage(chatId, '⚠️ شناسه وارد شده معتبر نیست. لطفاً لینک، ایمیل یا شماره تلفن صحیح خود را وارد کنید.');
+// --- تابع اصلی ربات ---
+module.exports = async (req, res) => {
+    const update = req.body;
+    try {
+        if (update.message) {
+            await handleMessage(update.message);
         }
-        
-        userStates[chatId].renewalIdentifier = renewalIdentifier;
-        userStates[chatId].step = 'AWAITING_RENEWAL_DESCRIPTION';
-
-        const keyboard = [[{ text: '⏭️ بدون توضیحات ادامه بده', callback_data: 'renew_plan_selection_skip_desc' }]];
-
-        return bot.sendMessage(chatId, 
-            `✅ شناسه تمدید با موفقیت ثبت شد: \`${renewalIdentifier}\`
-
-📌 **گام بعدی:** لطفاً اگر توضیحات یا درخواستی (اختیاری) در مورد تمدید دارید، آن را در یک پیام بنویسید.
-یا از دکمه زیر برای رد شدن از این مرحله استفاده کنید.`, 
-            {
-                reply_markup: { inline_keyboard: keyboard },
-                parse_mode: 'Markdown'
-            });
-
-    }
-
-    // --- گام ۲: دریافت توضیحات اختیاری (تمدید) ---
-    if (currentState.step === 'AWAITING_RENEWAL_DESCRIPTION') {
-        userStates[chatId].description = text; // ذخیره توضیحات
-        
-        // پس از دریافت توضیحات، به منوی انتخاب تعداد کاربر هدایت می‌کنیم (جریان تمدید)
-        userStates[chatId].step = 'AWAITING_USER_COUNT'; 
-        userStates[chatId].planType = 'unlimited'; // فقط برای تعیین نوع بازگشت استفاده می‌شود
-        
-        return bot.sendMessage(chatId, 
-            `✅ توضیحات ثبت شد.
-            
-**🔢 گام بعدی:** لطفاً تعداد کاربر مورد نظر خود را برای تمدید انتخاب کنید:`, 
-            {
-                reply_markup: userCountKeyboard('renew', 'unlimited'), 
-                parse_mode: 'Markdown'
-            });
-    }
-    
-    // --- NEW: گام ۳: دریافت کد پیگیری (پیگیری سفارش) ---
-    if (currentState.step === 'AWAITING_TRACKING_ID') {
-        const trackingId = text.trim();
-        if (trackingId.length < 5) {
-            return bot.sendMessage(chatId, '⚠️ کد پیگیری وارد شده معتبر نیست. لطفاً کد را با دقت وارد کنید.');
+        if (update.callback_query) {
+            await handleCallbackQuery(update.callback_query);
         }
+    } catch (error) {
+        console.error('Bot Main Handler Error:', error);
+    }
+    res.status(200).send('OK');
+};
 
+// --- مدیریت پیام‌ها ---
+async function handleMessage(message) {
+    const chatId = message.chat.id;
+    const text = message.text;
+
+    if (text === '/start') {
+        const mainKeyboard = await getMainMenuKeyboard(chatId);
+        await bot.sendMessage(chatId, `سلام، به ربات خرید و تمدید اشتراک ${'Ay Technic'} خوش آمدید.`, mainKeyboard);
+        userStates[chatId] = { state: 'main_menu', chatId, username: message.chat.username };
+        return;
+    }
+
+    // --- مدیریت ورودی کوپن ---
+    if (userStates[chatId] && userStates[chatId].state === 'awaiting_coupon') {
+        const couponCode = text.trim();
+        const userState = userStates[chatId];
+        const { type, requestedPlan, baseAmount, users, renewalId } = userState; // NEW: Get baseAmount and users
+        const isRenewal = renewalId !== 'none';
+        
+        // 1. Check coupon validity and calculate discount
+        let couponCheckResult;
         try {
-            const trackUrl = `${APP_URL}/api/track?trackingId=${trackingId}`;
-            const response = await fetch(trackUrl);
-            const purchases = await response.json();
-
-            // حذف وضعیت بعد از عملیات
-            delete userStates[chatId]; 
-            
-            if (purchases.error || purchases.length === 0) {
-                const errorMessage = purchases.error || 'سفارشی با این کد پیگیری یافت نشد.';
-                return bot.sendMessage(chatId, `❌ ${errorMessage}\n\nلطفاً کد را مجدداً بررسی کنید یا با پشتیبانی (@AyVPNsupport) تماس بگیرید.`, {
-                    reply_markup: { inline_keyboard: [[{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]] },
-                    parse_mode: 'Markdown'
-                });
-            }
-
-            let messageText = `✅ **جزئیات سفارش شما** (کد پیگیری: \`${trackingId}\`)\n-------------------\n`;
-            
-            purchases.forEach((p, index) => {
-                const linkText = p.link ? `[لینک اشتراک](${p.link})` : 'لینک یافت نشد (در صورت موفقیت آمیز بودن، لینک باید توسط پشتیبانی ارسال شود)';
-                messageText += `\n**سفارش #${index + 1}**\n`;
-                messageText += `*پلن:* ${p.plan}\n`;
-                messageText += `*تاریخ:* ${p.date}\n`;
-                messageText += `*لینک اتصال:* ${linkText}\n`;
-                messageText += `*نام/ایمیل/تلفن:* ${p.name || p.email || p.phone || 'نامشخص'}\n`;
-            });
-            
-            return bot.sendMessage(chatId, messageText, {
-                reply_markup: { inline_keyboard: [[{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]] },
-                parse_mode: 'Markdown'
-            });
-
+            // NEW: Send final calculated amount for coupon check
+            const finalMultiUserAmount = calculateMultiUserPrice(parseInt(baseAmount), parseInt(users));
+            const checkCouponResponse = await fetch(`${APP_URL}/api/verify?action=check_coupon&couponCode=${couponCode}&amount=${finalMultiUserAmount}`);
+            couponCheckResult = await checkCouponResponse.json();
         } catch (error) {
-            console.error('Tracking Error in bot:', error.message);
+            console.error('Coupon Check API Error:', error);
+            await bot.sendMessage(chatId, '❌ خطا در بررسی کوپن. لطفاً مجدداً امتحان کنید.', { reply_markup: { inline_keyboard: backToMainMenuBtn } });
             delete userStates[chatId];
-            return bot.sendMessage(chatId, '❌ خطای سرور در پیگیری سفارش. لطفاً بعداً تلاش کنید.', {
-                reply_markup: { inline_keyboard: [[{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]] }
-            });
+            return;
         }
-    }
-});
 
-
-// --- مدیریت دستور /start ---
-bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    // حذف وضعیت کاربر هنگام شروع مجدد
-    delete userStates[chatId]; 
-
-    const welcomeMessage = `
-سلام ${msg.from.first_name}! 👋
-به ربات Ay Technic خوش آمدید.
-
-لطفاً گزینه مورد نظر خود را انتخاب کنید:
-    `;
-    bot.sendMessage(chatId, welcomeMessage, {
-        reply_markup: mainMenu,
-        parse_mode: 'Markdown'
-    });
-});
-
-// --- مدیریت کلیک روی دکمه‌های Inline ---
-bot.on('callback_query', async (query) => {
-    const chatId = query.message.chat.id;
-    const messageId = query.message.message_id;
-    const data = query.data;
-    const user = query.from;
-
-    // ریست کردن وضعیت در صورت ورود به منو اصلی
-    if (data === 'menu_main') {
-        delete userStates[chatId];
-        const welcomeMessage = `
-سلام ${user.first_name}! 👋
-به منو اصلی بازگشتید. لطفاً گزینه مورد نظر خود را انتخاب کنید:
-        `;
-        return bot.editMessageText(welcomeMessage, {
-            chat_id: chatId,
-            message_id: messageId,
-            reply_markup: mainMenu,
-            parse_mode: 'Markdown'
-        });
-    }
-
-    // --- مدیریت پیگیری سفارش (گام ۱) ---
-    if (data === 'menu_my_services') {
-        userStates[chatId] = { step: 'AWAITING_TRACKING_ID' }; 
-        return bot.editMessageText('🔑 لطفاً **کد پیگیری** (Tracking ID) دریافت شده از صفحه پرداخت یا ایمیل را وارد کنید:', {
-            chat_id: chatId,
-            message_id: messageId,
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]
-                ]
-            }
-        });
-    }
-
-    // --- شروع فرآیند تمدید (گام ۱) ---
-    if (data === 'menu_renew_info') {
-        // تنظیم وضعیت به انتظار شناسه
-        userStates[chatId] = { step: 'AWAITING_RENEWAL_ID' }; 
-        return bot.editMessageText('🔄 لطفاً لینک اشتراک، ایمیل یا شماره تلفنی که با آن خرید قبلی را انجام داده‌اید، جهت تمدید وارد کنید:', {
-            chat_id: chatId,
-            message_id: messageId,
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]
-                ]
-            }
-        });
-    }
-
-    // --- بازگشت از منوی پلن به انتخاب تعداد کاربر در جریان تمدید ---
-    if (data === 'go_to_user_count_renew') {
-        userStates[chatId].step = 'AWAITING_USER_COUNT';
-        return bot.editMessageText(`**🔢 انتخاب تعداد کاربر:**
-
-لطفاً تعداد کاربر مورد نظر خود را برای تمدید انتخاب کنید:`, {
-            chat_id: chatId,
-            message_id: messageId,
-            reply_markup: userCountKeyboard('renew', 'unlimited'), 
-            parse_mode: 'Markdown'
-        });
-    }
-
-
-    // --- شروع فرآیند خرید جدید (گام ۱: انتخاب نوع پلن) ---
-    if (data.startsWith('menu_buy_')) {
-        delete userStates[chatId]; // اطمینان از حذف وضعیت تمدید
-        const type = data.split('_')[2];
+        if (couponCheckResult.error) {
+            await bot.sendMessage(chatId, `❌ **خطا:** ${couponCheckResult.error}\n\nلطفاً کد دیگری وارد کنید یا دکمه «بدون کوپن» را بزنید.`, { parse_mode: 'Markdown' });
+            return; // Stay in awaiting_coupon state
+        }
         
-        // پس از انتخاب نوع پلن، به منوی انتخاب تعداد کاربر هدایت می‌کنیم
-        userStates[chatId] = { 
-            step: 'AWAITING_USER_COUNT', 
-            planType: type // ذخیره نوع پلن (unlimited/national)
-        }; 
+        // 2. Coupon is valid
+        const finalAmount = couponCheckResult.finalAmount;
+        const discountAmount = calculateMultiUserPrice(parseInt(baseAmount), parseInt(users)) - finalAmount;
+        
+        // Final payment callback
+        let paymentCallback = `start_payment_${requestedPlan}_${finalAmount}_none_${users}`; // NEW: Add users
+        if (isRenewal) {
+            paymentCallback = `start_payment_${requestedPlan}_${finalAmount}_${renewalId}_${users}_renew`; // NEW: Add users and renew flag
+        }
 
-        const messageText = `**🔢 گام اول: انتخاب تعداد کاربر**
+        const messageText = `
+            ✅ **کوپن با موفقیت اعمال شد!**
+            🔹 **مقدار تخفیف:** ${formatAmount(discountAmount)} تومان
+            💳 **مبلغ قابل پرداخت نهایی:** **${formatAmount(finalAmount)} تومان**
+            
+            لطفاً برای تکمیل خرید/تمدید، دکمه پرداخت را بزنید.
+        `;
 
-شما پلن‌های ${type === 'unlimited' ? 'نامحدود' : 'ملی'} را انتخاب کردید.
-لطفاً تعداد کاربر مورد نظر خود را انتخاب کنید:`;
+        const keyboard = [
+            [{ text: `💳 پرداخت نهایی (${formatAmount(finalAmount)} تومان)`, callback_data: paymentCallback }],
+            [{ text: '⬅️ بازگشت و حذف کوپن', callback_data: isRenewal ? `renew_plan_${type}_${plans[type].findIndex(p => p.code === requestedPlan)}_${renewalId}` : `buy_${type}_${plans[type].findIndex(p => p.code === requestedPlan)}` }], // Go back to plan selection (before users)
+        ];
+        
+        // If renewal, the back button should return to the select users step
+        const originalPlan = plans[type].find(p => p.code === requestedPlan);
+        const originalUsersCallback = `users_selected_1_${type}_${requestedPlan}_${originalPlan.amount}${isRenewal ? '_' + renewalId : ''}`; // Default to 1 user for back
+
+        keyboard[1] = [{ text: '⬅️ بازگشت و حذف کوپن', callback_data: originalUsersCallback }];
+
+        userStates[chatId].state = 'plan_selected'; // Reset state
+        await bot.sendMessage(chatId, messageText, { 
+            reply_markup: { inline_keyboard: keyboard }, 
+            parse_mode: 'Markdown' 
+        });
+
+        return;
+    }
+}
+
+// --- مدیریت Callback Query ---
+async function handleCallbackQuery(callbackQuery) {
+    const data = callbackQuery.data;
+    const message = callbackQuery.message;
+    const chatId = message.chat.id;
+    const messageId = message.message_id;
+    
+    // Default action: acknowledge the button press
+    await bot.answerCallbackQuery(callbackQuery.id);
+
+    // --- مدیریت منوهای اصلی ---
+    if (data === 'menu_main') {
+        const mainKeyboard = await getMainMenuKeyboard(chatId, false);
+        return bot.editMessageText(`سلام، به ربات خرید و تمدید اشتراک ${'Ay Technic'} خوش آمدید.`, {
+            chat_id: chatId,
+            message_id: messageId,
+            ...mainKeyboard
+        });
+    }
+
+    if (data.startsWith('menu_buy_')) {
+        const type = data.split('_')[2];
+        const planList = plans[type];
+        
+        const messageText = `لطفاً پلن ${type === 'unlimited' ? 'نامحدود' : 'ملی'} مورد نظر خود را انتخاب کنید:`;
+        
+        const keyboard = planList.map((p, i) => ([
+            // callback: buy_TYPE_INDEX
+            { text: p.text, callback_data: `buy_${type}_${i}` }
+        ]));
+        
+        keyboard.push([{ text: '⬅️ بازگشت به منوی اصلی', callback_data: 'menu_main' }]);
         
         return bot.editMessageText(messageText, {
             chat_id: chatId,
             message_id: messageId,
-            reply_markup: userCountKeyboard('new', type),
-            parse_mode: 'Markdown'
+            reply_markup: { inline_keyboard: keyboard }
         });
     }
 
+    // --- ۱. انتخاب پلن (خرید جدید) - NEW FLOW STEP ---
+    if (data.startsWith('buy_') && data.split('_').length === 3) {
+        const parts = data.split('_'); // parts: [buy, unlimited, index]
+        const type = parts[1]; // 'unlimited' or 'national'
+        const planIndex = parseInt(parts[2]);
+        const plan = plans[type][planIndex];
 
-    // --- مدیریت انتخاب تعداد کاربر (Callback: select_users_...) ---
-    if (data.startsWith('select_users_')) {
-        const parts = data.split('_');
-        const users = parts[2]; // تعداد کاربر
-        const flowType = parts[3]; // new یا renew
-        const planType = parts[4]; // unlimited یا national (فقط برای new مهم است)
-        
-        userStates[chatId].users = users;
-        userStates[chatId].step = 'FINAL_SELECTION'; 
-        
-        if (flowType === 'new') {
-            // هدایت به منوی انتخاب پلن خرید جدید
-            return showBuyPlanMenu(chatId, messageId, userStates[chatId]);
-        } else if (flowType === 'renew') {
-            // هدایت به منوی انتخاب پلن تمدید
-            return showRenewalPlanMenu(chatId, messageId, userStates[chatId]);
+        const requestedPlanCode = plan.code;
+        const baseAmount = plan.amount;
+        const messageText = `✅ **پلن انتخابی:** ${plan.text}\n\n⬅️ حالا تعداد کاربران مورد نیاز را انتخاب کنید (۱ تا ۸ کاربر):`;
+
+        const userKeyboard = [];
+        for (let i = 1; i <= 8; i++) {
+            const finalAmount = calculateMultiUserPrice(baseAmount, i);
+            // callback: users_selected_COUNT_TYPE_CODE_BASEAMOUNT
+            userKeyboard.push({ 
+                text: `${i} کاربره - ${formatAmount(finalAmount)} تومان`, 
+                callback_data: `users_selected_${i}_${type}_${requestedPlanCode}_${baseAmount}` 
+            });
         }
-    }
 
+        const inlineKeyboard = [
+            userKeyboard.slice(0, 4), // 1-4
+            userKeyboard.slice(4, 8), // 5-8
+            [{ text: '⬅️ بازگشت به پلن‌ها', callback_data: `menu_buy_${type}` }],
+        ];
 
-    // --- رد شدن از توضیحات و رفتن به انتخاب تعداد کاربر (گام ۲.۵ تمدید) ---
-    if (data === 'renew_plan_selection_skip_desc') {
-        // چون این دکمه در وضعیت AWAITING_RENEWAL_DESCRIPTION ظاهر می‌شود
-        const currentState = userStates[chatId];
-        currentState.description = ''; // تنظیم توضیحات به خالی
-        
-        // پس از رد شدن از توضیحات، به منوی انتخاب تعداد کاربر هدایت می‌کنیم
-        currentState.step = 'AWAITING_USER_COUNT'; 
-        currentState.planType = 'unlimited'; 
-
-        return bot.editMessageText(`✅ توضیحات ثبت شد (ندارد).
-            
-**🔢 گام بعدی:** لطفاً تعداد کاربر مورد نظر خود را برای تمدید انتخاب کنید:`, {
+        return bot.editMessageText(messageText, {
             chat_id: chatId,
             message_id: messageId,
-            reply_markup: userCountKeyboard('renew', 'unlimited'), 
+            reply_markup: { inline_keyboard: inlineKeyboard },
             parse_mode: 'Markdown'
         });
     }
-    
-    // --- مدیریت شروع پرداخت (Start Payment Logic) ---
-    if (data.startsWith('start_payment_plan_')) {
-        // ساختار جدید: start_payment_plan_{type}_{requestedPlan}_{amount}_{flowType}
+
+    // --- ۲. مدیریت تمدید: درخواست شناسه ---
+    if (data === 'menu_renew') {
+        userStates[chatId] = { state: 'awaiting_renewal_id', chatId, username: message.chat.username };
+        return bot.editMessageText('لطفاً **شناسه اشتراک قبلی** خود (کد پیگیری) را برای تمدید ارسال کنید:', {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: { inline_keyboard: backToMainMenuBtn }
+        });
+    }
+
+    // --- ۳. مدیریت تمدید: انتخاب پلن پس از ورود شناسه ---
+    if (data.startsWith('renew_id_')) {
+        const renewalId = data.split('_')[2];
+        
+        // Prompt for plan selection for renewal
+        const messageText = `✅ **شناسه ${renewalId} پذیرفته شد.**\n\nلطفاً پلن جدید مورد نظر خود را برای تمدید انتخاب کنید:`;
+        
+        const keyboardUnlimited = plans.unlimited.map((p, i) => ([
+            // callback: renew_plan_TYPE_INDEX_RENEWALID
+            { text: p.text, callback_data: `renew_plan_unlimited_${i}_${renewalId}` }
+        ]));
+        
+        const keyboardNational = plans.national.map((p, i) => ([
+            { text: p.text, callback_data: `renew_plan_national_${i}_${renewalId}` }
+        ]));
+
+        const inlineKeyboard = [
+            ...keyboardUnlimited,
+            ...keyboardNational,
+            [{ text: '⬅️ بازگشت به منوی اصلی', callback_data: 'menu_main' }]
+        ];
+        
+        return bot.editMessageText(messageText, {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: { inline_keyboard: inlineKeyboard },
+            parse_mode: 'Markdown'
+        });
+    }
+
+    // --- ۴. مدیریت تمدید: انتخاب تعداد کاربر - NEW FLOW STEP ---
+    if (data.startsWith('renew_plan_')) {
+        const parts = data.split('_'); // parts: [renew, plan, unlimited, index, renewalId]
+        const type = parts[2]; // 'unlimited' or 'national'
+        const planIndex = parseInt(parts[3]);
+        const renewalId = parts[4];
+        const plan = plans[type][planIndex];
+        
+        const requestedPlanCode = plan.code;
+        const baseAmount = plan.amount;
+        
+        const messageText = `✅ **پلن انتخابی برای تمدید:** ${plan.text}\n\n⬅️ حالا تعداد کاربران مورد نیاز را انتخاب کنید (۱ تا ۸ کاربر):`;
+
+        const userKeyboard = [];
+        for (let i = 1; i <= 8; i++) {
+            const finalAmount = calculateMultiUserPrice(baseAmount, i);
+            // callback: users_selected_COUNT_TYPE_CODE_BASEAMOUNT_RENEWALID
+            userKeyboard.push({ 
+                text: `${i} کاربره - ${formatAmount(finalAmount)} تومان`, 
+                callback_data: `users_selected_${i}_${type}_${requestedPlanCode}_${baseAmount}_${renewalId}` 
+            });
+        }
+        
+        const inlineKeyboard = [
+            userKeyboard.slice(0, 4), // 1-4
+            userKeyboard.slice(4, 8), // 5-8
+            [{ text: '⬅️ بازگشت به پلن‌ها', callback_data: `renew_id_${renewalId}` }],
+        ];
+
+        return bot.editMessageText(messageText, {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: { inline_keyboard: inlineKeyboard },
+            parse_mode: 'Markdown'
+        });
+    }
+
+    // --- ۵. انتخاب تعداد کاربر و نمایش قیمت نهایی - NEW FLOW STEP ---
+    if (data.startsWith('users_selected_')) {
+        // data structure: users_selected_COUNT_TYPE_CODE_BASEAMOUNT(_RENEWALID)
         const parts = data.split('_');
-        // parts[0]=start, [1]=payment, [2]=plan, [3]=type, [4]=requestedPlan (کد پلن), [5]=finalAmount, [6]=flowType
-        const requestedPlan = parts[4]; 
-        const amount = parts[5]; // این مبلغ نهایی محاسبه شده است
-        const flowType = parts[6];
-        const coupenCode = 'none'; // کوپن فعلا از اینجا اعمال نمی‌شود، مگر بعدا دکمه کوپن اضافه شود.
-        
-        // اطلاعات تلگرام
-        const telegramUsername = user.username || 'N/A';
-        const telegramId = chatId;
+        const users = parts[2];
+        const type = parts[3];
+        const requestedPlanCode = parts[4];
+        const baseAmount = parseInt(parts[5]);
+        const renewalId = parts.length > 6 ? parts[6] : 'none';
+        const isRenewal = renewalId !== 'none';
 
-        // اطلاعات تمدید/کاربر از وضعیت کاربر
-        const currentState = userStates[chatId] || {};
-        const renewalIdentifier = flowType === 'renew' ? currentState.renewalIdentifier || 'Bot-Renewal' : '';
-        const description = flowType === 'renew' ? currentState.description || '' : '';
-        const users = currentState.users || '1'; // NEW: تعداد کاربر انتخابی
-        
-        // ساخت لینک پرداخت با پارامترهای جدید
-        const paymentLink = `${APP_URL}/api/start-payment`;
+        const finalAmount = calculateMultiUserPrice(baseAmount, users);
+        const planDurationText = plans[type].find(p => p.code === requestedPlanCode).text.split('-')[0].trim();
+        const finalAmountText = formatAmount(finalAmount);
 
+        const messageText = `
+            💰 **خرید/تمدید نهایی**
+            🔹 **پلن انتخابی:** ${planDurationText}
+            👥 **تعداد کاربران:** ${users} کاربره
+            💵 **قیمت پایه:** ${formatAmount(baseAmount)} تومان
+            💳 **مبلغ قابل پرداخت:** **${finalAmountText} تومان**
+            
+            در صورت داشتن کد تخفیف، آن را اعمال کنید.
+        `;
+
+        // Payment callback: start_payment_CODE_FINALAMOUNT_RENEWALID_USERS(_RENEW)
+        let paymentCallback = `start_payment_${requestedPlanCode}_${finalAmount}_${renewalId}_${users}`;
+        if (isRenewal) {
+            paymentCallback += '_renew';
+        }
+        
+        // Coupon callback: enter_coupon_code_TYPE_CODE_BASEAMOUNT_USERS(_RENEW_RENEWALID)
+        let couponCallback = `enter_coupon_code_${type}_${requestedPlanCode}_${baseAmount}_${users}`;
+        if (isRenewal) {
+            couponCallback += `_renew_${renewalId}`;
+        }
+        
+        // Back button: Go back to select users (this same step, but for one user)
+        const backCallback = data.replace('users_selected_', 'buy_plan_users_'); // Replaced below with logic
+        
+        const keyboard = [
+            [{ text: '🛍️ کد تخفیف دارم', callback_data: couponCallback }],
+            [{ text: '💳 رفتن به صفحه پرداخت (بدون کوپن)', callback_data: paymentCallback }],
+        ];
+
+        // Find index of plan by code to create the back button to plan selection (before users)
+        const planIndex = plans[type].findIndex(p => p.code === requestedPlanCode);
+        const planSelectionCallback = isRenewal ? `renew_plan_${type}_${planIndex}_${renewalId}` : `buy_${type}_${planIndex}`;
+
+        keyboard.push([{ text: '⬅️ بازگشت به انتخاب پلن', callback_data: planSelectionCallback }]);
+
+        userStates[chatId] = { state: 'plan_selected', chatId, username: message.chat.username }; // Reset state for payment/coupon flow
+
+        return bot.editMessageText(messageText, {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: { inline_keyboard: keyboard },
+            parse_mode: 'Markdown'
+        });
+    }
+
+    // --- ۶. مدیریت درخواست ورود کوپن ---
+    if (data.startsWith('enter_coupon_code_')) {
+        // data structure: enter_coupon_code_TYPE_CODE_BASEAMOUNT_USERS(_RENEW_RENEWALID)
+        const parts = data.split('_');
+        const type = parts[3];
+        const requestedPlanCode = parts[4];
+        const baseAmount = parts[5];
+        const users = parts[6];
+        const isRenewal = parts[7] === 'renew';
+        const renewalId = isRenewal ? parts[8] : 'none';
+
+        // Store state to handle the next message
+        userStates[chatId] = { 
+            state: 'awaiting_coupon', 
+            type, 
+            requestedPlan: requestedPlanCode, 
+            baseAmount, // Base amount of the plan (e.g., 120000)
+            users, // Number of users selected
+            renewalId, 
+        };
+        
+        // The final amount before coupon check
+        const currentFinalAmount = calculateMultiUserPrice(parseInt(baseAmount), parseInt(users));
+
+        const messageText = `
+            🛍️ **اعمال کد تخفیف**
+            
+            🔹 **مبلغ نهایی برای تخفیف:** ${formatAmount(currentFinalAmount)} تومان
+            
+            لطفاً کد تخفیف خود را ارسال کنید:
+        `;
+
+        const keyboard = [
+            // Go back to the user selection summary (default one user)
+            [{ text: '⬅️ بازگشت و حذف کوپن', callback_data: `users_selected_${users}_${type}_${requestedPlanCode}_${baseAmount}${isRenewal ? '_' + renewalId : ''}` }],
+        ];
+
+        return bot.editMessageText(messageText, {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: { inline_keyboard: keyboard },
+            parse_mode: 'Markdown'
+        });
+    }
+
+
+    // --- ۷. شروع فرایند پرداخت (start-payment) - MODIFIED: ADD USERS ---
+    if (data.startsWith('start_payment_')) {
+        // data structure: start_payment_CODE_FINALAMOUNT_RENEWALID_USERS(_RENEW)
+        const parts = data.split('_');
+        const requestedPlan = parts[2];
+        const amount = parseInt(parts[3]);
+        const renewalId = parts[4] === 'none' ? '' : parts[4];
+        const users = parts[5]; // NEW: get users count
+        const isRenewal = parts.length > 6 && parts[6] === 'renew';
+        const couponCode = parts.length > 7 && parts[7] !== 'none' ? parts[7] : ''; // Check for coupon (if applicable)
+
+        // Ensure user info is available (basic check)
+        if (!userStates[chatId] || !userStates[chatId].email) {
+            // Need to prompt for user info if not already done in the flow
+            userStates[chatId] = { ...userStates[chatId], state: 'awaiting_user_info' };
+            await bot.sendMessage(chatId, 'لطفاً ایمیل خود را برای شروع فرآیند پرداخت وارد کنید:');
+            // Re-queue the payment request after info is received
+            userStates[chatId].nextAction = { data }; 
+            return;
+        }
+
+        // 1. Send request to start-payment API
+        const body = {
+            amount,
+            description: isRenewal ? 'تمدید اشتراک' : 'خرید اشتراک جدید',
+            chat_id: chatId,
+            name: userStates[chatId].name || 'ربات تلگرام',
+            email: userStates[chatId].email,
+            phone: userStates[chatId].phone || '',
+            renewalIdentifier: renewalId,
+            requestedPlan: requestedPlan,
+            coupenCode: couponCode,
+            users: users, // NEW: Include users count
+        };
+
+        let result;
         try {
-            const response = await fetch(paymentLink, {
+            const response = await fetch(`${APP_URL}/api/start-payment`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    amount: amount,
-                    description: `خرید/تمدید پلن ${requestedPlan} (${users} کاربر)`,
-                    chat_id: telegramId,
-                    name: user.first_name,
-                    email: '', 
-                    phone: '', 
-                    renewalIdentifier: renewalIdentifier, 
-                    requestedPlan: requestedPlan,
-                    coupenCode: coupenCode,
-                    telegramUsername: telegramUsername,
-                    telegramId: telegramId,
-                    users: users, // ارسال تعداد کاربر
-                    description: description // ارسال توضیحات اختیاری
-                }),
+                body: JSON.stringify(body),
             });
-            const result = await response.json();
-
-            if (result.authority) {
-                const zarinpalUrl = `https://www.zarinpal.com/pg/StartPay/${result.authority}`;
-                
-                const messageText = `
-**💳 جزئیات پرداخت**
--------------------
-*نوع فرآیند:* **${flowType === 'renew' ? 'تمدید اشتراک' : 'خرید اشتراک جدید'}**
-*تعداد کاربر:* **${users} نفر**
-*پلن انتخابی:* ${requestedPlan}
-*مبلغ قابل پرداخت:* **${Number(amount).toLocaleString('fa-IR')} تومان**
-*کوپن:* ${coupenCode === 'none' ? 'ندارد' : coupenCode}
-
-لطفاً برای ادامه، روی دکمه پرداخت کلیک کنید.
-                `;
-
-                const keyboard = [
-                    [{ text: '🔗 رفتن به صفحه پرداخت', url: zarinpalUrl }],
-                    [{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }],
-                ];
-
-                await bot.editMessageText(messageText, {
-                    chat_id: chatId,
-                    message_id: messageId,
-                    reply_markup: { inline_keyboard: keyboard },
-                    parse_mode: 'Markdown'
-                });
-            } else {
-                bot.sendMessage(chatId, '❌ خطایی در اتصال به درگاه پرداخت رخ داد. لطفاً با پشتیبانی تماس بگیرید.');
-            }
+            result = await response.json();
         } catch (error) {
-            console.error('Start Payment Error:', error.message);
-            bot.sendMessage(chatId, '❌ خطای سرور در شروع پرداخت. لطفاً بعداً تلاش کنید.');
+            console.error('API Error:', error);
+            return bot.editMessageText('❌ خطا در ارتباط با درگاه پرداخت. لطفاً دقایقی دیگر امتحان کنید.', { chat_id: chatId, message_id: messageId });
         }
 
-        // پس از شروع پرداخت، وضعیت تمدید/خرید را حذف می‌کنیم
-        delete userStates[chatId];
+        if (result.authority) {
+            const paymentUrl = `https://www.zarinpal.com/pg/StartPay/${result.authority}`;
+            const keyboard = [
+                [{ text: '💳 رفتن به صفحه پرداخت', url: paymentUrl }],
+                [{ text: '⬅️ بازگشت به منوی اصلی', callback_data: 'menu_main' }]
+            ];
+            
+            return bot.editMessageText('✅ لینک پرداخت ایجاد شد. لطفاً برای تکمیل خرید خود اقدام کنید:', {
+                chat_id: chatId,
+                message_id: messageId,
+                reply_markup: { inline_keyboard: keyboard }
+            });
+        } else {
+            return bot.editMessageText(`❌ خطا در ایجاد لینک پرداخت: ${result.error || 'خطای ناشناخته'}`, { chat_id: chatId, message_id: messageId });
+        }
     }
-    
-    
-    // --- مدیریت منوی برنامه‌ها ---
+
+
+    // --- ۸. مدیریت منوی برنامه‌ها - MODIFIED: SEND LINK AS MESSAGE ---
     if (data === 'menu_apps') {
         return bot.editMessageText('📱 لطفاً سیستم عامل خود را برای مشاهده برنامه‌های پیشنهادی انتخاب کنید:', {
             chat_id: chatId,
             message_id: messageId,
-            reply_markup: appsMenu.inline_keyboard
+            ...appsMenu
         });
     }
 
@@ -530,23 +526,18 @@ bot.on('callback_query', async (query) => {
         const type = data.split('_')[1];
         const appList = apps[type];
         
-        const typeText = (type === 'android') ? 'اندروید' : (type === 'ios') ? 'iOS' : (type === 'windows') ? 'ویندوز' : 'مک';
+        let messageText = `✅ برنامه‌های پیشنهادی برای ${type}:\n\n`;
         
-        const keyboard = appList.map(a => ([{ text: a.text, url: a.url }]));
-        keyboard.push([{ text: '⬅️ بازگشت به برنامه‌ها', callback_data: 'menu_apps' }]);
-        keyboard.push([{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]);
+        // Change from inline URL buttons to sending the links as text in the message
+        appList.forEach(a => {
+            messageText += `*${a.text}*: ${a.url}\n`;
+        });
 
-        return bot.editMessageText(`✅ برنامه‌های پیشنهادی برای **${typeText}**:`, {
+        return bot.editMessageText(messageText, {
             chat_id: chatId,
             message_id: messageId,
-            reply_markup: { inline_keyboard: keyboard },
+            reply_markup: { inline_keyboard: backToAppsMenuBtn }, // Only show back button
             parse_mode: 'Markdown'
         });
     }
-});
-
-
-// --- مدیریت خطای نظرسنجی ---
-bot.on('polling_error', (error) => {
-    // console.error(error.code); // => 'EFATAL'
-});
+}
