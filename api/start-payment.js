@@ -59,14 +59,18 @@ module.exports = async (req, res) => {
         });
         const result = await response.json();
         const data = result.data;
+        
+        // **نقطه حیاتی: اگر errors.length صفر نبود یا data.code برابر ۱۰۰ نبود، خطا می‌دهد**
         if (result.errors.length === 0 && data.code === 100 && data.authority) {
             res.status(200).json({ authority: data.authority });
         } else {
             console.error('Zarinpal Error:', result.errors);
-            throw new Error(`Zarinpal request failed with code: ${data.code || result.errors.code}`);
+            // خطای زرین‌پال به کاربر برگردانده می‌شود
+            throw new Error(`Zarinpal request failed with code: ${data.code || result.errors.code}. See logs for details.`);
         }
     } catch (error) {
         console.error('Error starting payment:', error.message);
-        res.status(500).json({ error: 'Failed to start payment process.', details: error.message });
+        // پاسخ خطا به مرورگر
+        res.status(500).json({ error: 'خطای سرور در شروع پرداخت. لاگ‌ها را بررسی کنید.' });
     }
 };
