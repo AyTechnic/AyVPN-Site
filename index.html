@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>خرید و تمدید اشتراک Ay VPN</title>
+    <title>خرید و تمدید اشتراک Ay VPN | Ay Technic</title>
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
@@ -39,6 +39,7 @@
             --border-light: #dee2e6;
             --primary-color-light: #0d6efd;
             --primary-hover-light: #0b5ed7;
+            --danger-color: #dc3545;
 
             /* Dark Theme */
             --bg-dark: #0a192f;
@@ -71,6 +72,8 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* STICKY FOOTER FIX & BASE */
         body {
             font-family: var(--font-family);
             background-color: var(--bg-color);
@@ -78,8 +81,16 @@
             transition: background-color var(--transition-speed), color var(--transition-speed);
             line-height: 1.7;
             overflow-x: hidden;
+            display: flex; /* NEW: Sticky Footer */
+            flex-direction: column; /* NEW: Sticky Footer */
+            min-height: 100vh; /* NEW: Sticky Footer */
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px; }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 40px; 
+            flex-grow: 1; /* NEW: Sticky Footer */
+        }
         @media (max-width: 768px) { .container { padding: 20px; } }
 
         /* HEADER */
@@ -118,7 +129,7 @@
             display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px; animation: fadeIn 0.5s ease-in-out;
         }
-        #renew.active { display: block; } /* Special case for renew tab */
+        #renew.active, #track.active { display: block; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
@@ -129,205 +140,454 @@
             background: var(--card-bg); border: 1px solid var(--border-color);
             border-radius: 20px; padding: 30px; text-align: center;
             transition: all var(--transition-speed); cursor: pointer;
-            position: relative; overflow: hidden; border-top-width: 4px;
+            position: relative; overflow: hidden; border-top-width: 6px;
             border-top-color: var(--plan-color);
         }
         .plan-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); }
         [data-theme="dark"] .plan-card:hover { box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); }
         .plan-card.selected {
-            border-color: var(--primary-color); border-top-color: var(--primary-color);
+            border-color: var(--plan-color); border-top-color: var(--plan-color);
             box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
         }
         [data-theme="dark"] .plan-card.selected { box-shadow: 0 8px 25px rgba(56, 189, 248, 0.15); }
         
-        [data-plan-id="1"] { --plan-color: #0d6efd; }
-        [data-plan-id="2"] { --plan-color: #198754; }
-        [data-plan-id="3"] { --plan-color: #6f42c1; }
-        [data-plan-id="4"] { --plan-color: #ffc107; }
-        [data-plan-id="5"] { --plan-color: #dc3545; }
-        [data-plan-id="6"] { --plan-color: #fd7e14; }
-        [data-plan-id="7"] { --plan-color: #0d6efd; }
-        [data-plan-id="8"] { --plan-color: #6f42c1; }
+        /* Plan Colors (Used as variables for dynamic styling) */
+        [data-plan-color-id="1"] { --plan-color: #0d6efd; --plan-color-rgb: 13, 110, 253; }
+        [data-plan-color-id="2"] { --plan-color: #198754; --plan-color-rgb: 25, 135, 84; }
+        [data-plan-color-id="3"] { --plan-color: #6f42c1; --plan-color-rgb: 111, 66, 193; }
+        [data-plan-color-id="4"] { --plan-color: #ffc107; --plan-color-rgb: 255, 193, 7; }
+        [data-plan-color-id="5"] { --plan-color: #dc3545; --plan-color-rgb: 220, 53, 69; }
+        [data-plan-color-id="6"] { --plan-color: #fd7e14; --plan-color-rgb: 253, 126, 20; }
+        [data-plan-color-id="7"] { --plan-color: #00bcd4; --plan-color-rgb: 0, 188, 212; } 
+        [data-plan-color-id="8"] { --plan-color: #8bc34a; --plan-color-rgb: 139, 195, 74; } 
+        [data-plan-color-id="9"] { --plan-color: #ff5722; --plan-color-rgb: 255, 87, 34; }
+        [data-plan-color-id="10"] { --plan-color: #607d8b; --plan-color-rgb: 96, 125, 139; }
+        [data-plan-color-id="11"] { --plan-color: #9c27b0; --plan-color-rgb: 156, 39, 176; }
+        [data-plan-color-id="12"] { --plan-color: #f44336; --plan-color-rgb: 244, 67, 54; }
 
 
         .plan-card input { display: none; }
         .plan-icon { margin-bottom: 15px; }
         .plan-icon svg { width: 48px; height: 48px; color: var(--plan-color); }
         .plan-duration { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); }
-        .plan-features { list-style: none; padding: 0; margin: 25px 0; font-size: 0.95rem; color: var(--text-secondary); }
-        .plan-features li { margin-bottom: 10px; }
+        .plan-features { 
+            list-style: none; padding: 0; margin: 25px 0; font-size: 0.95rem; 
+            color: var(--text-secondary); 
+            text-align: center; /* NEW: Center-align features */
+        }
+        .plan-features li { 
+            margin-bottom: 10px; 
+            text-align: center; /* NEW: Ensure li text is centered */
+        }
         .os-icons { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
         .os-icons svg { width: 24px; height: 24px; color: var(--text-secondary); opacity: 0.7; }
-        .plan-price { font-size: 2.2rem; font-weight: 700; color: var(--text-primary); }
-        .plan-price span { font-size: 1rem; font-weight: 400; color: var(--text-secondary); }
         
+        .plan-price-section { 
+            margin-top: 20px; 
+            border-top: 1px solid var(--border-color); 
+            padding-top: 20px;
+        }
+
+        .plan-price { 
+            font-size: 2.2rem; 
+            font-weight: 700; 
+            color: var(--text-primary); 
+            margin-bottom: 8px;
+        }
+        .plan-price span { 
+            font-size: 1rem; 
+            font-weight: 400; 
+            color: var(--text-secondary); 
+        }
+
+        /* NEW: User Icon Selector Styles (for Buy Tabs) */
+        .user-icon-selector {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0 30px;
+            padding: 10px 0;
+            border-top: 1px dashed var(--border-color);
+            border-bottom: 1px dashed var(--border-color);
+        }
+        .user-icon {
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            color: var(--text-secondary);
+            transition: color 0.1s;
+        }
+        .user-icon.selected {
+            color: var(--plan-color);
+        }
+        .user-count-display {
+            margin-top: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--plan-color);
+            margin-bottom: 20px;
+        }
         /* Purchase Button */
-        .purchase-btn {
-            background: var(--primary-color); color: white; border: none;
-            padding: 15px 40px; font-size: 1.2rem; font-weight: 500;
-            border-radius: 50px; cursor: pointer; transition: all var(--transition-speed);
-            display: block; width: fit-content; margin: 50px auto 0;
-            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.2);
+        .purchase-btn { 
+            background: var(--plan-color); /* Use plan color */
+            color: white; 
+            border: none; 
+            padding: 15px 40px; 
+            font-size: 1.2rem; 
+            font-weight: 500; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            transition: all var(--transition-speed); 
+            display: block; 
+            width: fit-content; 
+            margin: 50px auto 0; 
+            box-shadow: 0 5px 15px rgba(var(--plan-color-rgb, 0, 123, 255), 0.3); /* Use plan color shadow */
         }
-        .purchase-btn:hover {
-            background: var(--primary-hover); transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+        .purchase-btn:hover { 
+            background: var(--plan-color); 
+            opacity: 0.9;
+            transform: translateY(-3px); 
+            box-shadow: 0 8px 20px rgba(var(--plan-color-rgb, 0, 123, 255), 0.4); 
         }
-        [data-theme="dark"] .purchase-btn { box-shadow: 0 5px 15px rgba(56, 189, 248, 0.2); }
-        [data-theme="dark"] .purchase-btn:hover { box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3); }
         .purchase-btn:disabled { background: #aaa; cursor: not-allowed; transform: none; box-shadow: none; }
 
+
         /* RENEWAL SECTION STYLES */
-        .renewal-configurator {
-            background: var(--card-bg); border: 1px solid var(--border-color);
-            border-radius: 20px; padding: 30px; text-align: center;
-            animation: fadeIn 0.5s ease-in-out;
-            border-top: 4px solid var(--primary-color);
-            transition: border-top-color var(--transition-speed);
+        .renewal-configurator { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 20px; 
+            padding: 30px; 
+            text-align: center; 
+            animation: fadeIn 0.5s ease-in-out; 
+            border-top: 4px solid var(--plan-color, var(--primary-color)); /* Sync with selected plan color */
+            transition: border-top-color var(--transition-speed); 
+            max-width: 700px;
+            margin: 0 auto;
         }
+        .renewal-configurator h3 { margin-bottom: 25px; font-size: 1.5rem; }
+
         .renewal-configurator .plan-type-selector {
-            display: flex; justify-content: center; gap: 10px; margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
         }
         .renewal-configurator .plan-type-selector button {
-            background: transparent; border: 1px solid var(--border-color);
-            color: var(--text-secondary); padding: 8px 20px;
-            border-radius: 20px; cursor: pointer; font-weight: 500;
+            background: var(--bg-color);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
             transition: all var(--transition-speed);
+            font-weight: 500;
         }
         .renewal-configurator .plan-type-selector button.active {
-            background: var(--primary-color); color: white; border-color: var(--primary-color);
+            background: var(--plan-color, var(--primary-color)); /* Sync with selected plan color */
+            color: white;
+            border-color: var(--plan-color, var(--primary-color));
+            box-shadow: 0 4px 10px rgba(var(--plan-color-rgb, 0, 123, 255), 0.2);
         }
-        .plan-slider {
-            -webkit-appearance: none; appearance: none; width: 100%; height: 8px;
-            background: var(--border-color); border-radius: 5px; outline: none; margin: 30px 0;
+        
+        .renewal-configurator .slider-group {
+            margin-bottom: 40px;
+            text-align: right;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 15px;
         }
-        .plan-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none; width: 24px; height: 24px;
-            border-radius: 50%; background: var(--primary-color); cursor: pointer;
-            border: 4px solid var(--card-bg);
-            transition: background-color var(--transition-speed);
+        .renewal-configurator .slider-group p {
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+            font-size: 1.1rem;
         }
-        .plan-slider::-moz-range-thumb {
-            width: 24px; height: 24px; border-radius: 50%;
-            background: var(--primary-color); cursor: pointer;
-            border: 4px solid var(--card-bg);
-            transition: background-color var(--transition-speed);
+        
+        /* Custom Range Slider Styles for Color Sync */
+        .custom-range-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            -webkit-appearance: none;
+            cursor: pointer;
+            outline: none;
+            /* Track Color (for dual slider) */
+            background: linear-gradient(to left, var(--plan-color) var(--slider-percent), var(--text-secondary) var(--slider-percent));
+            transition: background var(--transition-speed);
         }
-        .plan-info-display { margin-bottom: 30px; }
-        .plan-info-display h3 { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); transition: color var(--transition-speed); }
-        .plan-info-display p { color: var(--text-secondary); font-size: 1.1rem; }
-        #renewal-identifier-input {
-            width: 100%; max-width: 400px; padding: 12px; border-radius: 8px;
-            border: 1px solid var(--border-color); background: var(--bg-color);
-            color: var(--text-primary); margin-bottom: 25px;
-            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
-            text-align: left;
+        .custom-range-slider::-webkit-slider-runnable-track {
+            background: var(--text-secondary);
         }
-        #renewal-identifier-input:focus {
-            outline: none; border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        .custom-range-slider.colored-track::-webkit-slider-runnable-track {
+            /* This is a fallback for browsers that don't support the background trick well */
+            background: linear-gradient(to left, var(--plan-color) var(--slider-percent), var(--text-secondary) var(--slider-percent));
         }
-        [data-theme="dark"] #renewal-identifier-input:focus { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25); }
-        #renew-btn { margin: 0 auto; } /* Inherits .purchase-btn styles */
 
-        /* MODAL (Popup) */
+        .custom-range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--plan-color); /* Sync with selected plan color */
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid var(--card-bg);
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+            transition: background var(--transition-speed);
+        }
+        .custom-range-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--plan-color); /* Sync with selected plan color */
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid var(--card-bg);
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+            transition: background var(--transition-speed);
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .slider-label span {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--plan-color); /* Sync with selected plan color */
+        }
+        
+        .renewal-configurator .renew-details {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: right;
+            background: var(--bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-top: 30px;
+        }
+        .renewal-configurator .renew-details p {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+        }
+        .renewal-configurator .renew-details span {
+            font-weight: 700;
+            color: var(--plan-color); /* Sync with selected plan color */
+        }
+        .renewal-configurator input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            text-align: right;
+            margin-top: 15px;
+        }
+        .renewal-configurator .renew-btn {
+            background: var(--plan-color); /* Sync with selected plan color */
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 500;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            margin-top: 30px;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(var(--plan-color-rgb, 0, 123, 255), 0.3);
+        }
+        .renewal-configurator .renew-btn:hover { 
+            background: var(--plan-color); 
+            opacity: 0.9;
+        }
+
+        /* TRACKING SECTION STYLES (Styled with dynamic border/shadow) */
+        #track { max-width: 600px; margin: 0 auto; }
+        #track h3 { margin-bottom: 20px; font-size: 1.5rem; text-align: center; }
+        #track form { 
+    display: flex; flex-direction: column; gap: 15px; 
+    background: var(--card-bg); padding: 30px; border-radius: 15px; 
+    /* NEW: Card Styling for Colored Top Border and Transition */
+    border: 1px solid var(--border-color);
+    border-top: 8px solid var(--primary-color); /* Colored top border using primary color */
+    transition: all var(--transition-speed); 
+    }
+    #track form:hover { 
+    transform: translateY(-8px); 
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); 
+    border-color: var(--primary-color);
+    }
+    [data-theme="dark"] #track form:hover { 
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); 
+    }
+        
+        #track input { padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-color); color: var(--text-primary); font-family: var(--font-family); font-size: 1rem; text-align: right; }
+        #track button { background: var(--primary-color); color: white; border: none; padding: 12px; font-size: 1.1rem; font-weight: 500; border-radius: 8px; cursor: pointer; transition: background var(--transition-speed); }
+        #track button:hover { background: var(--primary-hover); }
+        #tracking-results { 
+            margin-top: 25px; 
+            padding: 20px; 
+            background: var(--card-bg); 
+            border-radius: 15px; 
+            border: 2px solid var(--primary-color); /* NEW: Colored Border/Shadow */
+            box-shadow: 0 4px 20px rgba(13, 110, 253, 0.15); 
+            text-align: right;
+            animation: fadeIn 0.5s ease-in-out;
+            transition: all var(--transition-speed);
+        }
+        .result-item { 
+            border-bottom: 1px dashed var(--border-color); 
+            padding: 10px 0; 
+            margin-bottom: 10px; 
+        }
+        .result-item:last-child { border-bottom: none; margin-bottom: 0; }
+        .result-item p { margin: 5px 0; font-size: 0.95rem; }
+        .result-item strong { color: var(--primary-color); }
+        .result-item a { color: var(--danger-color); text-decoration: none; font-weight: 700; }
+
+
+        /* MODAL STYLES (Fixed for Mobile) */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none; justify-content: center; align-items: center;
-            z-index: 1000; backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: all var(--transition-speed);
+            z-index: 1000;
+            padding: 10px;
         }
-        .modal.show { display: flex; animation: fadeIn 0.3s; }
+        .modal.show { opacity: 1; visibility: visible; }
         .modal-content {
-            background: var(--card-bg);
-            padding: 30px; border-radius: 15px; width: 90%; max-width: 400px;
-            animation: slideIn 0.3s; border: 1px solid var(--border-color);
+            background: var(--card-bg); padding: 30px; border-radius: 20px;
+            width: 95%; max-width: 500px; text-align: right; position: relative;
+            transform: translateY(-50px); transition: transform var(--transition-speed);
+            max-height: 90vh; /* NEW: Mobile Height Fix */
+            overflow-y: auto; /* NEW: Mobile Scrolling Fix */
         }
-        @keyframes slideIn {
-            from { transform: translateY(-30px) scale(0.95); opacity: 0; }
-            to { transform: translateY(0) scale(1); opacity: 1; }
+        .modal.show .modal-content { transform: translateY(0); }
+        .close-btn { 
+            position: absolute; top: 15px; right: 15px; 
+            background: none; border: none; font-size: 1.5rem; 
+            cursor: pointer; color: var(--text-secondary);
         }
-        .modal-content h3 { margin-bottom: 10px; }
-        .modal-content p { color: var(--text-secondary); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
-        .form-group input {
-            width: 100%; padding: 12px; border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-color); color: var(--text-primary);
-            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
-        }
-        [data-theme="dark"] .form-group input:focus { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25); }
-        .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px; }
-        .modal-actions button {
-            padding: 12px; border-radius: 8px; border: none; font-size: 1rem;
-            font-weight: 500; cursor: pointer; transition: all var(--transition-speed);
-        }
-        #skip-btn { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-primary); }
-        #skip-btn:hover { background-color: var(--border-color); }
-        #confirm-btn { background: var(--primary-color); color: white; }
-        #confirm-btn:hover { background: var(--primary-hover); }
+        .modal-content h2 { margin-bottom: 10px; font-size: 1.8rem; color: var(--primary-color); }
+        #modal-plan-info { margin-bottom: 25px; font-size: 1rem; color: var(--text-secondary); border-bottom: 1px dashed var(--border-color); padding-bottom: 15px; }
 
-        /* TRACKING SECTION */
-        .tracking-section {
-            background: var(--card-bg);
+        .modal-form label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.95rem; }
+        .modal-form input:not([type="submit"]) {
+            width: 100%; padding: 12px; border: 1px solid var(--border-color);
+            border-radius: 8px; background: var(--bg-color); color: var(--text-primary);
+            font-family: var(--font-family); font-size: 1rem; margin-bottom: 15px;
+            text-align: right;
+        }
+        .modal-form button[type="submit"] {
+            background: var(--primary-color); color: white; border: none;
+            padding: 15px; font-size: 1.2rem; font-weight: 500; border-radius: 8px;
+            cursor: pointer; width: 100%; transition: background var(--transition-speed);
+            margin-top: 20px;
+        }
+        .modal-form button[type="submit"]:hover { background: var(--primary-hover); }
+
+        .price-summary-box {
+            background: var(--bg-color); padding: 15px; border-radius: 10px;
+            border: 1px solid var(--border-color); margin-bottom: 20px;
+        }
+        .price-summary-box p {
+            display: flex; justify-content: space-between; margin: 5px 0;
+            font-size: 0.95rem;
+        }
+        .price-summary-box .final-amount {
+            font-size: 1.2rem; font-weight: 700; color: var(--primary-color);
+            border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 10px;
+        }
+        
+        /* NEW: Description Textarea Style */
+        .modal-form textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
             border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 30px;
-            margin-top: 60px;
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            margin-bottom: 15px;
+            resize: vertical;
+            text-align: right;
+        }
+
+        /* NEW: Coupon Toggle and Field Styles */
+        .toggle-coupon-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-weight: 500;
+            text-align: right;
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 0;
+            transition: color var(--transition-speed);
+        }
+        .toggle-coupon-btn:hover {
+            color: var(--primary-hover);
+        }
+        .coupon-field-container {
+            display: none; /* Hidden by default */
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        .coupon-field-container.active {
+            display: flex;
+        }
+        .coupon-field-container input { margin: 0; flex-grow: 1; margin-bottom: 0; }
+        .coupon-field-container button { 
+            flex-shrink: 0; background: var(--primary-color); color: white; 
+            border: none; padding: 10px 15px; font-size: 0.9rem; 
+            border-radius: 8px; cursor: pointer; transition: background var(--transition-speed);
+        }
+        .coupon-field-container button:hover { background: var(--primary-hover); }
+        .coupon-message { 
+            font-size: 0.9rem; 
+            margin-bottom: 15px; 
+            padding: 8px; 
+            border-radius: 6px; 
             text-align: center;
         }
-        .tracking-section h2 { margin-bottom: 20px; }
-        .tracking-form { display: flex; gap: 10px; justify-content: center; max-width: 450px; margin: 0 auto; }
-        .tracking-form input {
-            flex-grow: 1; padding: 12px; border-radius: 8px;
-            border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-primary);
-            transition: border-color var(--transition-speed), box-shadow var(--transition-speed); text-align: left;
-        }
-        .tracking-form input:focus {
-            outline: none; border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
-        }
-        [data-theme="dark"] .tracking-form input:focus { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25); }
-        .tracking-form button {
-            background: var(--primary-color); color: white; padding: 12px 20px;
-            border: none; border-radius: 8px; cursor: pointer; font-weight: 500;
-            transition: background-color var(--transition-speed);
-        }
-        .tracking-form button:hover { background-color: var(--primary-hover); }
-        #tracking-results { margin-top: 20px; text-align: right; color: var(--text-secondary); }
-        #tracking-results li {
-            background: var(--bg-color); padding: 15px; border-radius: 8px; margin-bottom: 10px;
-            border-right: 3px solid var(--primary-color);
-        }
+        .coupon-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .coupon-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
 
         /* FOOTER */
-        footer {
+        footer { 
+            width: 100%;
+            margin-top: auto; /* NEW: Sticky Footer */
+            padding: 20px 40px; 
+            border-top: 1px solid var(--border-color); 
             text-align: center;
-            margin-top: 60px;
-            padding-top: 30px;
-            border-top: 1px solid var(--border-color);
-            color: var(--text-secondary);
+            background: var(--card-bg);
         }
-        .social-icons { margin-bottom: 20px; }
-        .social-icons a {
-            margin: 0 10px; display: inline-block;
-            transition: transform var(--transition-speed);
-            color: var(--text-secondary);
-        }
-        .social-icons a:hover {
-            transform: translateY(-3px);
-            color: var(--text-primary);
-        }
-        .social-icons svg { width: 33px; height: 33px; }
-        footer p { font-size: 0.9rem; margin-bottom: 5px; }
-        footer a { color: var(--text-primary); text-decoration: none; font-weight: 500; }
-        footer a:hover { text-decoration: underline; }
+        .social-links { display: flex; justify-content: center; gap: 20px; margin-bottom: 15px; }
+        .social-links a { color: var(--text-secondary); transition: color var(--transition-speed); }
+        .social-links a:hover { color: var(--primary-color); }
+        .social-links svg { width: 24px; height: 24px; }
+        footer p { font-size: 0.9rem; color: var(--text-secondary); }
+
+
     </style>
 </head>
 <body data-theme="light">
@@ -335,359 +595,643 @@
     <div class="container">
         <header>
             <div class="theme-switcher">
-                <button id="theme-toggle" title="تغییر تم">
-                    <i id="theme-icon" data-lucide="moon"></i>
+                <button id="theme-toggle">
+                    <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 </button>
             </div>
             <h1>Ay VPN</h1>
-            <p>سرویس پایدار و امن، با پشتیبانی کامل، مناسب برای تمام دستگاه‌ها و اپراتورها</p>
+            <p>سرویس‌های نامحدود، ملی و پرسرعت برای دسترسی آزاد به اینترنت</p>
         </header>
 
-        <main>
+        <div class="tabs-container">
             <div class="tabs">
-                <button class="tab-btn active" data-tab="unlimited"><i data-lucide="rocket"></i>نامحدود</button>
-                <button class="tab-btn" data-tab="national"><i data-lucide="globe-2"></i>ملی</button>
-                <button class="tab-btn" data-tab="renew"><i data-lucide="history"></i>تمدید</button>
+                <button class="tab-btn active" data-tab="buy-unlimited">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg> خرید نامحدود
+                </button>
+                <button class="tab-btn" data-tab="buy-national">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flag"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg> خرید ملی
+                </button>
+                <button class="tab-btn" data-tab="renew">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-cw"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.76 2.82"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.76-2.82"/><path d="M18.5 5.5v3h3"/><path d="M5.5 18.5v-3H2.5"/></svg> تمدید
+                </button>
+                <button class="tab-btn" data-tab="track">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-receipt"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h8"/></svg> پیگیری
+                </button>
             </div>
 
-            <form id="payment-form">
-                <div id="unlimited" class="tab-content active"></div>
-                <div id="national" class="tab-content"></div>
-                <button type="submit" class="purchase-btn" id="purchase-btn">خرید اشتراک</button>
-            </form>
+            <div id="buy-unlimited" class="tab-content active">
+                </div>
+
+            <div id="buy-national" class="tab-content">
+                </div>
 
             <div id="renew" class="tab-content">
-                <div class="renewal-configurator">
-                    <div class="plan-type-selector">
-                        <button class="active" data-type="unlimited">🚀 نامحدود</button>
-                        <button data-type="national">🇮🇷 ملی</button>
+                <div id="renewal-configurator" class="renewal-configurator" data-plan-color-id="1">
+                    <h3>تمدید اشتراک</h3>
+                    
+                    <div class="renewal-form-inputs">
+                        <label for="renewalIdentifier">شناسه‌ی تمدید/لینک اشتراک <span style="color: var(--danger-color);">*الزامی</span></label>
+                        <input type="text" id="renewalIdentifier" name="renewalIdentifier" placeholder="لینک اشتراک، ایمیل یا نام کاربری خود را وارد کنید" required>
                     </div>
-                    <div class="plan-info-display">
-                        <h3 id="selected-plan-name"></h3>
-                        <p id="selected-plan-price"></p>
+
+                    <div class="renewal-configurator-content">
+                        <div class="plan-type-selector">
+                            <button class="plan-type-btn active" data-type="unlimited">نامحدود</button>
+                            <button class="plan-type-btn" data-type="national">ملی</button>
+                        </div>
+
+                        <div class="slider-group duration-slider-group">
+                            <p>مدت زمان تمدید: <span id="renewDurationLabel">۳ ماهه</span></p>
+                            <input type="range" class="custom-range-slider" id="renewDurationSlider" min="1" max="6" value="3" step="1" style="--slider-percent: 50%;">
+                            <div class="slider-label" id="renewDurationMarks">
+                                </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <p>تعداد کاربران: <span id="renewUserCountLabel">۲ نفر</span></p>
+                            <input type="range" class="custom-range-slider" id="renewUserCountSlider" min="1" max="8" value="2" step="1" style="--slider-percent: 14.28%;">
+                            <div class="slider-label">
+                                <span>۱</span>
+                                <span>۲</span>
+                                <span>۳</span>
+                                <span>۴</span>
+                                <span>۵</span>
+                                <span>۶</span>
+                                <span>۷</span>
+                                <span>۸</span>
+                            </div>
+                        </div>
+
+                        <div class="renew-details">
+                            <p>قیمت پایه: <span id="renewBasePriceDisplay">۳۴۰,۰۰۰ تومان</span></p>
+                            <p>تعداد کاربر: <span id="renewUsersDisplay">۲ نفر</span></p>
+                            <p>قیمت نهایی: <span id="renewFinalPriceDisplay">۶۸۰,۰۰۰ تومان</span></p>
+                        </div>
                     </div>
-                    <input type="range" class="plan-slider" id="plan-slider" min="0" value="0">
-                    <input type="text" id="renewal-identifier-input" placeholder="شناسه اشتراک قبلی (لینک، ایمیل و...)" required>
-                    <button class="purchase-btn" id="renew-btn">تمدید اشتراک</button>
+                    
+                    <button class="purchase-btn renew-btn" id="openRenewModalBtn" data-plan-color="#6f42c1" data-total-price="680000" data-requested-plan="R3M" data-users="2">تمدید و پرداخت</button>
                 </div>
             </div>
 
-            <section class="tracking-section">
-                <h2>پیگیری خرید</h2>
-                <form id="tracking-form" class="tracking-form">
-                    <input type="text" id="tracking-id-input" placeholder="شماره پیگیری خود را وارد کنید..." required>
-                    <button type="submit">جستجو</button>
+            <div id="track" class="tab-content">
+                <form id="tracking-form">
+                    <h3>پیگیری سفارشات</h3>
+                    <input type="text" id="tracking-input" placeholder="شناسه‌ی پیگیری (Tracking ID) را وارد کنید" required>
+                    <button type="submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        جستجو
+                    </button>
                 </form>
-                <div id="tracking-results"></div>
-            </section>
-        </main>
-
-        <footer>
-            <div class="social-icons">
-                <a href="https://t.me/AyVPNsupport" target="_blank" title="Support"><i data-lucide="user"></i></a>
-                <a href="https://t.me/AyVPN_Bot" target="_blank" title="Telegram"><i data-lucide="send"></i></a>
-                <a href="https://wa.me/your-whatsapp-number" target="_blank" title="WhatsApp"><i data-lucide="message-circle"></i></a>
+                <div id="tracking-results" style="display: none;">
+                    </div>
             </div>
-            <p>&copy; تمام حقوق برای <a href="https://shammay.ir" target="_blank">Ay Technic</a> محفوظ است.</p>
-        </footer>
-    </div>
 
-    <div class="modal" id="user-info-modal">
+        </div>
+    </div>
+    
+    <div id="paymentModal" class="modal">
         <div class="modal-content">
-            <h3>تکمیل اطلاعات (اختیاری)</h3>
-            <p>با وارد کردن اطلاعات، می‌توانید خریدهای قبلی خود را مشاهده و پیگیری کنید.</p>
-            <form id="user-info-form">
-                <div class="form-group"><label for="name">نام</label><input type="text" id="name" placeholder="مثال: Aylin"></div>
-                <div class="form-group"><label for="email">ایمیل</label><input type="email" id="email" placeholder="esm@gmail.com"></div>
-                <div class="form-group"><label for="phone">شماره تماس</label><input type="tel" id="phone" placeholder="09123456789" dir="ltr" style="text-align:right;"></div>
-                <div class="modal-actions">
-                    <button type="button" id="skip-btn">رد شدن</button>
-                    <button type="submit" id="confirm-btn">تایید و ادامه</button>
+            <button class="close-btn">&times;</button>
+            <h2>تکمیل اطلاعات خرید</h2>
+            <p id="modal-plan-info">پلن: <strong id="modalPlanName"></strong> | تعداد کاربر: <strong id="modalUsersCount"></strong> | مبلغ نهایی: <strong id="modalFinalPrice"></strong></p>
+
+            <form id="payment-form" class="modal-form">
+                
+                <label for="modal-description">توضیحات و نکات مورد نیاز (اختیاری)</label>
+                <textarea id="modal-description" name="description" placeholder="در صورت نیاز به توضیحات خاص، اینجا وارد کنید"></textarea>
+                
+                <label for="modal-name">نام و نام خانوادگی (اختیاری)</label>
+                <input type="text" id="modal-name" name="name" placeholder="مثال: شامای">
+
+                <label for="modal-email">آدرس ایمیل (اختیاری)</label>
+                <input type="email" id="modal-email" name="email" placeholder="مثال: user@aytechnic.ir">
+
+                <label for="modal-phone">شماره تماس (اختیاری)</label>
+                <input type="tel" id="modal-phone" name="phone" placeholder="مثال: 09123456789">
+
+                <label for="modal-telegram-id">آیدی تلگرام (اختیاری)</label>
+                <input type="text" id="modal-telegram-id" name="telegramUsername" placeholder="مثال: @shammay">
+
+                <button type="button" class="toggle-coupon-btn" id="toggleCouponBtn">
+                    <span id="couponToggleText">کد تخفیف دارم</span>
+                </button>
+                <div class="coupon-field-container" id="couponFieldContainer">
+                    <input type="text" id="modal-coupon-code" name="coupenCode" placeholder="کد تخفیف خود را وارد کنید">
+                    <button type="button" id="applyCouponBtn" class="check-coupon">اعمال</button>
                 </div>
+                <div id="couponMessage" class="coupon-message" style="display: none;"></div>
+
+
+                <div class="price-summary-box">
+                    <p>مبلغ قابل پرداخت: <span id="summary-final-amount"></span></p>
+                </div>
+
+                <button type="submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card" style="margin-left: 10px;"><rect width="22" height="16" x="1" y="4" rx="2" /><path d="M1 10h22" /></svg>
+                    پرداخت و دریافت آنی اشتراک
+                </button>
+                
+                <input type="hidden" id="modal-amount" name="amount">
+                <input type="hidden" id="modal-requested-plan" name="requestedPlan">
+                <input type="hidden" id="modal-users" name="users">
+                <input type="hidden" id="modal-renewal-id" name="renewalIdentifier">
             </form>
         </div>
     </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
 
-    // --- DATA & CONFIG ---
-    // Icons from lucide.dev. Colors are for the renewal slider UI.
-    const plansData = [
-        { id: 1, duration: '۱ ماهه', price: 12000, desc: 'اشتراک ۳۰ روزه', icon: 'gem', type: 'unlimited', color: '#0d6efd' },
-        { id: 2, duration: '۲ ماهه', price: 220000, desc: 'اشتراک ۶۰ روزه', icon: 'zap', type: 'unlimited', color: '#198754' },
-        { id: 3, duration: '۳ ماهه', price: 340000, desc: 'اشتراک ۹۰ روزه', icon: 'star', type: 'unlimited', color: '#6f42c1' },
-        { id: 4, duration: '۶ ماهه', price: 600000, desc: 'اشتراک ۱۸۰ روزه', icon: 'flame', type: 'unlimited', color: '#ffc107' },
-        { id: 5, duration: '۱ ساله', price: 10000, desc: 'اشتراک ۳۶۵ روزه', icon: 'shield', type: 'unlimited', color: '#dc3545' },
-        { id: 6, duration: '۲ ساله', price: 2000000, desc: 'اشتراک ۷۳۰ روزه', icon: 'crown', type: 'unlimited', color: '#fd7e14' }
-    ];
-    const nationalPlansData = [
-        { id: 7, duration: '۱ ماهه ملی', price: 120000, desc: 'اشتراک ملی ۳۰ روزه', icon: 'globe', type: 'national', color: '#0d6efd' },
-        { id: 8, duration: '۳ ماهه ملی', price: 340000, desc: 'اشتراک ملی ۹۰ روزه', icon: 'server', type: 'national', color: '#6f42c1' },
-    ];
-    const allPlans = { unlimited: plansData, national: nationalPlansData };
+    <footer>
+        <div class="social-links">
+            <a href="https://t.me/shammay_ir" target="_blank" title="تلگرام">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+            </a>
+            <a href="https://instagram.com/shammay.ir" target="_blank" title="اینستاگرام">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 8a4 4 0 0 0-4-4v.01"/><circle cx="12" cy="12" r="3"/><line x1="16.5" x2="16.5" y1="7.5" y2="7.5"/></svg>
+            </a>
+            <a href="mailto:info@shammay.ir" title="ایمیل">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            </a>
+        </div>
+        <p>تمامی حقوق برای شرکت Ay Technic محفوظ است. &copy; 2025</p>
+        <p>آدرس سایت ما: shammay.ir</p>
+    </footer>
 
-    // --- DOM ELEMENTS ---
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    const tabs = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    const paymentForm = document.getElementById('payment-form');
-    const purchaseBtn = document.getElementById('purchase-btn');
-    const modal = document.getElementById('user-info-modal');
-    const userInfoForm = document.getElementById('user-info-form');
-    const skipBtn = document.getElementById('skip-btn');
-    const trackingForm = document.getElementById('tracking-form');
-    const trackingInput = document.getElementById('tracking-id-input');
-    const trackingResults = document.getElementById('tracking-results');
-    // Renewal Elements
-    const renewalConfigurator = document.querySelector('.renewal-configurator');
-    const planTypeButtons = document.querySelectorAll('.plan-type-selector button');
-    const planSlider = document.getElementById('plan-slider');
-    const selectedPlanName = document.getElementById('selected-plan-name');
-    const selectedPlanPrice = document.getElementById('selected-plan-price');
-    const renewalIdentifierInput = document.getElementById('renewal-identifier-input');
-    const renewBtn = document.getElementById('renew-btn');
 
-    // --- THEME SWITCHER ---
-    function applyTheme(theme) {
-        document.body.setAttribute('data-theme', theme);
-        themeIcon.setAttribute('data-lucide', theme === 'light' ? 'moon' : 'sun');
-        localStorage.setItem('theme', theme);
-        lucide.createIcons();
-    }
-    themeToggle.addEventListener('click', () => {
-        const newTheme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        applyTheme(newTheme);
-    });
-    const preferredTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    applyTheme(preferredTheme);
-
-    // --- DYNAMIC PLAN RENDERING ---
-    function renderPlans(plans, containerId) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
+    <script>
+        // --- Dynamic Data for Plans ---
+        const PlansData = [
+            // Unlimited Plans (ID 1-6)
+            { id: 1, type: 'unlimited', duration: '۱ ماهه', requestedPlan: '1M', baseAmount: 120000, color: '#0d6efd', colorId: 1, icon: 'zap', features: ['مناسب برای وبگردی و شبکه‌های اجتماعی', 'پرسرعت و پایدار', 'گارانتی عودت وجه'] },
+            { id: 2, type: 'unlimited', duration: '۲ ماهه', requestedPlan: '2M', baseAmount: 220000, color: '#198754', colorId: 2, icon: 'rocket', features: ['مناسب برای وبگردی و شبکه‌های اجتماعی', 'پرسرعت و پایدار', 'گارانتی عودت وجه'] },
+            { id: 3, type: 'unlimited', duration: '۳ ماهه', requestedPlan: '3M', baseAmount: 340000, color: '#6f42c1', colorId: 3, icon: 'star', features: ['مناسب برای وبگردی و شبکه‌های اجتماعی', 'پرسرعت و پایدار', 'گارانتی عودت وجه'] },
+            { id: 4, type: 'unlimited', duration: '۶ ماهه', requestedPlan: '6M', baseAmount: 600000, color: '#ffc107', colorId: 4, icon: 'flame', features: ['مناسب برای وبگردی و شبکه‌های اجتماعی', 'پرسرعت و پایدار', 'گارانتی عودت وجه'] },
+            { id: 5, type: 'unlimited', duration: '۱ ساله', requestedPlan: '1Y', baseAmount: 1000000, color: '#dc3545', colorId: 5, icon: 'shield-check', features: ['مناسب برای وبگردی و شبکه‌های اجتماعی', 'پرسرعت و پایدار', 'گارانتی عودت وجه'] },
+            { id: 6, type: 'unlimited', duration: '۲ ساله', requestedPlan: '2Y', baseAmount: 2000000, color: '#fd7e14', colorId: 6, icon: 'diamond', features: ['مناسب برای وبگردی و شبکه‌های اجتماعی', 'پرسرعت و پایدار', 'گارانتی عودت وجه'] },
+            // National Plans (ID 7-12)
+            { id: 7, type: 'national', duration: '۱ ماهه', requestedPlan: 'N1M', baseAmount: 50000, color: '#00bcd4', colorId: 7, icon: 'cloud-lightning', features: ['فقط برای استفاده از خدمات داخلی ایران', 'مناسب برای خدمات بانکی و دولتی', 'سرعت بسیار بالا و پایدار'] },
+            { id: 8, type: 'national', duration: '۲ ماهه', requestedPlan: 'N2M', baseAmount: 90000, color: '#8bc34a', colorId: 8, icon: 'bar-chart-3', features: ['فقط برای استفاده از خدمات داخلی ایران', 'مناسب برای خدمات بانکی و دولتی', 'سرعت بسیار بالا و پایدار'] },
+            { id: 9, type: 'national', duration: '۳ ماهه', requestedPlan: 'N3M', baseAmount: 130000, color: '#ff5722', colorId: 9, icon: 'layers', features: ['فقط برای استفاده از خدمات داخلی ایران', 'مناسب برای خدمات بانکی و دولتی', 'سرعت بسیار بالا و پایدار'] },
+            { id: 10, type: 'national', duration: '۶ ماهه', requestedPlan: 'N6M', baseAmount: 240000, color: '#607d8b', colorId: 10, icon: 'archive', features: ['فقط برای استفاده از خدمات داخلی ایران', 'مناسب برای خدمات بانکی و دولتی', 'سرعت بسیار بالا و پایدار'] },
+            { id: 11, type: 'national', duration: '۱ ساله', requestedPlan: 'N1Y', baseAmount: 450000, color: '#9c27b0', colorId: 11, icon: 'box', features: ['فقط برای استفاده از خدمات داخلی ایران', 'مناسب برای خدمات بانکی و دولتی', 'سرعت بسیار بالا و پایدار'] },
+            { id: 12, type: 'national', duration: '۲ ساله', requestedPlan: 'N2Y', baseAmount: 850000, color: '#f44336', colorId: 12, icon: 'gift', features: ['فقط برای استفاده از خدمات داخلی ایران', 'مناسب برای خدمات بانکی و دولتی', 'سرعت بسیار بالا و پایدار'] },
+        ];
         
-        container.innerHTML = plans.map(plan => `
-            <label class="plan-card" data-plan-id="${plan.id}">
-                <input type="radio" name="plan" value="${plan.price}" data-description="${plan.desc}">
-                <div class="plan-icon"><i data-lucide="${plan.icon}"></i></div>
-                <div class="plan-duration">${plan.duration}</div>
-                <ul class="plan-features">
-                    <li>آی‌پے ثابت</li>
-                    <li>چند سروره</li>
-                    <li>ترافیک نامحدود</li>
-                    <li>سازگار با همه اپراتورها</li>
-                </ul>
-                <div class="os-icons">
-                     <i data-lucide="smartphone"></i>
-                     <i data-lucide="laptop"></i>
-                     <i data-lucide="globe"></i>
+        const RenewPlans = {
+            unlimited: [
+                { value: 1, label: '۱ ماهه', baseAmount: 120000, requestedPlan: 'R1M', colorId: 1 },
+                { value: 2, label: '۲ ماهه', baseAmount: 220000, requestedPlan: 'R2M', colorId: 2 },
+                { value: 3, label: '۳ ماهه', baseAmount: 340000, requestedPlan: 'R3M', colorId: 3 },
+                { value: 4, label: '۶ ماهه', baseAmount: 600000, requestedPlan: 'R6M', colorId: 4 },
+                { value: 5, label: '۱ ساله', baseAmount: 1000000, requestedPlan: 'R1Y', colorId: 5 },
+                { value: 6, label: '۲ ساله', baseAmount: 2000000, requestedPlan: 'R2Y', colorId: 6 },
+            ],
+            national: [
+                { value: 1, label: '۱ ماهه', baseAmount: 50000, requestedPlan: 'RN1M', colorId: 7 },
+                { value: 2, label: '۲ ماهه', baseAmount: 90000, requestedPlan: 'RN2M', colorId: 8 },
+                { value: 3, label: '۳ ماهه', baseAmount: 130000, requestedPlan: 'RN3M', colorId: 9 },
+                { value: 4, label: '۶ ماهه', baseAmount: 240000, requestedPlan: 'RN6M', colorId: 10 },
+                { value: 5, label: '۱ ساله', baseAmount: 450000, requestedPlan: 'RN1Y', colorId: 11 },
+                { value: 6, label: '۲ ساله', baseAmount: 850000, requestedPlan: 'RN2Y', colorId: 12 },
+            ]
+        };
+
+        const formatPrice = (price) => price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " تومان";
+        const getPlanIcon = (iconName) => {
+            const icons = {
+                'zap': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-zap"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+                'rocket': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rocket"><path d="M12.5 21a6.5 6.5 0 0 0 1.2-2.7L22 4.41l-1.41-1.41L15.3 10.3c-1.4 1.4-2.8 2.8-4.2 4.2a6.5 6.5 0 0 0-2.7 1.2v0a6.5 6.5 0 0 0 11 11.13A6.5 6.5 0 0 0 12.5 21Z"/></svg>',
+                'star': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+                'flame': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame"><path d="M8.5 14.5A2.5 2.5 0 0 1 12 20V9.3a1 1 0 0 0-.3-.7c-2-2.5-4-6.5-4-9"/><path d="M15 14a4 4 0 0 0-4-4V2c-1.5 1.5-3.5 6.5-3.5 10s2.5 8 5.5 8c2.4 0 4-1.2 5.5-2.5"/></svg>',
+                'shield-check': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-check"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>',
+                'diamond': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-diamond"><path d="M2.7 10.3a2.4 2.4 0 0 1 0-2.6L12 2l9.3 7.7a2.4 2.4 0 0 1 0 2.6L12 22l-9.3-7.7a2.4 2.4 0 0 1 0-2.6z"/></svg>',
+                'cloud-lightning': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cloud-lightning"><path d="M6 16.32a6.9 6.9 0 0 1-3-5.32c0-3.8 3.5-6.9 7.8-7a8.5 8.5 0 0 1 8.2 5.3c1.7.3 3.3 1.2 4.4 2.7"/><path d="M12 17v-8"/><path d="m10 13 4 6"/></svg>',
+                'bar-chart-3': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bar-chart-3"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
+                'layers': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layers"><path d="m12.83 2.71 6 5.8 4 3.44-10 10-10-10 4-3.44z"/><path d="m12.83 2.71-6 5.8M10 12l2.83 2.71M22 9.27 12 19.27l-4-3.44"/></svg>',
+                'archive': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-archive"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>',
+                'box': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-box"><path d="M21 8a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M7 6v10"/><path d="M19 6v10"/><path d="M21 8h-4a2 2 0 0 1-2-2V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2a2 2 0 0 1-2 2H3"/></svg>',
+                'gift': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gift"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7 8a5 5 0 0 1 10 0"/></svg>'
+            };
+            return icons[iconName] || '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-network"><rect x="16" y="2" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><path d="M16 8v5c0 1.1-.9 2-2 2H10"/><path d="M22 5h-4"/><path d="M8 19h4"/><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="2" width="6" height="6" rx="1"/><path d="M7 8v5c0 1.1.9 2 2 2h5"/></svg>'; // Default icon
+        };
+
+        const createPlanCard = (plan) => {
+            const featuresHtml = plan.features.map(f => `<li>${f}</li>`).join('');
+            const isUnlimited = plan.type === 'unlimited';
+            
+            // Generate user icons HTML for Buy Tabs (1 to 8 users)
+            let userIconsHtml = '';
+            for(let i = 1; i <= 8; i++) {
+                // The first icon is selected by default
+                const isSelected = i === 1 ? ' selected' : ''; 
+                userIconsHtml += `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user user-icon${isSelected}" data-users="${i}"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+            }
+
+            return `
+                <div class="plan-card" data-plan-id="${plan.id}" data-plan-color-id="${plan.colorId}">
+                    <input type="radio" name="plan-${plan.type}" id="plan-${plan.type}-${plan.id}" data-price="${plan.baseAmount}" data-requested-plan="${plan.requestedPlan}">
+                    <label for="plan-${plan.type}-${plan.id}">
+                        <div class="plan-icon">${getPlanIcon(plan.icon)}</div>
+                        <div class="plan-duration">${plan.duration}</div>
+                        <ul class="plan-features">${featuresHtml}</ul>
+                        
+                        <div class="os-icons">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-apple"><path d="M12 20.94l-1.42 1.42A1 1 0 0 1 10 23h4a1 1 0 0 1 .5-.16L12 20.94z"/><path d="M17.5 15.5a2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0-5 0z"/><path d="M19 12a7 7 0 0 0-7-7c-2.3 0-4.5 1.1-6 3l-1 1-1 1c-1.5 2-2 4-2 6a7 7 0 0 0 7 7c2.3 0 4.5-1.1 6-3l1-1 1-1c1.5-2 2-4 2-6z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-android"><path d="M17.5 1h-11A3.5 3.5 0 0 0 3 4.5V19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V4.5A3.5 3.5 0 0 0 17.5 1z"/><path d="M8.5 2v-1"/><path d="M15.5 2v-1"/><path d="M12 21v-1"/><path d="M12 4v-1"/><path d="M12 16v-1"/><path d="M12 10v-1"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-windows"><path d="M2 12h10V2H2v10zm10 0h10v-5a1 1 0 0 0-1-1h-9v6zm0 0v10h10v-5a1 1 0 0 0-1-1h-9zM2 12v10h9v-10H2z"/></svg>
+                        </div>
+
+                        <div class="user-icon-selector" data-plan-id="${plan.id}">
+                            ${userIconsHtml}
+                        </div>
+                        <div class="user-count-display">
+                            <span>تعداد کاربر: </span>
+                            <span class="user-count-value">۱ نفر</span>
+                        </div>
+                        
+                        <div class="plan-price-section">
+                            <div class="plan-price">
+                                <span class="final-price">${formatPrice(plan.baseAmount * 1)}</span>
+                            </div>
+                            <button class="purchase-btn" data-plan-id="${plan.id}" data-users="1" data-total-price="${plan.baseAmount * 1}">
+                                خرید و دریافت آنی
+                            </button>
+                        </div>
+                    </label>
                 </div>
-                <div class="plan-price">${new Intl.NumberFormat('fa-IR').format(plan.price)} <span>تومان</span></div>
-            </label>
-        `).join('');
-        
-        container.querySelectorAll('.plan-card').forEach(card => {
-            card.addEventListener('click', () => {
-                document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-                document.querySelectorAll('input[name="plan"]').forEach(radio => radio.checked = false);
-                card.classList.add('selected');
-                card.querySelector('input').checked = true;
-            });
-        });
-
-        lucide.createIcons();
-    }
-    renderPlans(plansData, 'unlimited');
-    renderPlans(nationalPlansData, 'national');
-
-    // --- TABS LOGIC ---
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            const activeTabId = tab.dataset.tab;
-
-            tabContents.forEach(content => {
-                content.classList.toggle('active', content.id === activeTabId);
-            });
-            
-            paymentForm.style.display = (activeTabId === 'renew') ? 'none' : 'block';
-
-            if (activeTabId !== 'renew' && !document.querySelector('input[name="plan"]:checked')) {
-                 const firstCardInTab = document.querySelector(`#${activeTabId} .plan-card`);
-                 if (firstCardInTab) {
-                     firstCardInTab.click();
-                 }
-            }
-        });
-    });
-
-    // --- Select first plan by default on initial load ---
-    if (document.querySelector('#unlimited .plan-card')) {
-        document.querySelector('#unlimited .plan-card').click();
-    }
-
-    // --- RENEWAL SLIDER LOGIC ---
-    let currentRenewalType = 'unlimited';
-    
-    function setupSlider() {
-        const plans = allPlans[currentRenewalType];
-        planSlider.max = plans.length - 1;
-        planSlider.value = 0;
-        updateSliderUI();
-    }
-
-    function updateSliderUI() {
-        const plans = allPlans[currentRenewalType];
-        const selectedPlan = plans[planSlider.value];
-        if (!selectedPlan) return;
-
-        selectedPlanName.innerText = selectedPlan.duration;
-        selectedPlanPrice.innerText = `${new Intl.NumberFormat('fa-IR').format(selectedPlan.price)} تومان`;
-        
-        // Dynamically update colors for better UX
-        const newColor = selectedPlan.color;
-        renewalConfigurator.style.borderTopColor = newColor;
-        selectedPlanName.style.color = newColor;
-        // This is a way to set CSS variable for thumb color
-        planSlider.style.setProperty('--primary-color', newColor);
-    }
-
-    planTypeButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            planTypeButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            currentRenewalType = button.dataset.type;
-            setupSlider();
-        });
-    });
-
-    planSlider.addEventListener('input', updateSliderUI);
-    setupSlider(); // Initial setup
-
-    // --- PAYMENT & MODAL LOGIC ---
-    let paymentData = {};
-
-    purchaseBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const selectedPlan = document.querySelector('input[name="plan"]:checked');
-        if (!selectedPlan) {
-            alert('لطفا یک پلن را انتخاب کنید.');
-            return;
-        }
-        paymentData = {
-            amount: selectedPlan.value,
-            description: selectedPlan.dataset.description,
+            `;
         };
-        modal.classList.add('show');
-    });
-    
-    renewBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const identifier = renewalIdentifierInput.value.trim();
-        if (!identifier) {
-            alert('لطفا شناسه اشتراک قبلی خود را وارد کنید.');
-            renewalIdentifierInput.focus();
-            return;
-        }
-        const selectedPlan = allPlans[currentRenewalType][planSlider.value];
-        paymentData = {
-            amount: selectedPlan.price,
-            description: `تمدید: ${selectedPlan.desc}`,
-            renewalIdentifier: identifier,
-            requestedPlan: selectedPlan.duration
-        };
-        modal.classList.add('show');
-    });
 
-    skipBtn.addEventListener('click', () => {
-        modal.classList.remove('show');
-        startPayment();
-    });
+        document.addEventListener('DOMContentLoaded', () => {
+            const body = document.body;
+            const themeToggle = document.getElementById('theme-toggle');
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const buyUnlimitedContainer = document.getElementById('buy-unlimited');
+            const buyNationalContainer = document.getElementById('buy-national');
+            const modal = document.getElementById('paymentModal');
+            const closeModalBtn = modal.querySelector('.close-btn');
+            const paymentForm = document.getElementById('payment-form');
+            const renewConfigurator = document.getElementById('renewal-configurator');
 
-    userInfoForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        modal.classList.remove('show');
-        paymentData.name = document.getElementById('name').value;
-        paymentData.email = document.getElementById('email').value;
-        paymentData.phone = document.getElementById('phone').value;
-        startPayment();
-    });
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.classList.remove('show');
-    });
-
-    async function startPayment() {
-        const activeTabId = document.querySelector('.tab-btn.active').dataset.tab;
-        const btn = (activeTabId === 'renew') ? renewBtn : purchaseBtn;
-        const originalText = btn.innerText;
-        btn.disabled = true;
-        btn.innerText = 'در حال انتقال...';
-
-        try {
-            const response = await fetch('/api/start-payment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(paymentData),
+            // --- Theme Switcher ---
+            themeToggle.addEventListener('click', () => {
+                const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                body.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
             });
-            const data = await response.json();
-            if (response.ok && data.authority) {
-                window.location.href = `https://www.zarinpal.com/pg/StartPay/${data.authority}`;
-            } else {
-                throw new Error(data.details || 'خطا در ارتباط با درگاه پرداخت.');
-            }
-        } catch (error) {
-            alert('خطا: ' + error.message);
-            btn.disabled = false;
-            btn.innerText = originalText;
-        }
-    }
+            const storedTheme = localStorage.getItem('theme') || 'light';
+            body.setAttribute('data-theme', storedTheme);
 
-    // --- TRACKING LOGIC ---
-    trackingForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const trackingId = trackingInput.value.trim();
-        if (!trackingId) return;
-        trackingResults.innerHTML = '<p>در حال جستجو...</p>';
+            // --- Tab Switching ---
+            const switchTab = (tabId) => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
 
-        try {
-            const response = await fetch(`/api/track?trackingId=${trackingId}`);
-            const data = await response.json();
+                document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            };
 
-            if (!response.ok) {
-                throw new Error(data.error || 'خطایی رخ داد.');
-            }
-
-            if (data.length === 0) {
-                trackingResults.innerHTML = '<p>خریدی با این شماره پیگیری یافت نشد.</p>';
-                return;
-            }
-
-            let html = '<h3>نتایج یافت شده:</h3><ul>';
-            data.forEach(p => {
-                html += `
-                    <li>
-                        <strong>پلن:</strong> ${p.plan} <br>
-                        <strong>تاریخ:</strong> ${new Date(p.date).toLocaleDateString('fa-IR')} <br>
-                        <strong>لینک:</strong> <code>${p.link}</code>
-                    </li>
-                `;
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
             });
-            html += '</ul>';
-            trackingResults.innerHTML = html;
 
-        } catch (error) {
-            trackingResults.innerHTML = `<p style="color:red;">خطا: ${error.message}</p>`;
-        }
-    });
+            // --- MODAL LOGIC ---
+            const openModal = (planName, users, price, requestedPlan, renewalIdentifier) => {
+                document.getElementById('modalPlanName').textContent = planName;
+                document.getElementById('modalUsersCount').textContent = users + ' نفر';
+                document.getElementById('modalFinalPrice').textContent = formatPrice(price);
+                document.getElementById('summary-final-amount').textContent = formatPrice(price);
 
-    lucide.createIcons();
-});
-</script>
+                // Hidden fields for submission
+                document.getElementById('modal-amount').value = price;
+                document.getElementById('modal-requested-plan').value = requestedPlan;
+                document.getElementById('modal-users').value = users;
+                
+                // Set renewal identifier if available (only for renew tab)
+                document.getElementById('modal-renewal-id').value = renewalIdentifier || '';
+                
+                // Reset coupon field state
+                document.getElementById('couponFieldContainer').classList.remove('active');
+                document.getElementById('couponToggleText').textContent = 'کد تخفیف دارم';
+                document.getElementById('modal-coupon-code').value = '';
+                document.getElementById('couponMessage').style.display = 'none';
+
+                modal.classList.add('show');
+            };
+
+            closeModalBtn.addEventListener('click', () => modal.classList.remove('show'));
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('show');
+            });
+            
+            // Coupon Toggle Logic
+            const couponFieldContainer = document.getElementById('couponFieldContainer');
+            const toggleCouponBtn = document.getElementById('toggleCouponBtn');
+            const couponToggleText = document.getElementById('couponToggleText');
+
+            toggleCouponBtn.addEventListener('click', () => {
+                const isActive = couponFieldContainer.classList.toggle('active');
+                couponToggleText.textContent = isActive ? 'کد تخفیف را پنهان کن' : 'کد تخفیف دارم';
+            });
+            
+            // Dummy Coupon Logic (Always success for this front-end mockup)
+            document.getElementById('applyCouponBtn').addEventListener('click', () => {
+                const couponMessage = document.getElementById('couponMessage');
+                const couponCode = document.getElementById('modal-coupon-code').value.trim();
+                
+                if (couponCode) {
+                    couponMessage.textContent = `✅ کد تخفیف "${couponCode}" اعمال شد.`;
+                    couponMessage.className = 'coupon-message coupon-success';
+                    couponMessage.style.display = 'block';
+                    // In a real scenario, price calculation would happen here
+                } else {
+                    couponMessage.textContent = `❌ لطفا کد تخفیف را وارد کنید.`;
+                    couponMessage.className = 'coupon-message coupon-error';
+                    couponMessage.style.display = 'block';
+                }
+            });
+
+
+            // --- PLAN CARD GENERATION AND LOGIC (Buy Tabs) ---
+            const renderBuyCards = (type, container) => {
+                const filteredPlans = PlansData.filter(p => p.type === type);
+                container.innerHTML = filteredPlans.map(createPlanCard).join('');
+                initializeBuyCardLogic(container);
+            };
+
+            const initializeBuyCardLogic = (container) => {
+                const cards = container.querySelectorAll('.plan-card');
+
+                cards.forEach(card => {
+                    const radio = card.querySelector('input[type="radio"]');
+                    const purchaseBtn = card.querySelector('.purchase-btn');
+                    const finalPriceDisplay = card.querySelector('.final-price');
+                    const userIcons = card.querySelectorAll('.user-icon');
+                    const userCountValueDisplay = card.querySelector('.user-count-value');
+                    const baseAmount = parseInt(radio.dataset.price);
+
+                    // 1. Plan Card Selection (Radio button)
+                    radio.addEventListener('change', () => {
+                        document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+                        card.classList.add('selected');
+
+                        // Reset to 1 user on plan change and update visuals
+                        updateUserSelection(1);
+                    });
+                    
+                    // Initial selection for the first card in each tab
+                    if (card.dataset.planId == (card.parentElement.id === 'buy-unlimited' ? 1 : 7)) {
+                        card.classList.add('selected');
+                        radio.checked = true;
+                    }
+
+                    // 2. User Icon Selection Logic
+                    const updateUserSelection = (selectedUsers) => {
+                        let price = baseAmount * selectedUsers;
+                        
+                        // Update visual state of icons and display
+                        userIcons.forEach(icon => {
+                            const iconUsers = parseInt(icon.dataset.users);
+                            icon.classList.toggle('selected', iconUsers <= selectedUsers);
+                        });
+                        userCountValueDisplay.textContent = `${selectedUsers} نفر`;
+
+                        // Update purchase button data
+                        purchaseBtn.dataset.users = selectedUsers;
+                        purchaseBtn.dataset.totalPrice = price;
+                        finalPriceDisplay.textContent = formatPrice(price);
+                    };
+
+                    userIcons.forEach(icon => {
+                        icon.addEventListener('click', (e) => {
+                            const selectedUsers = parseInt(e.currentTarget.dataset.users);
+                            
+                            // Check the radio button of the current card only if an icon is clicked
+                            radio.checked = true;
+                            document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+                            card.classList.add('selected');
+
+                            updateUserSelection(selectedUsers);
+                        });
+                    });
+                    
+                    // 3. Purchase Button Click
+                    purchaseBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const selectedPlan = PlansData.find(p => p.id == card.dataset.planId);
+                        openModal(
+                            selectedPlan.duration + ' ' + (selectedPlan.type === 'unlimited' ? 'نامحدود' : 'ملی'),
+                            purchaseBtn.dataset.users,
+                            parseInt(purchaseBtn.dataset.totalPrice),
+                            purchaseBtn.dataset.requestedPlan,
+                            '' // renewalIdentifier is empty for new purchases
+                        );
+                    });
+                    
+                    // Initial state update to show 1 user selected
+                    updateUserSelection(1);
+                });
+            };
+
+            renderBuyCards('unlimited', buyUnlimitedContainer);
+            renderBuyCards('national', buyNationalContainer);
+            
+            // --- RENEW CONFIGURATOR LOGIC (Dual Slider) ---
+            const renewTypeBtns = renewConfigurator.querySelectorAll('.plan-type-btn');
+            const durationSlider = document.getElementById('renewDurationSlider');
+            const userCountSlider = document.getElementById('renewUserCountSlider');
+            const renewDurationLabel = document.getElementById('renewDurationLabel');
+            const renewUserCountLabel = document.getElementById('renewUserCountLabel');
+            const renewBasePriceDisplay = document.getElementById('renewBasePriceDisplay');
+            const renewUsersDisplay = document.getElementById('renewUsersDisplay');
+            const renewFinalPriceDisplay = document.getElementById('renewFinalPriceDisplay');
+            const openRenewModalBtn = document.getElementById('openRenewModalBtn');
+            const renewalIdentifierInput = document.getElementById('renewalIdentifier');
+            const renewDurationMarks = document.getElementById('renewDurationMarks');
+
+
+            const updateRenewConfig = () => {
+                const currentType = renewConfigurator.querySelector('.plan-type-btn.active').dataset.type;
+                const availablePlans = RenewPlans[currentType];
+                
+                // 1. Update Duration Slider Config
+                durationSlider.max = availablePlans.length;
+                
+                // Clamp duration value if it exceeds new max
+                let durationIndex = Math.min(parseInt(durationSlider.value), availablePlans.length);
+                durationSlider.value = durationIndex;
+                
+                const selectedDurationPlan = availablePlans[durationIndex - 1];
+                const selectedUsers = parseInt(userCountSlider.value);
+
+                const basePrice = selectedDurationPlan.baseAmount;
+                const finalPrice = basePrice * selectedUsers;
+                const planColorId = selectedDurationPlan.colorId;
+                
+                // 2. Color Sync
+                renewConfigurator.setAttribute('data-plan-color-id', planColorId);
+                const planColor = document.querySelector(`[data-plan-color-id="${planColorId}"]`).style.getPropertyValue('--plan-color');
+                const planColorRgb = document.querySelector(`[data-plan-color-id="${planColorId}"]`).style.getPropertyValue('--plan-color-rgb');
+                
+                // Update CSS variables for Renew section
+                renewConfigurator.style.setProperty('--plan-color', planColor);
+                renewConfigurator.style.setProperty('--plan-color-rgb', planColorRgb);
+                
+                // 3. Update Text Displays
+                renewDurationLabel.textContent = selectedDurationPlan.label;
+                renewUserCountLabel.textContent = `${selectedUsers} نفر`;
+                
+                renewBasePriceDisplay.textContent = formatPrice(basePrice);
+                renewUsersDisplay.textContent = `${selectedUsers} نفر`;
+                renewFinalPriceDisplay.textContent = formatPrice(finalPrice);
+
+                // 4. Update Renew Button Data
+                openRenewModalBtn.dataset.totalPrice = finalPrice;
+                openRenewModalBtn.dataset.requestedPlan = selectedDurationPlan.requestedPlan;
+                openRenewModalBtn.dataset.users = selectedUsers;
+                
+                // 5. Update slider progress for Duration Slider (Colored Track)
+                const durationPercent = (durationIndex - 1) / (availablePlans.length - 1) * 100;
+                durationSlider.style.setProperty('--slider-percent', `${100 - durationPercent}%`);
+                
+                // 6. Update slider progress for User Slider (Colored Track)
+                const userPercent = (selectedUsers - 1) / (userCountSlider.max - 1) * 100;
+                userCountSlider.style.setProperty('--slider-percent', `${100 - userPercent}%`);
+
+
+                // 7. Update Duration Marks
+                const marksHtml = availablePlans.map(p => `<span>${p.label.replace(' ماهه', 'M').replace(' ساله', 'Y')}</span>`).join('');
+                renewDurationMarks.innerHTML = marksHtml;
+            };
+
+            renewTypeBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    renewTypeBtns.forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    updateRenewConfig();
+                });
+            });
+
+            durationSlider.addEventListener('input', updateRenewConfig);
+            userCountSlider.addEventListener('input', updateRenewConfig);
+            
+            // Initial call to set up Renew Configurator
+            updateRenewConfig();
+
+            // Open Renew Modal Logic (Requires renewalIdentifier to be NOT empty)
+            openRenewModalBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const renewalId = renewalIdentifierInput.value.trim();
+                
+                if (!renewalId) {
+                    renewalIdentifierInput.focus();
+                    renewalIdentifierInput.style.border = '2px solid var(--danger-color)';
+                    alert('لطفاً شناسه‌ی تمدید یا لینک اشتراک را وارد کنید.');
+                    return;
+                }
+                renewalIdentifierInput.style.border = '1px solid var(--border-color)';
+                
+                const currentType = renewConfigurator.querySelector('.plan-type-btn.active').dataset.type;
+                const durationIndex = parseInt(durationSlider.value);
+                const selectedDurationPlan = RenewPlans[currentType][durationIndex - 1];
+
+                openModal(
+                    selectedDurationPlan.label + ' ' + (currentType === 'unlimited' ? 'نامحدود (تمدید)' : 'ملی (تمدید)'),
+                    openRenewModalBtn.dataset.users,
+                    parseInt(openRenewModalBtn.dataset.totalPrice),
+                    openRenewModalBtn.dataset.requestedPlan,
+                    renewalId
+                );
+            });
+
+
+            // --- PAYMENT FORM SUBMISSION (Dummy) ---
+            paymentForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Collect data
+                const formData = {
+                    amount: document.getElementById('modal-amount').value,
+                    requestedPlan: document.getElementById('modal-requested-plan').value,
+                    users: document.getElementById('modal-users').value,
+                    name: document.getElementById('modal-name').value.trim(),
+                    email: document.getElementById('modal-email').value.trim(),
+                    phone: document.getElementById('modal-phone').value.trim(),
+                    telegramUsername: document.getElementById('modal-telegram-id').value.trim(),
+                    coupenCode: document.getElementById('modal-coupon-code').value.trim(),
+                    renewalIdentifier: document.getElementById('modal-renewal-id').value,
+                    description: document.getElementById('modal-description').value.trim(),
+                };
+
+                // --- START PAYMENT API CALL (MOCKUP) ---
+                console.log('Sending Payment Request with data:', formData);
+                
+                const submitButton = paymentForm.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.textContent = 'در حال انتقال به درگاه...';
+
+                // Simulate API call success/failure
+                await new Promise(resolve => setTimeout(resolve, 1500)); 
+                
+                // On Success: Redirect to Zarinpal (Mockup)
+                // window.location.href = `https://www.zarinpal.com/pg/StartPay/${authority}`;
+                
+                alert(`✅ درخواست پرداخت برای ${formatPrice(formData.amount)} ارسال شد. (API Call Mocked)`);
+                modal.classList.remove('show');
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card" style="margin-left: 10px;"><rect width="22" height="16" x="1" y="4" rx="2" /><path d="M1 10h22" /></svg> پرداخت و دریافت آنی اشتراک';
+            });
+            
+            // --- TRACKING LOGIC (MOCKUP) ---
+            const trackingForm = document.getElementById('tracking-form');
+            const trackingInput = document.getElementById('tracking-input');
+            const trackingResults = document.getElementById('tracking-results');
+            
+            trackingForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const trackingId = trackingInput.value.trim();
+                trackingResults.style.display = 'none';
+                trackingResults.innerHTML = '';
+
+                if (!trackingId) {
+                    alert('لطفاً شناسه‌ی پیگیری را وارد کنید.');
+                    return;
+                }
+
+                // Simulate API Call to track.js
+                const mockTrackingData = [
+                    { plan: '90D', date: '۱۴۰۴/۰۶/۱۰', link: 'https://shammay.ir/sub123456789' },
+                    { plan: 'Renew', date: '۱۴۰۴/۰۹/۰۱', link: 'https://shammay.ir/sub987654321' }
+                ];
+                
+                const isFound = trackingId.toLowerCase() === 'test-123';
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                if (isFound) {
+                    let html = '<h3>سفارشات یافت شده:</h3>';
+                    mockTrackingData.forEach(item => {
+                        html += `<div class="result-item">
+                            <p><strong>پلن:</strong> ${item.plan.replace('D', ' روزه').replace('Renew', 'تمدید')}</p>
+                            <p><strong>تاریخ خرید:</strong> ${item.date}</p>
+                            <p><strong>لینک اشتراک:</strong> <a href="${item.link}" target="_blank">${item.link.substring(0, 30)}...</a></p>
+                            <p><strong>وضعیت:</strong> <span style="color: var(--plan-color);">موفق</span></p>
+                        </div>`;
+                    });
+                    trackingResults.innerHTML = html;
+                    trackingResults.className = 'coupon-success';
+                    trackingResults.style.display = 'block';
+                } else {
+                    trackingResults.innerHTML = '<p class="coupon-error">سفارشی با این شناسه یافت نشد.</p>';
+                    trackingResults.className = 'coupon-error';
+                    trackingResults.style.display = 'block';
+                }
+            });
+
+
+            lucide.createIcons();
+        });
+    </script>
 
 </body>
 </html>
