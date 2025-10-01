@@ -5,7 +5,7 @@ const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY;
 
-// NEW: نگاشت ثابت نام پلن به نام شیت برای track
+// [FIXED: Removed price-based map and defined static sheet names]
 const PLAN_SHEETS = ['30D', '60D', '90D', '180D', '365D', '730D', 'Renew'];
 
 module.exports = async (req, res) => {
@@ -26,7 +26,8 @@ module.exports = async (req, res) => {
         await doc.loadInfo();
 
         const purchases = [];
-        // جستجو در تمامی شیت‌های پلن
+        
+        // [FIXED: Looping over fixed PLAN_SHEETS instead of price map]
         for (const sheetTitle of PLAN_SHEETS) {
             const sheet = doc.sheetsByTitle[sheetTitle];
             if (sheet) {
