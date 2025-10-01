@@ -7,7 +7,7 @@ const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY;
 
 const planToSheetMap = {
     '12000': '30D', '220000': '60D', '340000': '90D',
-    '600000': '180D', '1000000': '365D', '2000000': '730D', // Updated '10000' to '1000000' for consistency (assuming original typo was corrected)
+    '600000': '180D', '10000': '365D', '2000000': '730D',
 };
 
 module.exports = async (req, res) => {
