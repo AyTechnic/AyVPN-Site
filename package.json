@@ -1,15 +1,8 @@
 {
-  "name": "AyVPN-Shop",
-  "version": "1.0.0",
-  "description": "Backend services for Zarinpal payment, Google Sheet integration, and Telegram Bot.",
-  "main": "verify.js",
   "dependencies": {
-    "google-spreadsheet": "^4.1.2",
-    "google-auth-library": "^9.10.0",
-    "node-fetch": "^2.7.0",
-    "node-telegram-bot-api": "^0.66.0"
-  },
-  "devDependencies": {
-    "dotenv": "^16.4.5"
+    "google-auth-library": "^9.9.0",
+    "google-spreadsheet": "^4.1.1",
+    "node-fetch": "^2.6.7",
+    "node-telegram-bot-api": "^0.65.1"
   }
 }
