@@ -10,9 +10,25 @@ const APP_URL = process.env.APP_URL;
 const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID; // NEW: باید در محیط تعریف شده باشد
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL; // NEW
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY; // NEW
+const ADMIN_CHAT_ID = '5976170456'; // NEW: برای ارسال نوتیفیکیشن‌ها
 
 // **تغییر ۱: حذف { polling: true }** // ربات به صورت Webhook تنظیم می‌شود و فقط برای ارسال پیام‌ها و پردازش آپدیت‌های دریافتی استفاده می‌شود.
 const bot = new TelegramBot(TOKEN); 
+
+// --- توابع مدیریت خطای شبکه (برای حل مشکل TLS Disconnected) ---
+const safeSendMessage = (chatId, text, options = {}) => {
+    return bot.sendMessage(chatId, text, options).catch(err => {
+        // این خطا را مدیریت می‌کند و از کرش کردن جلوگیری می‌کند
+        console.error(`Safe Send Error to ${chatId}:`, err.message);
+    });
+};
+
+const safeEditMessageText = (text, options) => {
+    return bot.editMessageText(text, options).catch(err => {
+        // این خطا را مدیریت می‌کند و از کرش کردن جلوگیری می‌کند
+        console.error(`Safe Edit Error (msgID: ${options.message_id}):`, err.message);
+    });
+};
 
 // NEW: نام شیت کوپن
 const COUPEN_SHEET_TITLE = 'Coupen';
@@ -25,6 +41,7 @@ async function getDoc() {
     // احراز هویت سرویس گوگل
     const serviceAccountAuth = new JWT({
         email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        // Replace all escaped newline characters with actual newline characters
         key: GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
@@ -78,6 +95,8 @@ async function getCoupenDetails(coupenCode) {
         return null; // کوپن یافت نشد
     } catch (error) {
         console.error('Error fetching coupen details:', error.message);
+        // به ادمین اطلاع بده
+        // safeSendMessage(ADMIN_CHAT_ID, `⚠️ خطای سیستمی: در خواندن شیت کوپن: ${error.message}`);
         return null; // خطای سیستمی
     }
 }
@@ -105,7 +124,7 @@ const applyCoupenDiscount = (originalAmount, coupenDetails) => {
         
         finalAmount = originalAmount - discountAmount;
         
-        // اطمینان از اینکه قیمت نهایی کمتر از صفر نشود (حداقل یک تومان)
+        // اطمینان از اینکه قیمت نهایی کمتر از صفر نشود (حداقل ۱۰۰۰ تومان)
         if (finalAmount < 1000) {
             finalAmount = 1000; 
             discountAmount = originalAmount - 1000;
@@ -121,7 +140,6 @@ const applyCoupenDiscount = (originalAmount, coupenDetails) => {
 const formatAmount = (amount) => amount.toLocaleString('fa-IR');
 
 // --- داده های ربات (ساختار بر اساس قیمت پایه ۱ کاربره) ---
-// ... (ادامه plansData و apps) ...
 const plansData = [
     { duration: '۱ ماهه', baseAmount: 120000, durationDays: 30, type: 'unlimited', icon: '💎', requestedPlan: '1M' },
     { duration: '۲ ماهه', baseAmount: 220000, durationDays: 60, type: 'unlimited', icon: '🚀', requestedPlan: '2M' },
@@ -145,369 +163,402 @@ const apps = {
     ],
     mac: [
         { text: 'V2rayX', url: 'https://github.com/Cenmrev/V2RayX/releases' },
+    ],
+};
+
+// --- منوهای Inline ---
+const mainMenu = {
+    inline_keyboard: [
+        [{ text: '🛒 خرید اشتراک جدید', callback_data: 'menu_purchase' }],
+        [{ text: '🔄 تمدید اشتراک', callback_data: 'state_renew' }],
+        [{ text: '🔍 پیگیری سفارش', callback_data: 'state_track' }],
+        [{ text: '📱 برنامه‌های پیشنهادی', callback_data: 'menu_apps' }]
     ]
 };
 
 const appsMenu = {
     inline_keyboard: [
-        [{ text: '🤖 اندروید', callback_data: 'apps_android' }],
-        [{ text: '🍎 iOS', callback_data: 'apps_ios' }],
-        [{ text: '💻 ویندوز', callback_data: 'apps_windows' }],
-        [{ text: '🖥️ مک', callback_data: 'apps_mac' }],
+        [{ text: '🤖 اندروید', callback_data: 'apps_android' }, { text: '🍎 iOS', callback_data: 'apps_ios' }],
+        [{ text: '🖥️ ویندوز', callback_data: 'apps_windows' }, { text: '💻 مک', callback_data: 'apps_mac' }],
         [{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]
     ]
 };
 
-
-// --- مدیریت دستورات ---
-
+// --- ۱. مدیریت دستور /start ---
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    delete userStates[chatId]; // ریست کردن وضعیت کاربر
     const welcomeMessage = `سلام شــــامـــــــــای عزیز! به ربات خرید و تمدید اشتراک **Ay Technic** خوش آمدید.\n\nلطفاً برای ادامه یکی از گزینه‌های زیر را انتخاب کنید:`;
-    const keyboard = {
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: '🛒 خرید اشتراک جدید', callback_data: 'menu_purchase' }],
-                [{ text: '🔄 تمدید اشتراک', callback_data: 'state_renew' }],
-                [{ text: '🔍 پیگیری سفارش', callback_data: 'state_track' }],
-                [{ text: '📱 برنامه‌های پیشنهادی', callback_data: 'menu_apps' }]
-            ]
-        },
+    
+    // پاک کردن وضعیت فعلی کاربر
+    delete userStates[chatId]; 
+
+    safeSendMessage(chatId, welcomeMessage, {
+        reply_markup: mainMenu,
         parse_mode: 'Markdown'
-    };
-    bot.sendMessage(chatId, welcomeMessage, keyboard);
+    });
 });
 
-// --- مدیریت پیام‌های متنی (برای ورودی‌های چند مرحله‌ای) ---
+// --- ۲. مدیریت متن‌های ارسالی کاربر ---
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    if (text.startsWith('/') || !userStates[chatId] || !msg.text) return;
+    // اگر کاربر در حال انتظار برای ورودی خاصی نباشد یا دستور /start باشد، کاری نمی‌کنیم
+    if (text === '/start' || !userStates[chatId]) return;
 
-    const state = userStates[chatId].step;
+    const state = userStates[chatId];
 
-    if (state === 'waiting_for_renew_id') {
-        userStates[chatId].renewalIdentifier = text;
-        userStates[chatId].step = 'waiting_for_renew_coupen';
-        return bot.sendMessage(chatId, 'کد تخفیف را وارد کنید (اگر کد تخفیف ندارید، **0** را ارسال کنید):');
-    }
-
-    if (state === 'waiting_for_track_id') {
-        const trackingId = text;
-        delete userStates[chatId];
+    // --- مدیریت مرحله ۳: وارد کردن کد پیگیری ---
+    if (state.step === 'awaiting_tracking_id') {
+        const trackingId = text.trim();
         
+        // نوتیفیکیشن پیگیری
+        safeSendMessage(chatId, `🔍 در حال پیگیری سفارش شما با کد: **${trackingId}** ...\n\nلطفاً صبر کنید.`, { parse_mode: 'Markdown' });
+
         try {
-            const response = await fetch(`${APP_URL}/api/track?trackingId=${trackingId}`);
-            if (response.status === 200) {
-                const purchases = await response.json();
-                let message = `✅ **سفارشات یافت شده برای شناسه ${trackingId}:**\n\n`;
-                purchases.forEach(p => {
-                    const planDisplay = p.plan.endsWith('D') ? `${parseInt(p.plan)} روزه` : (p.plan === 'Renew' ? 'تمدید' : p.plan);
-                    message += `* پلن: ${planDisplay}\n`;
-                    message += `* تاریخ خرید: ${p.date}\n`;
-                    message += `* لینک اشتراک: \`${p.link}\`\n`;
-                    message += `* وضعیت: موفق\n\n`;
-                });
-                return bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
-            } else if (response.status === 404) {
-                return bot.sendMessage(chatId, '❌ سفارشی با این شناسه پیگیری یافت نشد.');
-            } else {
-                throw new Error('Server Error');
+            const url = `${APP_URL}/api/track?trackingId=${trackingId}`;
+            const response = await fetch(url);
+
+            if (response.status === 404) {
+                safeSendMessage(chatId, '❌ سفارشی با این شناسه یافت نشد. لطفاً کد را با دقت بررسی و دوباره وارد کنید.');
+                return;
             }
+
+            if (!response.ok) {
+                throw new Error(`Server returned status ${response.status}`);
+            }
+
+            const results = await response.json();
+            
+            let html = '✅ **سفارشات یافت شده:**\n\n';
+            results.forEach((item, index) => {
+                const planName = item.plan.endsWith('D') ? `${parseInt(item.plan)} روزه` : (item.plan === 'Renew' ? 'تمدید' : item.plan);
+                html += `**شماره ${index + 1}:**\n`
+                html += `🔸 **پلن:** ${planName}\n`
+                html += `🔸 **تاریخ خرید:** ${item.date}\n`
+                html += `🔸 **لینک اشتراک:** [لینک دسترسی](${item.link})\n\n`
+            });
+
+            safeSendMessage(chatId, html, {
+                reply_markup: mainMenu,
+                parse_mode: 'Markdown'
+            });
+
         } catch (error) {
-            console.error('Tracking Error:', error.message);
-            return bot.sendMessage(chatId, '❌ خطای سرور در پیگیری سفارش.');
+            console.error('Tracking fetch error:', error.message);
+            safeSendMessage(chatId, '❌ خطای سرور در پیگیری سفارش. لطفاً بعداً تلاش کنید یا به پشتیبانی پیام دهید.');
+        } finally {
+            // حذف وضعیت کاربر پس از اتمام پیگیری
+            delete userStates[chatId];
         }
+
     }
 
-    // NEW: گام ۳: دریافت کد تخفیف برای خرید جدید
-    if (state === 'waiting_for_purchase_coupen') {
-        const coupenCode = text === '0' ? '' : text;
-        userStates[chatId].coupenCode = coupenCode;
-        userStates[chatId].step = 'waiting_for_user_info';
+    // --- مدیریت مرحله ۳: وارد کردن کد تمدید (ایمیل/نام کاربری) ---
+    if (state.step === 'awaiting_renewal_id') {
+        const renewalIdentifier = text.trim();
+        state.renewalIdentifier = renewalIdentifier;
+        state.step = 'awaiting_coupen_code'; // به مرحله وارد کردن کوپن بروید
+        
+        // پیام بعدی
+        safeSendMessage(chatId, `لطفاً کد تخفیف (کوپن) خود را وارد کنید.\n\n اگر کد تخفیف ندارید، دستور /skip را ارسال کنید.`, {
+             reply_markup: {
+                keyboard: [
+                    [{ text: '/skip' }]
+                ],
+                resize_keyboard: true,
+                one_time_keyboard: true
+            }
+        });
+    }
 
-        // --- محاسبه قیمت ---
-        const plan = plansData.find(p => p.requestedPlan === userStates[chatId].requestedPlan);
-        const users = parseInt(userStates[chatId].users);
-        const originalAmount = calculateMultiUserPrice(plan.baseAmount, users);
+    // --- مدیریت مرحله ۴: وارد کردن کد کوپن ---
+    if (state.step === 'awaiting_coupen_code') {
+        let coupenCode = text.trim();
+        
+        if (coupenCode === '/skip') {
+            coupenCode = ''; // اگر اسکیپ شد، کوپن خالی است
+        }
 
-        let finalAmount = originalAmount;
-        let discountMessage = '';
-        let discountAmount = 0;
+        let coupenDetails = null;
+        let coupenError = null;
 
         if (coupenCode) {
-            const coupenDetails = await getCoupenDetails(coupenCode);
-            if (coupenDetails && !coupenDetails.error) {
-                const discountResult = applyCoupenDiscount(originalAmount, coupenDetails);
-                finalAmount = discountResult.finalAmount;
-                discountAmount = discountResult.discountAmount;
-                discountMessage = `✅ کد تخفیف **${coupenCode}** اعمال شد. مبلغ تخفیف: **${formatAmount(discountAmount)} تومان**.\n`;
-                
-                // NEW: ذخیره جزئیات کوپن برای استفاده در مرحله پرداخت
-                userStates[chatId].coupenDetails = coupenDetails; 
-
-            } else {
-                // اگر کوپن نامعتبر باشد
-                discountMessage = `⚠️ کد تخفیف نامعتبر یا منقضی شده است. لطفاٌ یک کد معتبر وارد کنید یا **0** را ارسال کنید.`;
-                // اگر کد تخفیف نامعتبر بود، دوباره از کاربر بخواهید
-                userStates[chatId].step = 'waiting_for_purchase_coupen'; 
-                return bot.sendMessage(chatId, discountMessage);
+            // جستجو و اعتبار سنجی کوپن
+            const result = await getCoupenDetails(coupenCode);
+            if (result && result.error) {
+                coupenError = result.error;
+            } else if (result) {
+                coupenDetails = result;
             }
         }
+        
+        if (coupenError) {
+            // کوپن نامعتبر یا خطا
+            safeSendMessage(chatId, `❌ **خطا:** ${coupenError}\n\nلطفاً کد تخفیف معتبر دیگری وارد کنید یا دستور /skip را برای رد شدن از این مرحله ارسال کنید.`, { parse_mode: 'Markdown' });
+            // وضعیت در awaiting_coupen_code باقی می‌ماند
+            return;
+        }
 
-        userStates[chatId].finalAmount = finalAmount;
+        // کوپن معتبر یا اسکیپ شد.
+        state.coupenCode = coupenCode;
+        state.coupenDetails = coupenDetails;
+        state.step = 'awaiting_name'; // به مرحله وارد کردن نام بروید
         
-        const message = `${discountMessage}
-        💰 مبلغ نهایی: **${formatAmount(finalAmount)} تومان**
+        // حذف کیبورد skip
         
-        لطفاً نام و نام خانوادگی، شماره تماس و ایمیل خود را **در یک خط و به ترتیب** زیر وارد کنید:
-        
-        **مثال:** شامای ایرانی، 09121234567، shammay@aytechnic.com
-        
-        *ایمیل و شماره تماس برای پیگیری سفارشات ضروری هستند.*
-        `;
-        
-        return bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+        safeSendMessage(chatId, `✅ کد تخفیف **${coupenCode ? 'اعمال شد' : 'رد شد'}**.\n\nلطفاً نام و نام خانوادگی خود را وارد کنید:`, {
+            parse_mode: 'Markdown',
+            reply_markup: { remove_keyboard: true }
+        });
+    }
 
+    // --- مدیریت مرحله ۵: وارد کردن نام ---
+    if (state.step === 'awaiting_name') {
+        state.name = text.trim();
+        state.step = 'awaiting_email';
+        safeSendMessage(chatId, 'لطفاً ایمیل خود را وارد کنید:');
+    }
+
+    // --- مدیریت مرحله ۶: وارد کردن ایمیل ---
+    if (state.step === 'awaiting_email') {
+        state.email = text.trim();
+        state.step = 'awaiting_phone';
+        safeSendMessage(chatId, 'لطفاً شماره تماس (اختیاری) خود را وارد کنید:');
     }
     
-    // NEW: گام ۴: دریافت اطلاعات کاربر برای خرید جدید
-    if (state === 'waiting_for_user_info') {
-        const parts = text.split(/[,،]/).map(p => p.trim()).filter(p => p.length > 0);
-        if (parts.length < 3) {
-            return bot.sendMessage(chatId, '❌ فرمت وارد شده صحیح نیست. لطفاً نام و نام خانوادگی، شماره تماس و ایمیل را با کاما جدا کنید. (مثال: شامای ایرانی، 09121234567، shammay@aytechnic.com)');
-        }
+    // --- مدیریت مرحله ۷: وارد کردن شماره تماس ---
+    if (state.step === 'awaiting_phone') {
+        state.phone = text.trim();
+        state.step = 'final_confirmation';
         
-        // اعتبار سنجی ساده
-        const [name, phone, email] = parts;
-        const phoneRegex = /^09\d{9}$/;
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const plan = plansData.find(p => p.requestedPlan === state.requestedPlan);
         
-        if (!phoneRegex.test(phone)) {
-            return bot.sendMessage(chatId, '❌ شماره تماس وارد شده نامعتبر است. (مثال: 09121234567)');
-        }
-        if (!emailRegex.test(email)) {
-            return bot.sendMessage(chatId, '❌ ایمیل وارد شده نامعتبر است. (مثال: shammay@aytechnic.com)');
-        }
+        // محاسبه قیمت نهایی
+        const originalAmount = calculateMultiUserPrice(plan.baseAmount, state.users);
+        const { finalAmount, discountAmount } = applyCoupenDiscount(originalAmount, state.coupenDetails);
         
-        // ذخیره اطلاعات و آماده سازی برای پرداخت
-        userStates[chatId].name = name;
-        userStates[chatId].phone = phone;
-        userStates[chatId].email = email;
-        userStates[chatId].step = 'ready_to_pay';
-        
-        const finalAmount = userStates[chatId].finalAmount;
-        const plan = plansData.find(p => p.requestedPlan === userStates[chatId].requestedPlan);
+        state.amount = finalAmount; // ذخیره قیمت نهایی
 
-        const summary = `
-        **خلاصه سفارش شما:**
+        let confirmationMessage = `**✅ تأیید نهایی سفارش شما:**\n\n`;
+        confirmationMessage += `🔹 **نوع درخواست:** ${state.type === 'purchase' ? 'خرید اشتراک جدید' : 'تمدید اشتراک'}\n`;
+        if (state.type === 'renew') {
+            confirmationMessage += `🔹 **شناسه تمدید:** ${state.renewalIdentifier}\n`;
+        }
+        confirmationMessage += `🔹 **پلن انتخابی:** ${plan.icon} ${plan.duration}\n`;
+        confirmationMessage += `🔹 **تعداد کاربران:** ${state.users}\n`;
+        confirmationMessage += `🔹 **نام:** ${state.name}\n`;
+        confirmationMessage += `🔹 **ایمیل:** ${state.email}\n`;
+        confirmationMessage += `🔹 **شماره تماس:** ${state.phone || 'وارد نشده'}\n\n`;
         
-        * 👤 نام: ${name}
-        * 📞 تماس: ${phone}
-        * 📧 ایمیل: ${email}
-        * 🗓️ پلن: ${plan.duration}
-        * 👥 تعداد کاربر: ${userStates[chatId].users}
-        * 💵 مبلغ قابل پرداخت: **${formatAmount(finalAmount)} تومان**
+        confirmationMessage += `--- **جزئیات مالی** ---\n`;
+        confirmationMessage += `🔸 **قیمت پایه (${state.users} کاربر):** ${formatAmount(originalAmount)} تومان\n`;
+        if (state.coupenCode) {
+            confirmationMessage += `🎁 **کد تخفیف (${state.coupenCode}):** ${formatAmount(discountAmount)} تومان\n`;
+        }
+        confirmationMessage += `💰 **مبلغ نهایی قابل پرداخت:** ${formatAmount(finalAmount)} تومان\n\n`;
         
-        آیا برای شروع فرآیند پرداخت آنلاین آماده هستید؟
-        `;
-        
-        const keyboard = {
-            inline_keyboard: [
-                [{ text: '✅ شروع پرداخت', callback_data: 'pay_start_purchase' }],
-                [{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]
-            ]
-        };
-        
-        return bot.sendMessage(chatId, summary, { reply_markup: keyboard, parse_mode: 'Markdown' });
+        confirmationMessage += `آیا اطلاعات فوق را تأیید می‌کنید؟`;
 
+        safeSendMessage(chatId, confirmationMessage, {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '✅ تأیید و شروع پرداخت', callback_data: 'final_confirm_yes' }],
+                    [{ text: '❌ لغو سفارش', callback_data: 'menu_main' }]
+                ]
+            },
+            parse_mode: 'Markdown'
+        });
     }
-    
-    // --- مدیریت ورودی کوپن برای تمدید ---
-    if (state === 'waiting_for_renew_coupen') {
-        const coupenCode = text === '0' ? '' : text;
-        userStates[chatId].coupenCode = coupenCode;
-        
-        // ... (منطق مشابه برای تمدید، با فرض اینکه تمدید به یک API متفاوت متصل می‌شود)
-        
-        // **********************************************
-        // NOTE: این بخش از کد تمدید ناقص است و نیاز به تکمیل دارد
-        // اما برای سازگاری با ورسل، ساختار آن را نگه می‌داریم.
-        // **********************************************
-        
-        const plan = plansData[0]; // فرض می‌کنیم پلن تمدید ۱ ماهه است تا خطا ندهد
-        userStates[chatId].requestedPlan = plan.requestedPlan;
-        userStates[chatId].finalAmount = plan.baseAmount; // مبلغ تمدید
-        userStates[chatId].renewalIdentifier = userStates[chatId].renewalIdentifier; // شناسه تمدید
-        
-        userStates[chatId].step = 'ready_to_pay';
-        
-        const summary = `
-        **خلاصه تمدید شما:**
-        * 🔑 شناسه تمدید: ${userStates[chatId].renewalIdentifier}
-        * 💵 مبلغ قابل پرداخت: **${formatAmount(userStates[chatId].finalAmount)} تومان**
-        
-        آیا برای شروع فرآیند پرداخت آنلاین آماده هستید؟
-        `;
-        
-        const keyboard = {
-            inline_keyboard: [
-                [{ text: '✅ شروع پرداخت', callback_data: 'pay_start_renew' }],
-                [{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]
-            ]
-        };
-        
-        return bot.sendMessage(chatId, summary, { reply_markup: keyboard, parse_mode: 'Markdown' });
-    }
-
 });
 
-// --- مدیریت دکمه‌های اینلاین ---
+
+// --- ۳. مدیریت دکمه‌ها (Callback Queries) ---
 bot.on('callback_query', async (query) => {
-    const data = query.data;
     const chatId = query.message.chat.id;
     const messageId = query.message.message_id;
+    const data = query.data;
+    
+    // پاسخ به Callback Query برای جلوگیری از علامت بارگذاری
+    bot.answerCallbackQuery(query.id).catch(err => console.error("Error answering callback query:", err.message)); 
 
-    // ریست به منو اصلی
+    // --- مدیریت منو اصلی (بازگشت به منو اصلی) ---
     if (data === 'menu_main') {
-        // حذف وضعیت فعلی کاربر
-        delete userStates[chatId]; 
-        
-        const welcomeMessage = `سلام شــــامـــــــــای عزیز! به منو اصلی ربات خرید و تمدید اشتراک **Ay Technic** خوش آمدید.\n\nلطفاً برای ادامه یکی از گزینه‌های زیر را انتخاب کنید:`;
-        const keyboard = {
-            inline_keyboard: [
-                [{ text: '🛒 خرید اشتراک جدید', callback_data: 'menu_purchase' }],
-                [{ text: '🔄 تمدید اشتراک', callback_data: 'state_renew' }],
-                [{ text: '🔍 پیگیری سفارش', callback_data: 'state_track' }],
-                [{ text: '📱 برنامه‌های پیشنهادی', callback_data: 'menu_apps' }]
-            ]
-        };
-        return bot.editMessageText(welcomeMessage, { chat_id: chatId, message_id: messageId, reply_markup: keyboard, parse_mode: 'Markdown' });
+        delete userStates[chatId];
+        const welcomeMessage = `سلام شــــامـــــــــای عزیز! به ربات خرید و تمدید اشتراک **Ay Technic** خوش آمدید.\n\nلطفاً برای ادامه یکی از گزینه‌های زیر را انتخاب کنید:`;
+        return safeEditMessageText(welcomeMessage, {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: mainMenu,
+            parse_mode: 'Markdown'
+        });
     }
 
-    // --- ۱. مدیریت خرید جدید (انتخاب پلن) ---
+    // --- ۱. مدیریت شروع فرآیند خرید/تمدید ---
+    // شروع خرید جدید
     if (data === 'menu_purchase') {
-        // ریست کردن وضعیت برای خرید جدید
-        userStates[chatId] = { step: 'awaiting_plan_select' }; 
+        userStates[chatId] = { step: 'awaiting_plan_selection', type: 'purchase', users: 1 };
         
-        const keyboard = plansData.map(p => ([{ text: `${p.icon} ${p.duration} - ${formatAmount(p.baseAmount)} تومان`, callback_data: `plan_select_${p.requestedPlan}` }]));
-        keyboard.push([{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]);
-        
-        return bot.editMessageText('🛍️ لطفاً مدت زمان اشتراک مورد نظر خود را انتخاب کنید (قیمت برای ۱ کاربر است):', {
+        const purchaseMenu = {
+            inline_keyboard: plansData.map(p => ([{ text: `${p.icon} ${p.duration} - ${formatAmount(p.baseAmount)} تومان`, callback_data: `plan_select_${p.requestedPlan}` }])),
+            
+        };
+        purchaseMenu.inline_keyboard.push([{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]);
+
+        return safeEditMessageText('🛒 پلن مورد نظر خود را برای خرید جدید انتخاب کنید:', {
             chat_id: chatId,
             message_id: messageId,
-            reply_markup: { inline_keyboard: keyboard },
-            parse_mode: 'Markdown'
+            reply_markup: purchaseMenu
         });
     }
 
-    // --- ۲. مدیریت انتخاب پلن و رفتن به انتخاب تعداد کاربر ---
-    if (data.startsWith('plan_select_')) {
+    // شروع تمدید
+    if (data === 'state_renew') {
+        userStates[chatId] = { step: 'awaiting_renewal_id', type: 'renew' };
+        safeSendMessage(chatId, '🔄 لطفاً **ایمیل یا نام کاربری** مرتبط با اشتراک قبلی خود را برای تمدید وارد کنید.');
+        // حذف پیام قبلی (اختیاری)
+        return safeEditMessageText('🔄 لطفاً **ایمیل یا نام کاربری** مرتبط با اشتراک قبلی خود را برای تمدید وارد کنید.', {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: { inline_keyboard: [[{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]] }
+        });
+    }
+    
+    // شروع پیگیری
+    if (data === 'state_track') {
+        userStates[chatId] = { step: 'awaiting_tracking_id', type: 'track' };
+        safeSendMessage(chatId, '🔍 لطفاً **کد پیگیری (Tracking ID)** یا **ایمیل/نام کاربری** که هنگام خرید وارد کرده‌اید را وارد کنید.');
+        // حذف پیام قبلی (اختیاری)
+        return safeEditMessageText('🔍 لطفاً **کد پیگیری (Tracking ID)** یا **ایمیل/نام کاربری** که هنگام خرید وارد کرده‌اید را وارد کنید.', {
+            chat_id: chatId,
+            message_id: messageId,
+            reply_markup: { inline_keyboard: [[{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]] }
+        });
+    }
+
+    // --- ۲. مدیریت انتخاب پلن (برای خرید و تمدید) ---
+    if (data.startsWith('plan_select_') || data.startsWith('renew_plan_')) {
         const requestedPlan = data.split('_')[2];
-        userStates[chatId] = { step: 'awaiting_user_select', requestedPlan: requestedPlan };
+        const plan = plansData.find(p => p.requestedPlan === requestedPlan);
+
+        if (!plan) {
+            return safeSendMessage(chatId, '❌ خطای پلن. لطفاً مجدداً از ابتدا شروع کنید.');
+        }
+
+        const state = userStates[chatId];
+        if (!state) {
+            return safeSendMessage(chatId, '❌ خطای وضعیت. لطفاً با /start مجدداً شروع کنید.');
+        }
+
+        // ذخیره پلن انتخابی
+        state.requestedPlan = requestedPlan;
         
-        // ایجاد کیبورد انتخاب تعداد کاربر
-        const userCountKeyboard = {
+        // --- کیبورد تعداد کاربر ---
+        const usersKeyboard = {
             inline_keyboard: [
-                [{ text: '👥 ۱ کاربر', callback_data: 'user_select_1' }],
-                [{ text: '👥 ۲ کاربر', callback_data: 'user_select_2' }],
-                [{ text: '👥 ۳ کاربر', callback_data: 'user_select_3' }],
-                [{ text: '👥 ۴ کاربر', callback_data: 'user_select_4' }],
-                [{ text: '⬅️ بازگشت به پلن‌ها', callback_data: 'menu_purchase' }]
+                [{ text: '۱ کاربر', callback_data: 'users_1' }],
+                [{ text: '۲ کاربر (۵۰% تخفیف)', callback_data: 'users_2' }, { text: '۳ کاربر (۱۰۰% تخفیف)', callback_data: 'users_3' }],
+                [{ text: '۴ کاربر', callback_data: 'users_4' }, { text: '۵ کاربر', callback_data: 'users_5' }],
+                [{ text: '⬅️ بازگشت به پلن‌ها', callback_data: state.type === 'purchase' ? 'menu_purchase' : 'state_renew' }]
             ]
         };
-        
-        const plan = plansData.find(p => p.requestedPlan === requestedPlan);
-        const planText = `${plan.icon} ${plan.duration}`;
 
-        return bot.editMessageText(`✅ پلن ${planText} انتخاب شد. لطفاً تعداد کاربر مورد نیاز خود را انتخاب کنید:`, {
+        const baseAmount = plan.baseAmount;
+        
+        let messageText = `**${plan.icon} ${plan.duration}** انتخاب شد.\n\n`;
+        messageText += `قیمت پایه (۱ کاربره): ${formatAmount(baseAmount)} تومان.\n\n`;
+        messageText += `لطفاً تعداد کاربران مورد نیاز خود را انتخاب کنید:\n\n`;
+        
+        // به‌روزرسانی پیام برای انتخاب تعداد کاربر
+        state.step = 'awaiting_users_count';
+        return safeEditMessageText(messageText, {
             chat_id: chatId,
             message_id: messageId,
-            reply_markup: userCountKeyboard,
+            reply_markup: usersKeyboard,
             parse_mode: 'Markdown'
         });
     }
-
-    // --- ۳. مدیریت انتخاب تعداد کاربر و رفتن به دریافت کوپن ---
-    if (data.startsWith('user_select_')) {
-        const users = data.split('_')[2];
+    
+    // --- ۳. مدیریت انتخاب تعداد کاربر ---
+    if (data.startsWith('users_')) {
+        const users = parseInt(data.split('_')[1]);
         const state = userStates[chatId];
         
-        if (!state || state.step !== 'awaiting_user_select') return;
+        if (!state || state.step !== 'awaiting_users_count') return;
         
+        const plan = plansData.find(p => p.requestedPlan === state.requestedPlan);
+        if (!plan) return;
+        
+        // ذخیره تعداد کاربران
         state.users = users;
-        state.step = 'waiting_for_purchase_coupen';
         
-        const plan = plansData.find(p => p.requestedPlan === state.requestedPlan);
-        const originalAmount = calculateMultiUserPrice(plan.baseAmount, parseInt(users));
+        const originalAmount = calculateMultiUserPrice(plan.baseAmount, users);
         
-        const message = `
-        ✅ تعداد **${users} کاربره** انتخاب شد.
-        💰 مبلغ اولیه: **${formatAmount(originalAmount)} تومان**
+        let messageText = `✅ **${users} کاربر** انتخاب شد.\n`;
+        messageText += `قیمت نهایی: **${formatAmount(originalAmount)}** تومان.\n\n`;
         
-        کد تخفیف را وارد کنید (اگر کد تخفیف ندارید، **0** را ارسال کنید):
-        `;
-        
-        // **مهم: چون نیاز به ورودی متنی داریم، این پیام را به صورت عادی ارسال می‌کنیم**
-        // و از کاربر می‌خواهیم که کد تخفیف را در پیام متنی بعدی وارد کند.
-        await bot.deleteMessage(chatId, messageId);
-        return bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
-
+        // هدایت به مرحله بعد
+        if (state.type === 'purchase') {
+            // خرید جدید: مرحله بعدی وارد کردن کوپن است
+            state.step = 'awaiting_coupen_code';
+            messageText += `لطفاً کد تخفیف (کوپن) خود را وارد کنید.\n\n اگر کد تخفیف ندارید، دستور /skip را ارسال کنید.`;
+            
+            return safeEditMessageText(messageText, {
+                chat_id: chatId,
+                message_id: messageId,
+                parse_mode: 'Markdown',
+                 reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '⬅️ بازگشت به کاربران', callback_data: `plan_select_${state.requestedPlan}` }]
+                    ]
+                }
+            });
+            
+        } else if (state.type === 'renew') {
+            // تمدید: مرحله قبلاً (awaiting_renewal_id) انجام شده، به مرحله کوپن بروید
+            state.step = 'awaiting_coupen_code'; // مرحله کوپن
+             messageText += `لطفاً کد تخفیف (کوپن) خود را وارد کنید.\n\n اگر کد تخفیف ندارید، دستور /skip را ارسال کنید.`;
+             
+             return safeEditMessageText(messageText, {
+                chat_id: chatId,
+                message_id: messageId,
+                parse_mode: 'Markdown',
+                 reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '⬅️ بازگشت به کاربران', callback_data: `plan_select_${state.requestedPlan}` }]
+                    ]
+                }
+            });
+        }
     }
-
-
-    // --- ۴. مدیریت پیگیری سفارش ---
-    if (data === 'state_track') {
-        // حذف پیام فعلی و درخواست ورودی
-        await bot.deleteMessage(chatId, messageId);
-        userStates[chatId] = { step: 'waiting_for_track_id' };
-        return bot.sendMessage(chatId, '🔍 لطفاً **کد رهگیری** یا **شماره تماس/ایمیل** ثبت شده در سفارش خود را برای پیگیری ارسال کنید:');
-    }
-
-
-    // --- ۵. مدیریت تمدید اشتراک ---
-    if (data === 'state_renew') {
-        // حذف پیام فعلی و درخواست ورودی
-        await bot.deleteMessage(chatId, messageId);
-        userStates[chatId] = { step: 'waiting_for_renew_id' };
-        return bot.sendMessage(chatId, '🔄 لطفاً **لینک اشتراک** یا **شناسه تمدید** (در صورت داشتن) خود را برای شروع فرآیند تمدید ارسال کنید:');
-    }
-
-
-    // --- ۶. مدیریت شروع پرداخت (برای خرید جدید) ---
-    if (data === 'pay_start_purchase' || data === 'pay_start_renew') {
+    
+    // --- ۴. تأیید نهایی و شروع پرداخت ---
+    if (data === 'final_confirm_yes') {
         const state = userStates[chatId];
-        if (!state || state.step !== 'ready_to_pay') return;
-        
-        const isRenew = data === 'pay_start_renew';
-        const plan = plansData.find(p => p.requestedPlan === state.requestedPlan);
-        
-        const description = isRenew 
-            ? `تمدید اشتراک Ay Technic - شناسه: ${state.renewalIdentifier}`
-            : `خرید اشتراک Ay Technic - پلن: ${plan.duration} - کاربران: ${state.users}`;
+        if (!state || state.step !== 'final_confirmation') {
+            return safeSendMessage(chatId, '❌ خطای وضعیت. لطفاً با /start مجدداً شروع کنید.');
+        }
 
-        // داده‌های ارسال به API پرداخت
+        const plan = plansData.find(p => p.requestedPlan === state.requestedPlan);
+        const description = `${state.type === 'purchase' ? 'خرید' : 'تمدید'} ${plan.duration} برای ${state.name} (${state.email})`;
+        
         const payload = {
-            amount: state.finalAmount,
+            amount: state.amount,
             description: description,
             chat_id: chatId,
-            name: state.name || 'N/A',
-            email: state.email || 'N/A',
-            phone: state.phone || 'N/A',
-            renewalIdentifier: isRenew ? state.renewalIdentifier : '',
+            name: state.name,
+            email: state.email,
+            phone: state.phone,
+            renewalIdentifier: state.renewalIdentifier || '', // برای تمدید
             requestedPlan: state.requestedPlan,
             coupenCode: state.coupenCode || '',
-            telegramUsername: query.from.username || 'N/A',
-            telegramId: query.from.id.toString(),
-            users: state.users || '1',
-            // NEW: جزئیات کوپن برای کاهش تعداد استفاده در verify.js
-            coupenDetails: state.coupenDetails || {} 
+            telegramUsername: query.from.username || 'N/A', 
+            telegramId: query.from.id,
+            users: state.users
         };
 
         try {
-            // فراخوانی API شروع پرداخت در Vercel
+            // فراخوانی تابع شروع پرداخت در سرورلس
             const response = await fetch(`${APP_URL}/api/start-payment`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -517,16 +568,26 @@ bot.on('callback_query', async (query) => {
 
             if (response.ok && responseData.authority) {
                 const paymentLink = `https://www.zarinpal.com/pg/StartPay/${responseData.authority}`;
-                await bot.editMessageText('🔗 لینک پرداخت شما آماده شد. لطفاً پرداخت را از طریق دکمه زیر تکمیل کنید:', {
-                    chat_id: chatId, message_id: messageId,
+                
+                // ارسال لینک پرداخت
+                safeSendMessage(chatId, '🔗 لینک پرداخت شما آماده شد. لطفاً پرداخت را از طریق دکمه زیر تکمیل کنید:', {
                     reply_markup: { inline_keyboard: [[{ text: '💳 پرداخت آنلاین', url: paymentLink }]] }
                 });
+                
+                // حذف کیبورد قبلی (تأیید نهایی)
+                safeEditMessageText(query.message.text, { // متن قبلی را حفظ کن
+                    chat_id: chatId,
+                    message_id: messageId,
+                    reply_markup: { inline_keyboard: [] }, // حذف دکمه‌ها
+                    parse_mode: 'Markdown'
+                });
+                
             } else {
                 throw new Error(responseData.details || 'سرور درگاه پرداخت پاسخ نداد.');
             }
         } catch (error) {
             console.error('Payment Error:', error.message);
-            bot.sendMessage(chatId, '❌ خطای سرور در شروع پرداخت. لطفاً بعداً تلاش کنید.');
+            safeSendMessage(chatId, '❌ خطای سرور در شروع پرداخت. لطفاً بعداً تلاش کنید.');
         }
 
         // پس از شروع پرداخت، وضعیت تمدید/خرید را حذف می‌کنیم
@@ -534,9 +595,9 @@ bot.on('callback_query', async (query) => {
     }
     
     
-    // --- ۷. مدیریت منوی برنامه‌ها ---
+    // --- مدیریت منوی برنامه‌ها ---
     if (data === 'menu_apps') {
-        return bot.editMessageText('📱 لطفاً سیستم عامل خود را برای مشاهده برنامه‌های پیشنهادی انتخاب کنید:', {
+        return safeEditMessageText('📱 لطفاً سیستم عامل خود را برای مشاهده برنامه‌های پیشنهادی انتخاب کنید:', {
             chat_id: chatId,
             message_id: messageId,
             reply_markup: appsMenu.inline_keyboard
@@ -553,16 +614,13 @@ bot.on('callback_query', async (query) => {
         keyboard.push([{ text: '⬅️ بازگشت به برنامه‌ها', callback_data: 'menu_apps' }]);
         keyboard.push([{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]);
 
-        return bot.editMessageText(`✅ برنامه‌های پیشنهادی برای **${typeText}**:`, {
+        return safeEditMessageText(`✅ برنامه‌های پیشنهادی برای **${typeText}**:`, {
             chat_id: chatId,
             message_id: messageId,
             reply_markup: { inline_keyboard: keyboard },
             parse_mode: 'Markdown'
         });
     }
-    
-    // پاسخ به Callback Query برای جلوگیری از علامت بارگذاری
-    bot.answerCallbackQuery(query.id); 
 
 });
 
@@ -588,9 +646,8 @@ module.exports = async (req, res) => {
         res.status(200).send('OK');
 
     } catch (error) {
-        console.error('Vercel Webhook Processing Error:', error.message);
-        // حتی در صورت خطای داخلی در کد شما، باز هم به تلگرام 200 OK برگردانید
-        // تا تلگرام خیال کند پیام دریافت شده و از لغو Webhook جلوگیری شود.
-        res.status(200).send('Error Processed');
+        // اگر خطای غیرمنتظره‌ای در processUpdate رخ داد، آن را لاگ می‌کنیم
+        console.error('Webhook Processing Error (Final Catch):', error.message);
+        res.status(200).send('Error Processed'); // همچنان 200 ارسال می‌کنیم
     }
 };
