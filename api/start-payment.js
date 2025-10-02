@@ -5,7 +5,7 @@ const ZARINPAL_MERCHANT_ID = process.env.ZARINPAL_MERCHANT_ID;
 // داده‌های پلن‌ها برای محاسبه سمت سرور (جلوگیری از دستکاری قیمت)
 const plansData = [
     // Unlimited
-    { requestedPlan: '1M', baseAmount: 120000 }, { requestedPlan: '2M', baseAmount: 220000 },
+    { requestedPlan: '1M', baseAmount: 12000 }, { requestedPlan: '2M', baseAmount: 220000 },
     { requestedPlan: '3M', baseAmount: 340000 }, { requestedPlan: '6M', baseAmount: 600000 },
     { requestedPlan: '1Y', baseAmount: 1000000 }, { requestedPlan: '2Y', baseAmount: 2000000 },
     // National
@@ -106,4 +106,5 @@ module.exports = async (req, res) => {
         console.error('Error starting payment:', error.message);
         res.status(500).json({ error: error.message || 'خطای سرور در شروع پرداخت.' });
     }
+
 };
