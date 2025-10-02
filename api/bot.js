@@ -25,21 +25,22 @@ const plans = {
     ]
 };
 
+// **تغییر ۱: افزودن لینک‌های مجزا برای پیام و دکمه دانلود**
 const apps = {
     android: [
-        { text: 'Ay VPN Plus', url: 'https://t.me/Ay_VPN/62' },
-        { text: 'v2rayNG', url: 'https://t.me/Ay_VPN/61' },
-        { text: 'NapsternetV', url: 'https://t.me/Ay_VPN/60' },
-        { text: 'Happ', url: 'https://t.me/Ay_VPN/59' },
+        { text: 'Ay VPN Plus', messageUrl: 'https://t.me/Ay_VPN/62', downloadUrl: 'https://t.me/Ay_VPN/62' },
+        { text: 'v2rayNG', messageUrl: 'https://t.me/Ay_VPN/61', downloadUrl: 'https://t.me/Ay_VPN/61' },
+        { text: 'NapsternetV', messageUrl: 'https://t.me/Ay_VPN/60', downloadUrl: 'https://t.me/Ay_VPN/60' },
+        { text: 'H', messageUrl: 'https://t.me/Ay_VPN/59', downloadUrl: 'https://t.me/Ay_VPN/59' },
     ],
     ios: [
-        { text: 'Streisand', url: 'https://apps.apple.com/app/streisand/id6450534064' },
-        { text: 'V2Box', url: 'https://apps.apple.com/app/v2box-v2ray-client/id6446814690' },
-        { text: 'Happ', url: 'https://t.me/Ay_VPN/58' },
+        { text: 'Streisand', messageUrl: 'https://apps.apple.com/app/streisand/id6450534064', downloadUrl: 'https://apps.apple.com/app/streisand/id6450534064' },
+        { text: 'V2Box', messageUrl: 'https://apps.apple.com/app/v2box-v2ray-client/id6446814690', downloadUrl: 'https://apps.apple.com/app/v2box-v2ray-client/id6446814690' },
+        { text: 'H', messageUrl: 'https://t.me/Ay_VPN/58', downloadUrl: 'https://t.me/Ay_VPN/58' },
     ],
     windows: [
-        { text: 'Nekoray', url: 'https://t.me/Ay_VPN/57' },
-        { text: 'V2RayN', url: 'https://t.me/Ay_VPN/56' },
+        { text: 'Nekoray', messageUrl: 'https://t.me/Ay_VPN/57', downloadUrl: 'https://t.me/Ay_VPN/57' },
+        { text: 'V2RayN', messageUrl: 'https://t.me/Ay_VPN/56', downloadUrl: 'https://t.me/Ay_VPN/56' },
     ]
 };
 
@@ -53,6 +54,7 @@ const calculateMultiUserPrice = (basePrice, users) => {
 };
 
 // --- منوهای دکمه‌ای ---
+// **تغییر ۲: افزودن دکمه وب‌سایت به منوی اصلی**
 const mainMenu = {
     reply_markup: {
         inline_keyboard: [
@@ -61,6 +63,7 @@ const mainMenu = {
             [{ text: '🔄 تمدید اشتراک قبلی', callback_data: 'menu_renew' }],
             [{ text: '🧾 سفارشات من', callback_data: 'menu_my_orders' }],
             [{ text: '📱 برنامه های اتصال', callback_data: 'menu_apps' }],
+            [{ text: '🌐 وب سایت', url: 'https://shammay.ir' }]
         ]
     }
 };
@@ -73,6 +76,19 @@ const appsMenu = {
             [{ text: '🎓 آموزش اتصال', url: 'https://t.me/Ay_VPN' }],
             [{ text: '⬅️ بازگشت به منوی اصلی', callback_data: 'menu_main' }],
         ]
+    }
+};
+
+// **تغییر ۳: ایجاد کیبورد دائمی (Reply Keyboard)**
+const mainReplyKeyboard = {
+    reply_markup: {
+        keyboard: [
+            ['💎 اشتراک نامحدود | ثابت 💎'],
+            ['🇮🇷 اشتراک اینترنت ملی 🇮🇷'],
+            ['🔄 تمدید اشتراک قبلی', '🧾 سفارشات من'],
+            ['📱 برنامه های اتصال', '🌐 وب سایت']
+        ],
+        resize_keyboard: true
     }
 };
 
@@ -106,9 +122,29 @@ async function handleMessage(message) {
 
     if (text === '/start') {
         delete userStates[chatId]; // Clear state on start
-        return bot.sendMessage(chatId, '🚀 به ربات فروش اشتراک Ay Technic خوش آمدید!\n\nلطفاً از منوی زیر سرویس مورد نظر خود را انتخاب کنید:', mainMenu);
+        // ارسال هر دو منو با هم
+        await bot.sendMessage(chatId, '🚀 به ربات فروش اشتراک Ay Technic خوش آمدید!', mainReplyKeyboard);
+        return bot.sendMessage(chatId, 'لطفاً از منوی زیر سرویس مورد نظر خود را انتخاب کنید:', mainMenu);
     }
     
+    // **تغییر ۳.۱: مدیریت دکمه‌های کیبورد دائمی**
+    switch(text) {
+        case '💎 اشتراک نامحدود | ثابت 💎':
+            return showPlanMenu(chatId, null, 'unlimited');
+        case '🇮🇷 اشتراک اینترنت ملی 🇮🇷':
+            return showPlanMenu(chatId, null, 'national');
+        case '🔄 تمدید اشتراک قبلی':
+            return startRenewalProcess(chatId, null);
+        case '🧾 سفارشات من':
+            return showMyOrders(chatId, null);
+        case '📱 برنامه های اتصال':
+            return showAppsMenu(chatId, null);
+        case '🌐 وب سایت':
+            return bot.sendMessage(chatId, '🌐 آدرس وب‌سایت ما:\nhttps://shammay.ir', {
+                reply_markup: { inline_keyboard: [[{ text: '🚀 باز کردن سایت', url: 'https://shammay.ir' }]] }
+            });
+    }
+
     if (!state) return;
 
     // مدیریت فرآیندهای چند مرحله‌ای
@@ -176,22 +212,27 @@ async function handleMessage(message) {
 
 // --- تابع برای جستجو و نمایش سفارشات ---
 async function findAndDisplayOrders(chatId, messageId, identifier) {
+    const options = messageId ? { chat_id: chatId, message_id: messageId } : {};
+    if (!messageId) {
+        await bot.sendMessage(chatId, '⏳ در حال جستجوی سفارشات...');
+    } else {
+        await bot.editMessageText('⏳ در حال جستجوی سفارشات...', options);
+    }
+
     try {
         const response = await fetch(`${APP_URL}/api/track?identifier=${encodeURIComponent(identifier)}`);
         const data = await response.json();
 
         if (!response.ok) {
             if (response.status === 404) {
-                 if (messageId) { // From button click
-                    const text = 'هیچ سفارشی با اطلاعات شما یافت نشد.\nمی‌توانید با یک شناسه دیگر جستجو کنید:';
-                    const keyboard = { reply_markup: { inline_keyboard: [
-                        [{ text: '🔍 جستجو با کد پیگیری/شناسه', callback_data: 'track_by_identifier' }],
-                        ...backToMainMenuBtn
-                    ]}};
-                    return bot.editMessageText(text, { chat_id: chatId, message_id: messageId, ...keyboard });
-                 } else { // From text message
-                    return bot.sendMessage(chatId, 'هیچ سفارشی با این شناسه یافت نشد.');
-                 }
+                const text = 'هیچ سفارشی با اطلاعات شما یافت نشد.\nمی‌توانید با یک شناسه دیگر جستجو کنید:';
+                const keyboard = { reply_markup: { inline_keyboard: [
+                    [{ text: '🔍 جستجو با کد پیگیری/شناسه', callback_data: 'track_by_identifier' }],
+                    ...backToMainMenuBtn
+                ]}};
+                return messageId 
+                    ? bot.editMessageText(text, { ...options, ...keyboard })
+                    : bot.sendMessage(chatId, text, keyboard);
             }
             throw new Error(data.error || 'خطای سرور');
         }
@@ -209,24 +250,56 @@ async function findAndDisplayOrders(chatId, messageId, identifier) {
             resultText += `▫️ **وضعیت:** موفق\n\n`;
         });
         
-        if (messageId) {
-             const keyboard = { reply_markup: { inline_keyboard: [
-                [{ text: '🔍 جستجوی مجدد با شناسه دیگر', callback_data: 'track_by_identifier' }],
-                ...backToMainMenuBtn
-            ]}};
-            return bot.editMessageText(resultText, { chat_id: chatId, message_id: messageId, parse_mode: 'Markdown', ...keyboard });
-        } else {
-            return bot.sendMessage(chatId, resultText, { parse_mode: 'Markdown' });
-        }
+        const keyboard = { reply_markup: { inline_keyboard: [
+            [{ text: '🔍 جستجوی مجدد با شناسه دیگر', callback_data: 'track_by_identifier' }],
+            ...backToMainMenuBtn
+        ]}};
+        return messageId 
+            ? bot.editMessageText(resultText, { ...options, parse_mode: 'Markdown', ...keyboard })
+            : bot.sendMessage(chatId, resultText, { parse_mode: 'Markdown', ...keyboard });
 
     } catch (error) {
         const errorText = `❌ خطایی رخ داد: ${error.message}`;
-        if (messageId) {
-            return bot.editMessageText(errorText, { chat_id: chatId, message_id: messageId });
-        } else {
-            return bot.sendMessage(chatId, errorText);
-        }
+        return messageId 
+            ? bot.editMessageText(errorText, options)
+            : bot.sendMessage(chatId, errorText);
     }
+}
+
+
+// --- توابع کمکی برای نمایش منوها (برای جلوگیری از تکرار کد) ---
+function showPlanMenu(chatId, messageId, type) {
+    const planList = plans[type];
+    const keyboard = planList.map(p => ([{ text: p.text, callback_data: `buy_${p.requestedPlan}` }]));
+    const text = `🛍️ لطفاً پلن اشتراک ${type === 'unlimited' ? 'نامحدود' : 'ملی'} مورد نظر خود را انتخاب کنید:`;
+    const options = { reply_markup: { inline_keyboard: [...keyboard, ...backToMainMenuBtn] } };
+
+    if (messageId) {
+        return bot.editMessageText(text, { chat_id: chatId, message_id: messageId, ...options });
+    }
+    return bot.sendMessage(chatId, text, options);
+}
+
+function startRenewalProcess(chatId, messageId) {
+    userStates[chatId] = { step: 'awaiting_renewal_id', isRenewal: true };
+    const text = '🔄 برای تمدید، لطفاً یکی از مشخصات اشتراک قبلی خود را ارسال کنید (مانند لینک اشتراک، ایمیل و...):';
+    const options = { reply_markup: { inline_keyboard: backToMainMenuBtn } };
+    if (messageId) {
+        return bot.editMessageText(text, { chat_id: chatId, message_id: messageId, ...options });
+    }
+    return bot.sendMessage(chatId, text, options);
+}
+
+function showMyOrders(chatId, messageId) {
+    return findAndDisplayOrders(chatId, messageId, chatId.toString());
+}
+
+function showAppsMenu(chatId, messageId) {
+    const text = '📱 لطفاً سیستم عامل خود را برای دریافت برنامه‌های اتصال انتخاب کنید:';
+    if (messageId) {
+        return bot.editMessageText(text, { chat_id: chatId, message_id: messageId, ...appsMenu });
+    }
+    return bot.sendMessage(chatId, text, appsMenu);
 }
 
 
@@ -247,31 +320,26 @@ async function handleCallbackQuery(callbackQuery) {
         return bot.editMessageText('لطفاً از منوی زیر سرویس مورد نظر خود را انتخاب کنید:', { chat_id: chatId, message_id: messageId, ...mainMenu });
     }
     
-    if (data.startsWith('menu_buy_') || (data.startsWith('back_to_plans_') && state.isRenewal)) {
-         const type = data.startsWith('menu_buy_') ? data.split('_')[2] : data.split('_')[3];
-         const planList = plans[type];
-         const keyboard = planList.map(p => ([{ text: p.text, callback_data: `buy_${p.requestedPlan}` }]));
-         const messageText = state.isRenewal
-            ? `تمدید برای اشتراک ${type === 'unlimited' ? 'نامحدود' : 'ملی'}. لطفاً پلن جدید را انتخاب کنید:`
-            : `🛍️ لطفاً پلن اشتراک ${type === 'unlimited' ? 'نامحدود' : 'ملی'} مورد نظر خود را انتخاب کنید:`;
+    if (data === 'menu_buy_unlimited') return showPlanMenu(chatId, messageId, 'unlimited');
+    if (data === 'menu_buy_national') return showPlanMenu(chatId, messageId, 'national');
+    if (data === 'menu_renew') return startRenewalProcess(chatId, messageId);
+    if (data === 'menu_my_orders') return showMyOrders(chatId, messageId);
+    if (data === 'menu_apps') return showAppsMenu(chatId, messageId);
 
-         return bot.editMessageText(messageText, {
+    if (data.startsWith('back_to_plans_') && state.isRenewal) {
+        const type = data.split('_')[3];
+        const planList = plans[type];
+        const keyboard = planList.map(p => ([{ text: p.text, callback_data: `buy_${p.requestedPlan}` }]));
+        const messageText = `تمدید برای اشتراک ${type === 'unlimited' ? 'نامحدود' : 'ملی'}. لطفاً پلن جدید را انتخاب کنید:`;
+        return bot.editMessageText(messageText, {
             chat_id: chatId, message_id: messageId,
             reply_markup: { inline_keyboard: [...keyboard, ...backToMainMenuBtn] }
-         });
-    }
-
-    if (data === 'menu_renew') {
-        userStates[chatId] = { step: 'awaiting_renewal_id', isRenewal: true };
-        return bot.editMessageText('🔄 برای تمدید، لطفاً یکی از مشخصات اشتراک قبلی خود را ارسال کنید (مانند لینک اشتراک، ایمیل و...):', {
-            chat_id: chatId, message_id: messageId,
-            reply_markup: { inline_keyboard: backToMainMenuBtn }
         });
     }
 
-    if(data.startsWith('renew_type_')) {
+    if (data.startsWith('renew_type_')) {
         const type = data.split('_')[2];
-        if(!state || !state.isRenewal) return; // Safety check
+        if (!state || !state.isRenewal) return;
         const planList = plans[type];
         const keyboard = planList.map(p => ([{ text: p.text, callback_data: `buy_${p.requestedPlan}` }]));
         return bot.editMessageText(`تمدید برای اشتراک ${type === 'unlimited' ? 'نامحدود' : 'ملی'}. لطفاً پلن جدید را انتخاب کنید:`, {
@@ -280,12 +348,7 @@ async function handleCallbackQuery(callbackQuery) {
         });
     }
     
-    // --- سفارشات من ---
-    if (data === 'menu_my_orders') {
-        await bot.editMessageText('⏳ در حال جستجوی سفارشات شما بر اساس شناسه تلگرام...', { chat_id: chatId, message_id: messageId });
-        return await findAndDisplayOrders(chatId, messageId, chatId.toString());
-    }
-
+    // --- سفارشات من (ادامه) ---
     if (data === 'track_by_identifier') {
         userStates[chatId] = { step: 'awaiting_tracking_id' };
         return bot.editMessageText('لطفاً کد رهگیری، ایمیل یا شماره تماس خود را برای جستجو ارسال کنید:', {
@@ -294,23 +357,34 @@ async function handleCallbackQuery(callbackQuery) {
         });
     }
 
-    // --- برنامه های اتصال ---
-    if (data === 'menu_apps' || data === 'back_to_apps') {
-        return bot.editMessageText('📱 لطفاً سیستم عامل خود را برای دریافت برنامه‌های اتصال انتخاب کنید:', { chat_id: chatId, message_id: messageId, ...appsMenu });
-    }
-
-    if (data.startsWith('apps_')) {
+    // --- برنامه های اتصال (ادامه) ---
+    if (data.startsWith('apps_')) { // e.g., apps_android
         const os = data.split('_')[1];
         const appList = apps[os];
-        let messageText = `📲 لینک دانلود برنامه‌های پیشنهادی برای *${os.charAt(0).toUpperCase() + os.slice(1)}*:\n\n`;
-        appList.forEach(app => {
-            messageText += `▫️ *${app.text}*:\n${app.url}\n\n`;
+        const appButtons = appList.map(app => {
+            const appIdentifier = app.text.replace(/\s+/g, ''); // Ay VPN Plus -> AyVPNPlus
+            return [{ text: app.text, callback_data: `download_${os}_${appIdentifier}` }];
         });
-        await bot.deleteMessage(chatId, messageId);
-        return bot.sendMessage(chatId, messageText, { 
-            parse_mode: 'Markdown',
-            reply_markup: { inline_keyboard: [[{ text: '⬅️ بازگشت به برنامه‌ها', callback_data: 'back_to_apps' }]]}
+
+        return bot.editMessageText(`📲 لطفاً برنامه مورد نظر برای *${os.charAt(0).toUpperCase() + os.slice(1)}* را انتخاب کنید:`, {
+            chat_id: chatId, message_id: messageId, parse_mode: 'Markdown',
+            reply_markup: { inline_keyboard: [ ...appButtons, [{ text: '⬅️ بازگشت به انتخاب سیستم عامل', callback_data: 'menu_apps' }] ] }
         });
+    }
+
+    // **تغییر ۱.۱: استفاده از لینک‌های مجزا در اینجا**
+    if (data.startsWith('download_')) { // e.g., download_android_AyVPNPlus
+        const [, os, appIdentifier] = data.split('_');
+        const appData = apps[os]?.find(a => a.text.replace(/\s+/g, '') === appIdentifier);
+
+        if (appData) {
+            const messageText = `✅ لینک دانلود برنامه *${appData.text}* آماده است:\n\n${appData.messageUrl}`;
+            const keyboard = {
+                reply_markup: { inline_keyboard: [[{ text: '📥 دانلود', url: appData.downloadUrl }]] }
+            };
+            await bot.sendMessage(chatId, messageText, { parse_mode: 'Markdown', ...keyboard });
+        }
+        return; 
     }
     
     // --- مرحله ۱: انتخاب پلن و رفتن به انتخاب کاربر ---
