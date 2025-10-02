@@ -416,15 +416,31 @@ bot.on('callback_query', async (query) => {
     bot.answerCallbackQuery(query.id).catch(() => {});
 });
 
+// ... [بقیه کدهای ربات، تعریف menus، توابع on('message') و on('callback_query') بدون تغییر باقی می‌مانند] ...
+
+
+// **اصلاح لازم: منطق Webhook برای Vercel**
 module.exports = async (req, res) => {
+    // بررسی می‌کند که آیا درخواست از تلگرام (POST) است یا نه
     if (req.method !== 'POST') {
+        // برای درخواست‌های غیر POST، کد وضعیت 405 (Method Not Allowed) برمی‌گرداند
         return res.status(405).send('Method Not Allowed');
     }
+
     try {
-        bot.processUpdate(req.body);
+        // دریافت به‌روزرسانی از بادی درخواست
+        const update = req.body;
+
+        // وب‌هوک را به کتابخانه node-telegram-bot-api تحویل می‌دهد
+        // این کار باعث می‌شود متدهای bot.on('message') و bot.on('callback_query') اجرا شوند.
+        bot.processUpdate(update);
+
+        // پاسخگویی سریع به تلگرام برای جلوگیری از خطای Timeout
         res.status(200).send('OK');
+
     } catch (error) {
-        console.error('Vercel Webhook Error:', error.message);
-        res.status(200).send('Error Processed'); // Always send 200 to Telegram
+        console.error('Webhook Processing Error:', error.message);
+        // در صورت بروز خطا در پردازش، با کد 500 پاسخ می‌دهد
+        res.status(500).send('Error processing webhook');
     }
 };
