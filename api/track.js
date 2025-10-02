@@ -5,7 +5,7 @@ const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY;
 
-// [FIXED: Removed price-based map and defined static sheet names]
+// NEW: نگاشت ثابت نام شیت‌ها برای track
 const PLAN_SHEETS = ['30D', '60D', '90D', '180D', '365D', '730D', 'Renew'];
 
 module.exports = async (req, res) => {
@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
 
         const purchases = [];
         
-        // [FIXED: Looping over fixed PLAN_SHEETS instead of price map]
+        // جستجو در تمامی شیت‌های پلن
         for (const sheetTitle of PLAN_SHEETS) {
             const sheet = doc.sheetsByTitle[sheetTitle];
             if (sheet) {
@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
                 
                 if (foundRow) {
                     purchases.push({
-                        // نام شیت برای نمایش پلن کافی است
+                        // نام شیت برای نمایش پلن کافی است (30D, Renew, ...)
                         plan: sheetTitle, 
                         date: foundRow.get('purchaseDate'),
                         link: foundRow.get('link'),
@@ -54,6 +54,7 @@ module.exports = async (req, res) => {
         }
         
         if (purchases.length > 0) {
+            // اگر بیش از یک سفارش با این شناسه (مثلاً تمدید) یافت شد، همه را برمی‌گردانیم
             return res.status(200).json(purchases);
         } else {
             return res.status(404).json({ error: 'No purchases found with this Tracking ID.' });

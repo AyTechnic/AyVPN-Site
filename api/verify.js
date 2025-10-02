@@ -9,17 +9,31 @@ const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const ADMIN_CHAT_ID = '5976170456'; // لطفا این را با شناسه چت ادمین واقعی خود جایگزین کنید.
+const ADMIN_CHAT_ID = '5976170456';
 
 const bot = new TelegramBot(TELEGRAM_BOT_TOKEN);
 
-// [حذف planToSheetMap قدیمی که بر اساس قیمت بود و دیگر قابل استفاده نیست]
-// const planToSheetMap = { ... }; 
+// نقشه قیمت به کد پلن (با تصحیح قیمت ۱ ساله به ۱,۰۰۰,۰۰۰ تومان)
+const planToSheetMap = {
+    '120000': '30D', '220000': '60D', '340000': '90D',
+    '600000': '180D', '1000000': '365D', '2000000': '730D',
+};
 
-// NEW: لیست ثابت نام شیت‌های پلن برای تطبیق با requestedPlan
-const PLAN_SHEETS = ['30D', '60D', '90D', '180D', '365D', '730D'];
-const RENEW_SHEET_TITLE = 'Renew'; 
-const COUPON_SHEET_TITLE = 'Coupen';
+// NEW: نقشه کد پلن به تعداد روز
+const planDurationDaysMap = {
+    '30D': 30,
+    '60D': 60,
+    '90D': 90,
+    '180D': 180,
+    '365D': 365,
+    '730D': 730,
+};
+
+// NEW: نام شیت کوپن
+const COUPEN_SHEET_TITLE = 'Coupen';
+
+// --- متغیر جدید: نام شیت تمدید ---
+const RENEW_SHEET_TITLE = 'Renew';
 
 // --- توابع عمومی Google Sheet ---
 async function getOrCreateDoc() {
@@ -33,302 +47,441 @@ async function getOrCreateDoc() {
     return doc;
 }
 
-// تابع کمکی برای پیدا کردن سطر کوپن
-async function getCouponRow(doc, coupenCode) {
+// تابع محاسبه قیمت چند کاربره (تکرار از bot.js)
+const calculateMultiUserPrice = (basePrice, users) => {
+    const multiplier = 1 + (users - 1) * 0.5;
+    return Math.round(basePrice * multiplier / 1000) * 1000;
+};
+
+// تابع اعمال تخفیف (تکرار از bot.js)
+const applyCoupenDiscount = (originalAmount, coupenDetails) => {
+    let finalAmount = originalAmount;
+    let discountAmount = 0;
+    
+    if (coupenDetails) {
+        if (coupenDetails.percent > 0) {
+            discountAmount = Math.round(originalAmount * coupenDetails.percent / 100);
+        } else if (coupenDetails.price > 0) {
+            discountAmount = coupenDetails.price;
+        }
+        
+        finalAmount = originalAmount - discountAmount;
+        
+        if (finalAmount < 1000) {
+            finalAmount = 1000;
+            discountAmount = originalAmount - 1000;
+        }
+    }
+    
+    return {
+        finalAmount: finalAmount,
+        discountAmount: discountAmount
+    };
+};
+
+// NEW: تابع دریافت کوپن از شیت (تکرار از bot.js)
+async function getCoupenDetails(doc, coupenCode) {
     if (!coupenCode) return null;
     try {
-        const couponSheet = doc.sheetsByTitle[COUPON_SHEET_TITLE];
-        if (!couponSheet) {
-            console.error(`Coupon sheet titled '${COUPON_SHEET_TITLE}' not found.`);
-            return null;
+        const sheet = doc.sheetsByTitle[COUPEN_SHEET_TITLE];
+        if (!sheet) return null;
+        
+        await sheet.loadHeaderRow(1); 
+        const rows = await sheet.getRows();
+        const coupenRow = rows.find(row => row.get('coupen').toLowerCase() === coupenCode.toLowerCase());
+
+        if (coupenRow) {
+            const expiryDate = coupenRow.get('expiryDate');
+            const manyTimes = coupenRow.get('manyTimes');
+            
+            // بررسی تاریخ انقضا (این بررسی برای لحظه پرداخت است، نباید بگذرد)
+            if (expiryDate && new Date(expiryDate) < new Date()) {
+                return { error: 'تاریخ انقضا گذشته است.' };
+            }
+            
+            // بررسی تعداد مجاز استفاده (در صورتی که محدود باشد)
+            if (manyTimes && manyTimes !== 'unlimited' && parseInt(manyTimes) <= 0) {
+                 return { error: 'ظرفیت استفاده به پایان رسیده است.' };
+            }
+            
+            return {
+                coupen: coupenRow.get('coupen'),
+                percent: parseInt(coupenRow.get('percent')) || 0,
+                price: parseInt(coupenRow.get('price')) || 0,
+                manyTimes: manyTimes,
+                row: coupenRow 
+            };
         }
-        await couponSheet.loadHeaderRow(1);
-        const rows = await couponSheet.getRows();
-        return rows.find(row => row.get('coupen') === coupenCode);
-    } catch (error) {
-        console.error('Error fetching coupon row:', error.message);
+        
         return null;
+    } catch (error) {
+        console.error('Error fetching coupen details in verify:', error.message);
+        return null; 
     }
 }
 
-// تابع تولید لینک و شناسه
-async function generateTrackingIdAndLink(isRenew, isTelegram, name, phone) {
-    // [NOTE: This is a placeholder for your actual V2Ray link generation logic]
-    const trackingId = 'AY-' + Math.random().toString(36).substring(2, 9).toUpperCase();
-    const userLink = `https://your.v2ray.link/${trackingId}`; 
-    return { trackingId, userLink };
+// --- توابع ثبت اطلاعات و ارسال پیام (قبلی) ---
+async function logPurchase(doc, sheetTitle, data) {
+    // ... (منطق logPurchase)
+    // ... (منطق logPurchase)
+    
+    // NOTE: Log to the main purchase sheet (30D, 60D, etc.)
+    const sheet = doc.sheetsByTitle[sheetTitle];
+    if (!sheet) {
+        throw new Error(`Sheet ${sheetTitle} not found.`);
+    }
+
+    // اطمینان از بارگیری هدرهای صحیح
+    await sheet.loadHeaderRow(1);
+
+    await sheet.addRow({
+        status: 'Active',
+        link: data.userLink,
+        trackingId: data.trackingId,
+        purchaseDate: new Date().toLocaleString('fa-IR', { timeZone: 'Asia/Tehran' }),
+        name: data.name,
+        email: data.email,
+        chat_id: data.chat_id,
+        phone: data.phone,
+        coupen: data.coupenCode || '', // NEW: ثبت کوپن استفاده شده
+        users: data.users || '1',
+        renewalCount: 0,
+        lastRenewalDate: 'N/A'
+    });
 }
 
-// --- توابع پاسخ دهی (HTML/CSS/JS کامل و طولانی) ---
-
-function sendSuccessResponse(res, trackingId, userLink, chat_id, isTelegram, amount, requestedPlan, users, name, email) {
-    const planName = requestedPlan === RENEW_SHEET_TITLE ? 'تمدید' : `${requestedPlan} (پلن)`;
+async function logRenewal(doc, data) {
+    // ... (منطق logRenewal)
+    // ... (منطق logRenewal)
     
-    // شروع HTML بسیار طولانی (با حفظ محتوای اصلی شما)
-    const htmlResponse = `
-        <!DOCTYPE html>
-        <html lang="fa" dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>پرداخت موفق</title>
-            <style>
-                @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
-                @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
-                body { font-family: 'Vazirmatn', sans-serif; background-color: #f8f9fa; color: #212529; line-height: 1.6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-                .container { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); max-width: 600px; width: 90%; text-align: center; }
-                h1 { color: #28a745; font-size: 2rem; margin-bottom: 15px; }
-                .icon { font-size: 4rem; color: #28a745; margin-bottom: 20px; }
-                p { margin-bottom: 15px; font-size: 1.1rem; }
-                .subscription-box { background: #f1f1f1; padding: 15px; border-radius: 8px; margin: 20px 0; display: flex; flex-direction: column; align-items: center; }
-                .subscription-link { display: block; margin-bottom: 15px; word-break: break-all; font-size: 0.9rem; direction: ltr; text-align: left; background: #fff; padding: 10px; border-radius: 5px; width: 100%; box-sizing: border-box; }
-                .actions { display: flex; justify-content: center; gap: 10px; }
-                button { background: #28a745; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-family: 'Vazirmatn', sans-serif; transition: background-color 0.3s; display: flex; align-items: center; gap: 5px; }
-                button:hover { background-color: #1e7e34; }
-                button svg { width: 18px; height: 18px; fill: currentColor; }
-                .info-box { background: #e9f7ef; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: right; }
-                .info-box strong { display: block; margin-bottom: 5px; }
-            </style>
-            <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    const subLink = document.getElementById('subLink');
-                    const copyBtn = document.getElementById('copyBtn');
-                    const openBtn = document.getElementById('openBtn');
-
-                    if (copyBtn) {
-                        copyBtn.onclick = () => {
-                            navigator.clipboard.writeText(subLink.textContent);
-                            copyBtn.title = 'کپی شد!';
-                            setTimeout(() => copyBtn.title = 'کپی لینک', 2000);
-                        };
-                    }
-                    if (openBtn) {
-                        openBtn.onclick = () => window.open(subLink.textContent, '_blank');
-                    }
-                });
-            </script>
-        </head>
-        <body>
-            <div class="container">
-                <div class="icon">✅</div>
-                <h1>پرداخت موفق</h1>
-                <p>خرید/تمدید شما با موفقیت انجام شد.</p>
-                
-                <div class="info-box">
-                    <p><strong>مبلغ پرداختی:</strong> ${amount.toLocaleString('fa-IR')} تومان</p>
-                    <p><strong>پلن درخواستی:</strong> ${planName} (${users} کاربر)</p>
-                    <p><strong>شناسه پیگیری شما:</strong> ${trackingId}</p>
-                </div>
-
-                <div class="subscription-box">
-                    <code class="subscription-link" id="subLink">${userLink}</code>
-                    <div class="actions">
-                        <button id="copyBtn" title="کپی لینک">
-                            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"></path></svg>
-                            <span>کپی</span>
-                        </button>
-                        <button id="openBtn" title="باز کردن لینک">
-                            <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h11c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"></path></svg>
-                            <span>باز کردن</span>
-                        </button>
-                    </div>
-                </div>
-                <p>لینک اشتراک همچنین به ربات تلگرام شما ارسال شد.</p>
-            </div>
-        </body>
-        </html>
-    `;
-    
-    res.status(200).send(htmlResponse);
-
-    // ارسال لینک به تلگرام
-    if (isTelegram && chat_id) {
-        bot.sendMessage(chat_id, 
-            `✅ **پرداخت موفق!**\n\n` + 
-            `پلن: ${planName} (${users} کاربر)\n` + 
-            `مبلغ: ${amount.toLocaleString('fa-IR')} تومان\n` +
-            `شناسه پیگیری: \`${trackingId}\`\n\n` + 
-            `لینک اشتراک جدید/تمدید شده شما:\n\`${userLink}\``, 
-            { parse_mode: 'Markdown' }
-        );
-        // ارسال نوتیفیکیشن ادمین
-        bot.sendMessage(ADMIN_CHAT_ID, 
-            `🚨 **خرید جدید (وب/تلگرام)**\n` + 
-            `ش: \`${trackingId}\`\n` + 
-            `مبلغ: ${amount.toLocaleString('fa-IR')} تومان\n` + 
-            `پلن: ${requestedPlan} (${users} کاربر)\n` +
-            `نام: ${name || 'N/A'}\n` +
-            `ایمیل: ${email || 'N/A'}`,
-            { parse_mode: 'Markdown' }
-        );
+    // NOTE: Log to the Renew sheet
+    const sheet = doc.sheetsByTitle[RENEW_SHEET_TITLE];
+    if (!sheet) {
+        throw new Error(`Renew sheet not found.`);
     }
+
+    // اطمینان از بارگیری هدرهای صحیح
+    await sheet.loadHeaderRow(1);
+
+    await sheet.addRow({
+        renewalIdentifier: data.renewalIdentifier,
+        requestedPlan: data.requestedPlan,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        telegramUsername: data.telegramUsername || '',
+        chat_id: data.chat_id,
+        telegramId: data.telegramId,
+        requestDate: new Date().toLocaleString('fa-IR', { timeZone: 'Asia/Tehran' }),
+        users: data.users || '1',
+        description: data.description,
+        purchaseDate: new Date().toLocaleString('fa-IR', { timeZone: 'Asia/Tehran' }),
+        amount: data.amount,
+        coupenCode: data.coupenCode || '', // NEW: ثبت کوپن استفاده شده
+        discountAmount: data.discountAmount || 0, // NEW: ثبت مبلغ تخفیف
+        OriginalSheet: data.originalSheetTitle,
+        trackingId: data.trackingId,
+    });
 }
 
-function sendErrorResponse(res, errorMessage, chat_id, isTelegram) {
-    // شروع HTML بسیار طولانی برای خطا (با حفظ محتوای اصلی شما)
-    const htmlResponse = `
-        <!DOCTYPE html>
-        <html lang="fa" dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>خطا در انجام عملیات</title>
-            <style>
-                @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
-                @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
-                body { font-family: 'Vazirmatn', sans-serif; background-color: #f8f9fa; color: #212529; line-height: 1.6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-                .container { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); max-width: 600px; width: 90%; text-align: center; }
-                h1 { color: #dc3545; font-size: 2rem; margin-bottom: 15px; }
-                .icon { font-size: 4rem; color: #dc3545; margin-bottom: 20px; }
-                p { margin-bottom: 15px; font-size: 1.1rem; }
-                .info-box { background: #fbecec; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: right; }
-                .info-box strong { display: block; margin-bottom: 5px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="icon">❌</div>
-                <h1>خطا در انجام عملیات</h1>
-                <p>${errorMessage}</p>
-                <p>لطفاً در صورت کسر وجه با ادمین در تماس باشید.</p>
-                <div class="info-box">
-                    <p>در صورتی که وجه از حساب شما کسر شده است، ظرف ۲۴ الی ۷۲ ساعت به صورت خودکار به حساب شما بازگردانده خواهد شد.</p>
-                    <p>اگر وجه بازگردانده نشد، لطفاً از طریق ربات تلگرام یا ایمیل با شناسه پیگیری خود با ادمین در تماس باشید.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
+function sendFinalMessage(chatId, userLink, amount, trackingId, coupenCode, discountAmount) {
+    // ... (منطق ارسال پیام)
+    // ... (منطق ارسال پیام)
     
-    res.status(400).send(htmlResponse);
-    
-    // ارسال خطا به تلگرام
-    if (isTelegram && chat_id) {
-        bot.sendMessage(chat_id, `❌ متأسفانه در فرایند پرداخت یا ثبت سفارش شما خطایی رخ داده است. \n\n جزئیات خطا: ${errorMessage}`, { parse_mode: 'Markdown' });
+    let messageText = '🎉 **خرید شما با موفقیت انجام شد!**\n\n';
+    messageText += `* مبلغ پرداختی: **${amount.toLocaleString('fa-IR')} تومان**\n`;
+    if (coupenCode && discountAmount > 0) {
+        messageText += `* کد تخفیف: **${coupenCode}** (تخفیف: ${discountAmount.toLocaleString('fa-IR')} تومان)\n`;
     }
+    messageText += `* شناسه پیگیری: \`${trackingId}\`\n`;
+    messageText += `* لینک اشتراک: \`${userLink}\`\n\n`;
+    messageText += 'جهت استفاده از اشتراک خود، لطفاً روی لینک زیر کلیک کنید:\n';
+
+    const keyboard = [
+        [{ text: '🔗 کپی لینک اشتراک', callback_data: `copy_link_${userLink}` }],
+        [{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]
+    ];
+    
+    bot.sendMessage(chatId, messageText, { 
+        reply_markup: { inline_keyboard: keyboard }, 
+        parse_mode: 'Markdown' 
+    });
+}
+
+function sendAdminNotification(data) {
+    // ... (منطق ارسال پیام ادمین)
+    // ... (منطق ارسال پیام ادمین)
+
+    let notification = `🔔 **خرید جدید - موفق**\n\n`;
+    notification += `* پلن: ${data.requestedPlan}\n`;
+    notification += `* تعداد کاربران: ${data.users}\n`;
+    notification += `* مبلغ: **${data.amount.toLocaleString('fa-IR')} تومان**\n`;
+    if (data.coupenCode) {
+         notification += `* کد تخفیف: **${data.coupenCode}** (تخفیف: ${data.discountAmount.toLocaleString('fa-IR')} تومان)\n`;
+    }
+    notification += `* نام: ${data.name}\n`;
+    notification += `* ایمیل: ${data.email}\n`;
+    notification += `* تلفن: ${data.phone}\n`;
+    notification += `* چت آیدی: \`${data.chat_id}\`\n`;
+    notification += `* شناسه پیگیری: \`${data.trackingId}\`\n`;
+    notification += `* لینک: \`${data.userLink}\`\n`;
+    
+    bot.sendMessage(ADMIN_CHAT_ID, notification, { parse_mode: 'Markdown' });
 }
 
 
 // --- تابع اصلی: تأیید پرداخت ---
 module.exports = async (req, res) => {
+    if (req.method !== 'GET') {
+        return res.status(405).send(renderErrorPage('Method Not Allowed', 'خطا در روش درخواست.'));
+    }
+    
+    // دریافت پارامترهای query
+    const { 
+        Authority, 
+        Status, 
+        amount: paidAmountStr, 
+        chat_id, 
+        name, 
+        email, 
+        phone, 
+        renewalIdentifier, 
+        requestedPlan,
+        coupenCode: userCoupenCode, // NEW: دریافت کوپن کد
+        users: usersStr, // NEW: دریافت تعداد کاربران
+        telegramUsername, 
+        telegramId
+    } = req.query;
+
+    const paidAmount = Number(paidAmountStr);
+    const users = parseInt(usersStr) || 1;
+    const isRenewal = renewalIdentifier && renewalIdentifier.length > 0;
+
+    if (Status !== 'OK' || !Authority) {
+        // ... (منطق وضعیت ناموفق)
+        return res.status(400).send(renderErrorPage('پرداخت ناموفق', '❌ متأسفانه، پرداخت با موفقیت انجام نشد یا لغو شد.'));
+    }
+
     try {
-        const doc = await getOrCreateDoc();
-        
-        // ۱. دریافت پارامترهای بازگشتی
-        const { 
-            amount, authority, status, 
-            chat_id, name, email, phone, 
-            renewalIdentifier, requestedPlan, 
-            coupenCode, users, 
-            telegramUsername, telegramId // ...
-        } = req.query; 
-
-        const isTelegram = chat_id !== 'none' && chat_id;
-        const finalAmount = parseInt(amount); 
-
-        // ۲. بررسی وضعیت بازگشتی از زرین‌پال
-        if (!authority || status !== 'OK') {
-            return sendErrorResponse(res, 'تأیید پرداخت موفقیت آمیز نبود یا توسط شما لغو شده است.', chat_id, isTelegram);
-        }
-        
-        // ۳. درخواست تأیید نهایی از زرین‌پال
+        // --- ۱. تأیید پرداخت از زرین‌پال ---
         const verificationResponse = await fetch('https://api.zarinpal.com/pg/v4/payment/verify.json', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 merchant_id: ZARINPAL_MERCHANT_ID,
-                amount: finalAmount, 
-                authority: authority,
+                amount: paidAmount,
+                authority: Authority,
             }),
         });
+
         const verificationResult = await verificationResponse.json();
+        const verificationData = verificationResult.data;
 
-        // ۴. بررسی نتیجه تأیید
-        if (verificationResult.data && verificationResult.data.code === 100) {
-            
-            // --- A. منطق جدید برای یافتن شیت مقصد بر اساس requestedPlan (FIXED) ---
-            let sheetTitle;
-            if (requestedPlan === RENEW_SHEET_TITLE) {
-                sheetTitle = RENEW_SHEET_TITLE; // 'Renew'
-            } else if (PLAN_SHEETS.includes(requestedPlan)) {
-                sheetTitle = requestedPlan; // e.g., '30D'
-            } else {
-                const errorMessage = `خطا: کد پلن درخواستی نامعتبر است: ${requestedPlan}.`;
-                console.error(errorMessage);
-                return sendErrorResponse(res, errorMessage, chat_id, isTelegram);
-            }
-            
-            const isRenew = sheetTitle === RENEW_SHEET_TITLE;
-            const sheet = doc.sheetsByTitle[sheetTitle];
-            
-            if (!sheet) {
-                const errorMessage = `خطا: شیت با نام '${sheetTitle}' در گوگل شیت یافت نشد. لطفاً به ادمین اطلاع دهید.`;
-                console.error(errorMessage);
-                return sendErrorResponse(res, errorMessage, chat_id, isTelegram);
-            }
-            
-            // --- B. به‌روزرسانی وضعیت کوپن (FIXED) ---
-            if (coupenCode) {
-                const couponRow = await getCouponRow(doc, coupenCode);
-                
-                if (couponRow) {
-                    // به‌روزرسانی محدودیت استفاده (manyTimes)
-                    let manyTimes = couponRow.get('manyTimes');
-                    if (manyTimes && manyTimes.toString().toLowerCase() !== 'unlimited') {
-                        let count = parseInt(manyTimes);
-                        if (!isNaN(count) && count > 0) {
-                            couponRow.set('manyTimes', count - 1);
-                            await couponRow.save(); // **نکته حیاتی: ذخیره تغییرات کوپن**
-                        }
-                    }
-                }
-            }
-
-            // --- C. ثبت اطلاعات خرید ---
-            const { trackingId, userLink } = await generateTrackingIdAndLink(isRenew, isTelegram, name, phone);
-            const now = new Date();
-            const purchaseDate = now.toLocaleString('fa-IR', { timeZone: 'Asia/Tehran' });
-
-            await sheet.loadHeaderRow(1); 
-            
-            // ساخت شیء سطر جدید برای افزودن
-            const newRow = {
-                status: 'فعال',
-                link: userLink,
-                trackingId: trackingId,
-                purchaseDate: purchaseDate,
-                name: name || 'N/A',
-                email: email || 'N/A',
-                chat_id: chat_id || 'N/A',
-                phone: phone || 'N/A',
-                coupen: coupenCode || '',
-                users: users || '1', 
-                renewalCount: isRenew ? 'N/A' : '0', 
-                lastRenewalDate: isRenew ? purchaseDate : 'N/A',
-                
-                // فیلدهای شیت Renew 
-                ...(isRenew ? {
-                    renewalIdentifier: renewalIdentifier || '',
-                    requestedPlan: requestedPlan || '',
-                    telegramUsername: telegramUsername || '',
-                    telegramId: telegramId || '',
-                    requestDate: purchaseDate, 
-                    amount: amount, 
-                } : {})
-            };
-
-            await sheet.addRow(newRow);
-            
-            sendSuccessResponse(res, trackingId, userLink, chat_id, isTelegram, finalAmount, requestedPlan, users, name, email);
-
-        } else {
-            // پرداخت موفقیت آمیز نبود اما از درگاه برگشته است
-            const errorMessage = `خطا در تأیید پرداخت نهایی از زرین‌پال (کد خطا: ${verificationResult.data.code}).`;
-            sendErrorResponse(res, errorMessage, chat_id, isTelegram);
+        if (verificationResult.errors.length > 0 || verificationData.code !== 100) {
+            // ... (منطق خطای تأیید پرداخت)
+            console.error('Zarinpal Verification Error:', verificationResult.errors);
+            return res.status(400).send(renderErrorPage('خطا در تأیید پرداخت', `❌ خطا در تأیید پرداخت: کد ${verificationData.code || verificationResult.errors.code}.`));
         }
 
+        // --- ۲. محاسبه قیمت نهایی برای اعتبارسنجی ---
+        
+        // پیدا کردن قیمت پایه پلن
+        let basePlanPrice = 0;
+        const planPriceKeys = Object.keys(planToSheetMap).filter(key => planToSheetMap[key] === requestedPlan);
+
+        if (planPriceKeys.length > 0) {
+            basePlanPrice = Number(planPriceKeys[0]); // اولین قیمت منطبق با کد پلن
+        } else {
+             // اگر تمدید باشد، باید قیمت را از جای دیگر پیدا کرد. (در اینجا فرض می‌کنیم قیمت تمدید و خرید اولیه یکسان است)
+             // اگر '1M' باشد، معادل 30D است
+            const planDetails = planToSheetMap[Object.keys(planToSheetMap).find(key => planToSheetMap[key] === requestedPlan)] || null;
+            if(planDetails){
+                 basePlanPrice = Number(Object.keys(planToSheetMap).find(key => planToSheetMap[key] === requestedPlan));
+            } else {
+                // اگر پلن پیدا نشد، باید یک خطای داخلی رخ دهد
+                throw new Error(`Could not determine base price for plan: ${requestedPlan}`);
+            }
+        }
+        
+        // محاسبه قیمت اولیه (بدون تخفیف)
+        const originalAmount = calculateMultiUserPrice(basePlanPrice, users);
+
+        // --- ۳. خواندن و اعمال کوپن از شیت برای اعتبارسنجی ---
+        const doc = await getOrCreateDoc();
+        const coupenDetails = await getCoupenDetails(doc, userCoupenCode);
+        
+        let finalExpectedAmount = originalAmount;
+        let discountAmount = 0;
+        let coupenError = null;
+        
+        if (userCoupenCode && coupenDetails) {
+            if (coupenDetails.error) {
+                coupenError = coupenDetails.error;
+            } else {
+                const discountResult = applyCoupenDiscount(originalAmount, coupenDetails);
+                finalExpectedAmount = discountResult.finalAmount;
+                discountAmount = discountResult.discountAmount;
+            }
+        }
+        
+        // --- ۴. اعتبارسنجی مبلغ پرداختی ---
+        if (paidAmount < finalExpectedAmount) {
+            // اگر مبلغ پرداختی کمتر از انتظار بود، مشکلی در محاسبه پیش آمده است.
+            throw new Error(`Amount Mismatch. Paid: ${paidAmount}, Expected: ${finalExpectedAmount}. Coupen: ${userCoupenCode}`);
+        }
+        
+        // اگر کاربر کوپن وارد کرده ولی نامعتبر بوده، ما قیمت کامل را انتظار داریم.
+        // اگر کوپن معتبر بوده، ما قیمت تخفیف‌خورده را انتظار داریم.
+        
+        // --- ۵. ثبت نهایی اطلاعات ---
+        
+        const trackingId = verificationData.ref_id; // شناسه منحصر به فرد زرین‌پال
+        const userLink = isRenewal ? renewalIdentifier : `link-${trackingId}-${Math.random().toString(36).substring(2, 6)}`;
+        const purchaseData = {
+            trackingId,
+            userLink,
+            name,
+            email,
+            chat_id,
+            phone,
+            requestedPlan,
+            renewalIdentifier,
+            users,
+            description: isRenewal ? `تمدید پلن ${requestedPlan}` : `خرید پلن ${requestedPlan}`,
+            coupenCode: coupenError ? '' : userCoupenCode, // اگر کوپن نامعتبر باشد، آن را ثبت نمی‌کنیم
+            discountAmount: coupenError ? 0 : discountAmount,
+            originalSheetTitle: requestedPlan, // برای تمدید
+            amount: paidAmount // مبلغ نهایی پرداخت شده
+        };
+
+        if (isRenewal) {
+            await logRenewal(doc, purchaseData);
+            // NOTE: در تمدید، لینک ثابت می‌ماند
+        } else {
+            const sheetTitle = requestedPlan;
+            await logPurchase(doc, sheetTitle, purchaseData);
+            // NOTE: در خرید جدید، لینک جدید ثبت می‌شود
+        }
+
+        // --- ۶. به‌روزرسانی تعداد مجاز استفاده از کوپن (در صورت نیاز) ---
+        if (!coupenError && coupenDetails && coupenDetails.manyTimes && coupenDetails.manyTimes !== 'unlimited') {
+            const currentTimes = parseInt(coupenDetails.manyTimes);
+            if (currentTimes > 0) {
+                // به‌روزرسانی ردیف در شیت
+                coupenDetails.row.set('manyTimes', currentTimes - 1);
+                await coupenDetails.row.save();
+            }
+        }
+
+        // --- ۷. ارسال پیام موفقیت‌آمیز ---
+        sendFinalMessage(chat_id, userLink, paidAmount, trackingId, purchaseData.coupenCode, purchaseData.discountAmount);
+        sendAdminNotification(purchaseData);
+        
+        // ... (ارسال صفحه موفقیت‌آمیز به کاربر)
+        return res.status(200).send(renderSuccessPage(userLink, trackingId, paidAmount, purchaseData.coupenCode, purchaseData.discountAmount));
+
     } catch (error) {
-        console.error('Critical Error in Verify:', error.message);
-        sendErrorResponse(res, `خطای داخلی سرور در فرایند تأیید: ${error.message}`, req.query.chat_id, req.query.chat_id !== 'none');
+        // ... (منطق خطای داخلی)
+        console.error('Internal Verification/Logging Error:', error.message);
+        bot.sendMessage(ADMIN_CHAT_ID, `⚠️ **خطای سیستم در تأیید پرداخت**\n\nTransaction: ${Authority}\nError: ${error.message}`, { parse_mode: 'Markdown' });
+        return res.status(500).send(renderErrorPage('خطای سرور', '❌ خطای داخلی در ثبت سفارش. لطفاً با پشتیبانی تماس بگیرید.'));
     }
 };
+
+// ... (renderSuccessPage و renderErrorPage و سایر توابع کمکی) ...
+
+function renderSuccessPage(userLink, trackingId, amount, coupenCode, discountAmount) {
+    const amountText = amount.toLocaleString('fa-IR') + ' تومان';
+    const discountText = discountAmount > 0 ? `<p><strong>مبلغ تخفیف:</strong> ${discountAmount.toLocaleString('fa-IR')} تومان (کد: ${coupenCode})</p>` : '';
+    
+    return `<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خرید موفق - Ay Technic</title>
+    <style>
+        /* FONT & BASE STYLES */
+        @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+        @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f8f9fa; color: #212529; line-height: 1.6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); max-width: 600px; width: 90%; text-align: center; }
+        h1 { color: #28a745; font-size: 2rem; margin-bottom: 15px; }
+        .icon { font-size: 4rem; color: #28a745; margin-bottom: 20px; }
+        p { margin-bottom: 10px; font-size: 1.1rem; }
+        .subscription-box { background-color: #f2f9f3; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin-top: 20px; text-align: left; position: relative;}
+        .subscription-box code { display: block; overflow-wrap: break-word; font-size: 1rem; color: #00790d; }
+        .actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+        .actions button { background-color: #00790d; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-right: 10px; font-family: 'Vazirmatn', sans-serif; display: flex; align-items: center; }
+        .actions button:hover { background-color: #00560d; }
+        .actions button svg { width: 18px; height: 18px; margin-left: 5px; }
+        .actions button:last-child { margin-right: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🎉</div>
+        <h1>خرید با موفقیت انجام شد!</h1>
+        <p><strong>مبلغ پرداختی:</strong> ${amountText}</p>
+        ${discountText}
+        <p><strong>شناسه پیگیری (Tracking ID):</strong> ${trackingId}</p>
+        <div class="subscription-box">
+            <p style="margin: 0; font-weight: 700;">لینک اشتراک:</p>
+            <code class="subscription-link" id="subLink">${userLink}</code>
+            <div class="actions">
+                <button id="copyBtn" title="کپی لینک"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"></path></svg>کپی</button>
+                <button id="openBtn" title="باز کردن لینک"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h11c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"></path></svg>باز کردن</button>
+            </div>
+        </div>
+        <p style="margin-top: 30px;">لینک اشتراک همچنین به ربات تلگرام شما ارسال شد.</p>
+    </div>
+
+    <script>
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const link = document.getElementById('subLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('لینک اشتراک کپی شد!');
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        });
+        document.getElementById('openBtn').addEventListener('click', () => {
+            const link = document.getElementById('subLink').textContent;
+            window.open(link, '_blank');
+        });
+    </script>
+</body>
+</html>`;
+}
+
+function renderErrorPage(title, message) {
+    // ... (منطق renderErrorPage)
+    // ... (منطق renderErrorPage)
+    return `<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title} - Ay Technic</title>
+    <style>
+        /* FONT & BASE STYLES */
+        @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+        @font-face { font-family: 'Vazirmatn'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f8f9fa; color: #212529; line-height: 1.6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); max-width: 600px; width: 90%; text-align: center; }
+        h1 { color: #dc3545; font-size: 2rem; margin-bottom: 15px; }
+        .icon { font-size: 4rem; color: #dc3545; margin-bottom: 20px; }
+        p { margin-bottom: 10px; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">❌</div>
+        <h1>خطا در انجام عملیات</h1>
+        <p>${message}</p>
+        <p>اگر وجهی از حساب شما کسر شده است، ظرف حداکثر ۲ ساعت به صورت خودکار به حساب شما باز خواهد گشت.</p>
+        <p>در صورت نیاز، با پشتیبانی **Ay Technic** تماس بگیرید.</p>
+    </div>
+</body>
+</html>`;
+}

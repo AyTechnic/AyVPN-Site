@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
     try {
         // UPDATED: Added users to the de-structuring
         const { 
-            amount, 
+            amount, // این مبلغ نهایی و تخفیف‌خورده است (اگر کوپن اعمال شده باشد)
             description, 
             chat_id, 
             name, 
@@ -25,6 +25,11 @@ module.exports = async (req, res) => {
         if (!amount) {
             return res.status(400).json({ error: 'Amount is required' });
         }
+        
+        // اطمینان از اینکه مبلغ حداقل مبلغ مجاز برای زرین پال (۱۰۰۰ ریال) باشد
+        if (Number(amount) < 1000) {
+             return res.status(400).json({ error: 'Amount must be at least 100 Toman (1000 Rials).' });
+        }
 
         const host = req.headers.host;
         const protocol = host.startsWith('localhost') ? 'http' : 'https';
@@ -37,9 +42,9 @@ module.exports = async (req, res) => {
             email: email || '',
             phone: phone || '',
             renewalIdentifier: renewalIdentifier || '',
-            requestedPlan: requestedPlan || '',
-            coupenCode: coupenCode || '',
-            telegramUsername: telegramUsername || '', 
+            requestedPlan: requestedPlan || '', // ارسال کد پلن (مثلاً 1M یا Renew)
+            coupenCode: coupenCode || '', // ارسال کد کوپن برای ثبت در verify.js
+            telegramUsername: telegramUsername || '',
             telegramId: telegramId || '',
             users: users || '1', // NEW
             description: description || '' // NEW
@@ -70,7 +75,7 @@ module.exports = async (req, res) => {
         }
     } catch (error) {
         console.error('Error starting payment:', error.message);
-        // پاسخ خطا به مرورگر
-        res.status(500).json({ error: 'خطای سرور در شروع پرداخت. لاگ‌ها را بررسی کنید.' });
+        // پاسخ خطا به سرویس‌دهنده (ربات یا وب)
+        res.status(500).json({ error: error.message });
     }
 };
