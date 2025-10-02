@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>خرید و تمدید اشتراک Ay VPN | Ay Technic</title>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
 
     <style>
         /* FONT & BASE STYLES */
@@ -26,1012 +28,1126 @@
             font-weight: 400;
             font-display: swap;
         }
-
         :root {
             --font-family: 'Vazirmatn', sans-serif;
             --transition-speed: 0.3s;
-            
-            /* Light Theme */
+            --primary-color: #007bff; /* Blue */
+            --secondary-color: #6c757d; /* Gray */
+            --success-color: #28a745; /* Green */
+            --danger-color: #dc3545; /* Red */
+            --warning-color: #ffc107; /* Yellow */
             --bg-light: #f8f9fa;
-            --card-bg-light: #ffffff;
-            --text-primary-light: #212529;
-            --text-secondary-light: #6c757d;
-            --border-light: #dee2e6;
-            --primary-color-light: #0d6efd;
-            --primary-hover-light: #0b5ed7;
-            --danger-color: #dc3545;
-
-            /* Dark Theme */
-            --bg-dark: #0a192f;
-            --card-bg-dark: #1e293b;
-            --text-primary-dark: #e2e8f0;
-            --text-secondary-dark: #94a3b8;
-            --border-dark: #334155;
-            --primary-color-dark: #38bdf8;
-            --primary-hover-dark: #0ea5e9;
+            --bg-white: #ffffff;
+            --text-dark: #212529;
+            --border-color: #dee2e6;
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --plan-color: #007bff; /* Default for selected plan */
         }
-
-        [data-theme="light"] {
-            --bg-color: var(--bg-light);
-            --card-bg: var(--card-bg-light);
-            --text-primary: var(--text-primary-light);
-            --text-secondary: var(--text-secondary-light);
-            --border-color: var(--border-light);
-            --primary-color: var(--primary-color-light);
-            --primary-hover: var(--primary-hover-light);
-        }
-
-        [data-theme="dark"] {
-            --bg-color: var(--bg-dark);
-            --card-bg: var(--card-bg-dark);
-            --text-primary: var(--text-primary-dark);
-            --text-secondary: var(--text-secondary-dark);
-            --border-color: var(--border-dark);
-            --primary-color: var(--primary-color-dark);
-            --primary-hover: var(--primary-hover-dark);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
         
-        /* STICKY FOOTER FIX & BASE */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: var(--font-family);
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            transition: background-color var(--transition-speed), color var(--transition-speed);
-            line-height: 1.7;
-            overflow-x: hidden;
-            display: flex; /* NEW: Sticky Footer */
-            flex-direction: column; /* NEW: Sticky Footer */
-            min-height: 100vh; /* NEW: Sticky Footer */
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            direction: rtl;
+            text-align: right;
+            line-height: 1.6;
+            padding-top: 50px;
+            padding-bottom: 50px;
         }
-        .container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            padding: 40px; 
-            flex-grow: 1; /* NEW: Sticky Footer */
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 0 auto;
         }
-        @media (max-width: 768px) { .container { padding: 20px; } }
 
         /* HEADER */
-        header { text-align: center; margin-bottom: 50px; position: relative; }
-        header h1 { font-size: 2.8rem; font-weight: 700; margin-bottom: 8px; }
-        header p { font-size: 1.1rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto; }
-        .theme-switcher { position: absolute; top: 0; left: 10px; }
-        #theme-toggle {
-            cursor: pointer; background: var(--card-bg); border: 1px solid var(--border-color);
-            border-radius: 50%; width: 44px; height: 44px;
-            display: flex; justify-content: center; align-items: center;
-            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
         }
-        #theme-toggle:hover { background-color: var(--bg-color); }
-        #theme-toggle svg { width: 22px; height: 22px; color: var(--text-primary); transition: color var(--transition-speed); }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+        }
 
         /* TABS */
         .tabs {
-            display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;
-            margin-bottom: 40px; background-color: var(--card-bg);
-            border-radius: 50px; padding: 8px; width: fit-content;
-            margin-left: auto; margin-right: auto; border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border-color);
         }
-        .tab-btn {
-            background: transparent; border: none; padding: 10px 25px;
-            border-radius: 30px; font-size: 1rem; cursor: pointer;
-            transition: all var(--transition-speed); font-weight: 500;
-            color: var(--text-secondary); display: flex; align-items: center; gap: 8px;
-        }
-        .tab-btn.active { background: var(--primary-color); color: white; box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2); }
-        [data-theme="dark"] .tab-btn.active { box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2); }
 
-        /* PLANS GRID & TAB CONTENT */
-        .tab-content { display: none; }
+        .tab-button {
+            background-color: transparent;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color var(--transition-speed), border-bottom-color var(--transition-speed);
+            color: var(--secondary-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            font-weight: 700;
+        }
+
+        /* TAB CONTENT */
+        .tab-content {
+            display: none;
+            background-color: var(--bg-white);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+        }
+
         .tab-content.active {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px; animation: fadeIn 0.5s ease-in-out;
+            display: block;
         }
-        #renew.active, #track.active { display: block; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* PLAN CARDS (BUY TAB) */
+        .plan-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
         }
 
         .plan-card {
-            background: var(--card-bg); border: 1px solid var(--border-color);
-            border-radius: 20px; padding: 30px; text-align: center;
-            transition: all var(--transition-speed); cursor: pointer;
-            position: relative; overflow: hidden; border-top-width: 6px;
-            border-top-color: var(--plan-color);
+            background-color: var(--bg-white);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            width: calc(33.333% - 14px);
+            text-align: center;
+            transition: all var(--transition-speed);
+            cursor: pointer;
+            position: relative;
         }
-        .plan-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); }
-        [data-theme="dark"] .plan-card:hover { box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); }
+
+        .plan-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
         .plan-card.selected {
-            border-color: var(--plan-color); border-top-color: var(--plan-color);
-            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+            border-color: var(--plan-color);
+            box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+            transform: translateY(-5px);
         }
-        [data-theme="dark"] .plan-card.selected { box-shadow: 0 8px 25px rgba(56, 189, 248, 0.15); }
+
+        .plan-card h3 {
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+        }
+
+        .plan-card .price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+        }
+
+        .plan-card .price small {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .plan-card .feature-list {
+            list-style: none;
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .plan-card .feature-list li {
+            padding: 5px 0;
+            font-size: 1rem;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .plan-card .feature-list li svg {
+            color: var(--success-color);
+            margin-left: 10px;
+        }
         
-        /* Plan Colors (Used as variables for dynamic styling) */
-        [data-plan-color-id="1"] { --plan-color: #0d6efd; --plan-color-rgb: 13, 110, 253; }
-        [data-plan-color-id="2"] { --plan-color: #198754; --plan-color-rgb: 25, 135, 84; }
-        [data-plan-color-id="3"] { --plan-color: #6f42c1; --plan-color-rgb: 111, 66, 193; }
-        [data-plan-color-id="4"] { --plan-color: #ffc107; --plan-color-rgb: 255, 193, 7; }
-        [data-plan-color-id="5"] { --plan-color: #dc3545; --plan-color-rgb: 220, 53, 69; }
-        [data-plan-color-id="6"] { --plan-color: #fd7e14; --plan-color-rgb: 253, 126, 20; }
-        [data-plan-color-id="7"] { --plan-color: #00bcd4; --plan-color-rgb: 0, 188, 212; } 
-        [data-plan-color-id="8"] { --plan-color: #8bc34a; --plan-color-rgb: 139, 195, 74; } 
-        [data-plan-color-id="9"] { --plan-color: #ff5722; --plan-color-rgb: 255, 87, 34; }
-        [data-plan-color-id="10"] { --plan-color: #607d8b; --plan-color-rgb: 96, 125, 139; } 
-        [data-plan-color-id="11"] { --plan-color: #9c27b0; --plan-color-rgb: 156, 39, 176; } 
-        [data-plan-color-id="12"] { --plan-color: #f44336; --plan-color-rgb: 244, 67, 54; } 
-
-        .plan-card input { display: none; }
-        .plan-icon { margin-bottom: 15px; }
-        .plan-icon svg { width: 48px; height: 48px; color: var(--plan-color); }
-        .plan-duration { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); }
-        .plan-features { list-style: none; padding: 0; margin: 25px 0; font-size: 0.95rem; color: var(--text-secondary); text-align: center; /* NEW: Center-align features */ }
-        .plan-features li { margin-bottom: 10px; text-align: center; /* NEW: Ensure li text is centered */ }
-        .os-icons { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
-        .os-icons svg { width: 24px; height: 24px; color: var(--text-secondary); opacity: 0.7; }
-        .plan-price-section { margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px; }
-        .plan-price { font-size: 2.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
-        .plan-price span { font-size: 1rem; font-weight: 500; color: var(--text-secondary); }
-        .price-note { font-size: 0.85rem; color: var(--danger-color); margin-top: 5px; }
-
-        .form-group { margin-bottom: 20px; text-align: right; }
-        label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.95rem; }
-        input[type="text"], input[type="email"], input[type="tel"] {
-            width: 100%; padding: 12px 15px; border: 1px solid var(--border-color);
-            border-radius: 10px; background: var(--bg-color); color: var(--text-primary);
-            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
-            font-family: var(--font-family); font-size: 1rem;
+        /* DYNAMIC SECTION (Users/Coupon/Summary) */
+        .dynamic-section {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            background-color: #f0f8ff; /* Light Blue BG */
+            display: none; /* Initially hidden */
         }
-        input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus {
-            border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
-        }
-        [data-theme="dark"] input[type="text"]:focus, 
-        [data-theme="dark"] input[type="email"]:focus, 
-        [data-theme="dark"] input[type="tel"]:focus { 
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-        }
-
-        .purchase-btn, #renewBtn, #trackButton {
-            width: 100%; padding: 15px; font-size: 1.1rem; font-weight: 700;
-            border: none; border-radius: 10px; cursor: pointer;
-            background: var(--primary-color); color: white;
-            transition: background-color var(--transition-speed);
-            display: flex; justify-content: center; align-items: center; gap: 8px;
-        }
-        .purchase-btn:hover, #renewBtn:hover, #trackButton:hover { background: var(--primary-hover); }
-        .purchase-btn:disabled, #renewBtn:disabled, #trackButton:disabled {
-            background: var(--text-secondary); cursor: not-allowed; opacity: 0.6;
-        }
-
-        .spinner-border {
-            display: inline-block; width: 1rem; height: 1rem;
-            vertical-align: text-bottom; border: .15em solid currentColor;
-            border-right-color: transparent; border-radius: 50%;
-            animation: spinner-border .75s linear infinite;
-        }
-        @keyframes spinner-border {
-            to { transform: rotate(360deg); }
-        }
-
-        /* COUPON SECTION */
-        .coupon-section { 
-            background: var(--bg-color); padding: 15px; border-radius: 10px; 
-            margin-top: 20px; border: 1px dashed var(--border-color);
-            text-align: right; 
-        }
-        .coupon-input-group { display: flex; gap: 10px; margin-top: 10px; }
-        .coupon-input-group input { flex-grow: 1; margin-bottom: 0; }
-        .coupon-input-group button { 
-            width: 100px; padding: 10px 15px; font-size: 0.95rem; 
-            border-radius: 8px; background: var(--primary-color); color: white;
-            border: none; cursor: pointer; transition: background-color var(--transition-speed);
-            flex-shrink: 0;
-        }
-        .coupon-input-group button:hover { background: var(--primary-hover); }
-        .coupon-status { margin-top: 10px; font-size: 0.9rem; font-weight: 500; }
-        .coupon-success { color: #198754; }
-        .coupon-error { color: var(--danger-color); }
         
-        /* USERS SLIDER */
-        .users-slider-container { margin: 20px 0; padding: 10px 0; border-top: 1px solid var(--border-color); }
-        .users-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .slider-wrapper { position: relative; height: 30px; }
-        #usersSlider {
-            -webkit-appearance: none; appearance: none;
-            width: 100%; height: 8px; background: var(--border-color);
-            outline: none; opacity: 0.7; transition: opacity .15s;
-            border-radius: 4px; margin: 0; position: absolute; top: 50%; transform: translateY(-50%);
+        .dynamic-section h4 {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
         }
-        #usersSlider:hover { opacity: 1; }
-        #usersSlider::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none;
-            width: 20px; height: 20px; border-radius: 50%; background: var(--primary-color);
+
+        /* FORM STYLES */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: var(--font-family);
+            font-size: 1rem;
+        }
+        
+        .form-group select {
             cursor: pointer;
         }
-        #usersSlider::-moz-range-thumb {
-            width: 20px; height: 20px; border-radius: 50%; background: var(--primary-color);
-            cursor: pointer; border: none;
+        
+        .coupon-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .coupon-group input {
+            flex-grow: 1;
+        }
+        
+        .coupon-group button {
+            flex-shrink: 0;
+            padding: 10px 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color var(--transition-speed);
+        }
+        
+        .coupon-group button:hover:not(:disabled) {
+            background-color: var(--primary-color);
+        }
+        
+        /* SUMMARY BOX */
+        .summary-box {
+            background-color: var(--bg-white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            margin-top: 20px;
+            border: 1px solid var(--primary-color);
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dotted var(--border-color);
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            padding-top: 10px;
+            margin-top: 10px;
+            border-top: 1px solid var(--primary-color);
+        }
+        
+        /* ERROR/SUCCESS MESSAGES */
+        .coupon-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: 500;
+            display: none;
         }
 
-        /* RENEW TAB SPECIFIC */
-        #renew { max-width: 600px; margin: 0 auto; }
-        .renewal-identifier-group { margin-bottom: 30px; }
-        .renewal-results { 
-            background: var(--card-bg); padding: 20px; border-radius: 10px;
-            margin-top: 20px; border: 1px solid var(--border-color);
+        .coupon-error {
+            background-color: #f8d7da;
+            color: var(--danger-color);
+            border: 1px solid #f5c6cb;
         }
-        .renewal-result-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed var(--border-color); }
-        .renewal-result-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .renewal-result-item strong { font-weight: 700; color: var(--primary-color); }
-        .renewal-plan-selection { margin-top: 30px; }
-        .renewal-plan-selection h4 { margin-bottom: 15px; font-size: 1.2rem; }
-        .plan-option {
-            background: var(--bg-color); padding: 12px 15px; border: 1px solid var(--border-color);
-            border-radius: 8px; margin-bottom: 10px; cursor: pointer;
-            display: flex; justify-content: space-between; align-items: center;
-            transition: all var(--transition-speed);
-        }
-        .plan-option:hover { background: rgba(0, 0, 0, 0.05); }
-        [data-theme="dark"] .plan-option:hover { background: rgba(255, 255, 255, 0.05); }
-        .plan-option.selected { border-color: #198754; box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.2); }
-        .plan-option .price { font-weight: 700; color: #198754; }
 
-        /* TRACK TAB SPECIFIC */
-        #track { max-width: 600px; margin: 0 auto; }
-        #trackingResults { 
-            margin-top: 25px; padding: 20px; border-radius: 10px; 
-            border: 1px solid var(--border-color); 
-            background: var(--card-bg);
+        .coupon-success {
+            background-color: #d4edda;
+            color: var(--success-color);
+            border: 1px solid #c3e6cb;
+        }
+
+        /* BUTTONS */
+        .btn-primary {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color var(--transition-speed);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        
+        .btn-primary:disabled {
+            background-color: #a0c3e7;
+            cursor: not-allowed;
+        }
+
+        /* TRACKING TAB */
+        #tracking-form {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .tracking-results {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: var(--bg-white);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .result-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 0;
             text-align: right;
         }
-        #trackingResults h3 { margin-bottom: 20px; font-size: 1.5rem; color: var(--primary-color); }
-        .result-item { 
-            padding: 15px 0; border-bottom: 1px dashed var(--border-color);
+        
+        .result-item:last-child {
+            border-bottom: none;
         }
-        .result-item:last-child { border-bottom: none; }
-        .result-item p { margin: 5px 0; font-size: 1rem; }
-        .result-item strong { font-weight: 700; }
-        .result-item a { color: var(--primary-color); text-decoration: none; word-break: break-all; }
-        .result-item a:hover { text-decoration: underline; }
+        
+        .result-item strong {
+            font-weight: 700;
+            margin-left: 5px;
+        }
+        
+        .result-item a {
+            word-break: break-all;
+        }
 
+
+        /* RENEW TAB */
+        #renewal-form {
+             max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .plan-selection-renew {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
         /* FOOTER */
-        footer {
-            margin-top: 50px; padding: 20px 40px; text-align: center;
+        .footer {
+            text-align: center;
+            padding-top: 40px;
+            margin-top: 40px;
             border-top: 1px solid var(--border-color);
-            font-size: 0.9rem; color: var(--text-secondary);
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .plan-card {
+                width: calc(50% - 10px);
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .plan-card {
+                width: 100%;
+            }
+            .tab-button {
+                padding: 10px 15px;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
-<body data-theme="light">
+<body>
+
     <div class="container">
-        <header>
-            <div class="theme-switcher">
-                <button id="theme-toggle" title="تغییر تم">
-                    <svg data-lucide="sun-medium" id="sun-icon"></svg>
-                    <svg data-lucide="moon-star" id="moon-icon" style="display: none;"></svg>
-                </button>
-            </div>
+        
+        <header class="header">
             <h1>خرید و تمدید اشتراک Ay VPN</h1>
-            <p>سرویس وی‌پی‌ان امن و پرسرعت برای دسترسی آزاد به اینترنت. با ما در ارتباط باشید: @AyVPNsupport</p>
+            <p>سرویس پرسرعت و امن برای عبور از فیلترینگ | ارائه شده توسط Ay Technic</p>
         </header>
 
-        <nav class="tabs">
-            <button class="tab-btn active" data-tab="buy"><svg data-lucide="shopping-cart"></svg> خرید</button>
-            <button class="tab-btn" data-tab="renew"><svg data-lucide="history"></svg> تمدید</button>
-            <button class="tab-btn" data-tab="track"><svg data-lucide="search"></svg> پیگیری</button>
-        </nav>
-
-        <div id="buy" class="tab-content active">
-            <div id="plans-grid" class="plan-grid">
-                </div>
-
-            <div id="payment-form-container" style="max-width: 500px; margin: 30px auto 0;">
-                <div class="form-group">
-                    <label for="nameInput">نام و نام خانوادگی:</label>
-                    <input type="text" id="nameInput" placeholder="اختیاری">
-                </div>
-                <div class="form-group">
-                    <label for="emailInput">ایمیل:</label>
-                    <input type="email" id="emailInput" placeholder="اختیاری">
-                </div>
-                <div class="form-group">
-                    <label for="phoneInput">شماره تماس:</label>
-                    <input type="tel" id="phoneInput" placeholder="اختیاری">
-                </div>
-
-                <div class="coupon-section">
-                    <label for="couponCodeInput">کد تخفیف (کوپن):</label>
-                    <div class="coupon-input-group">
-                        <input type="text" id="couponCodeInput" placeholder="کد تخفیف را وارد کنید">
-                        <button id="applyCouponBtn">اعمال</button>
-                    </div>
-                    <div id="couponStatus" class="coupon-status"></div>
-                </div>
-
-                <button class="purchase-btn" disabled>انتخاب پلن الزامی است</button>
-            </div>
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'buy-tab')">🛒 خرید اشتراک</button>
+            <button class="tab-button" onclick="openTab(event, 'renew-tab')">🔄 تمدید اشتراک</button>
+            <button class="tab-button" onclick="openTab(event, 'track-tab')">🔍 پیگیری سفارش</button>
         </div>
 
-        <div id="renew" class="tab-content">
-            <div class="renewal-identifier-group">
-                <label for="renewalIdentifierInput">شناسه اشتراک یا لینک خود را وارد کنید:</label>
-                <input type="text" id="renewalIdentifierInput" placeholder="مثال: AY-7XF5A3B">
-                <button id="checkRenewalBtn" class="purchase-btn" style="margin-top: 15px;">بررسی اشتراک</button>
+        <div id="buy-tab" class="tab-content active">
+            
+            <h4>۱. انتخاب پلن</h4>
+            <div class="plan-cards">
+                <div class="plan-card" data-plan-code="1M" data-base-amount="1200000" data-duration="1 ماهه" onclick="selectPlan(this)">
+                    <h3>💎 ۱ ماهه</h3>
+                    <div class="price">۱۲۰,۰۰۰ <small>تومان</small></div>
+                    <ul class="feature-list">
+                        <li><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> اتصال یکپارچه</li>
+                        <li><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> سرورهای متعدد</li>
+                        <li><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> پشتیبانی ۲۴/۷</li>
+                    </ul>
+                </div>
+                
+                <div class="plan-card" data-plan-code="3M" data-base-amount="3400000" data-duration="۳ ماهه" onclick="selectPlan(this)">
+                    <h3>🌟 ۳ ماهه</h3>
+                    <div class="price">۳۴۰,۰۰۰ <small>تومان</small></div>
+                     <ul class="feature-list">
+                        <li><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> اتصال یکپارچه</li>
+                        <li><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> سرورهای متعدد</li>
+                        <li><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> پشتیبانی ۲۴/۷</li>
+                    </ul>
+                </div>
+                
+                <div class="plan-card" data-plan-code="1Y" data-base-amount="10000000" data-duration="۱ ساله" onclick="selectPlan(this)">
+                    <h3>👑 ۱ ساله</h3>
+                    <div class="price">۱,۰۰۰,۰۰۰ <small>تومان</small></div>
+                     <ul class="feature-list">
+                        <li><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> اتصال یکپارچه</li>
+                        <li><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> سرورهای متعدد</li>
+                        <li><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="m9 11 3 3L22 4"></path></svg> پشتیبانی ۲۴/۷</li>
+                    </ul>
+                </div>
+                
+                <div class="plan-card" data-plan-code="2M" data-base-amount="2200000" data-duration="۲ ماهه" onclick="selectPlan(this)">
+                    <h3>🚀 ۲ ماهه</h3>
+                    <div class="price">۲۲۰,۰۰۰ <small>تومان</small></div>
+                    <ul class="feature-list">
+                        <li>...</li>
+                    </ul>
+                </div>
+                <div class="plan-card" data-plan-code="6M" data-base-amount="6000000" data-duration="۶ ماهه" onclick="selectPlan(this)">
+                    <h3>🔥 ۶ ماهه</h3>
+                    <div class="price">۶۰۰,۰۰۰ <small>تومان</small></div>
+                    <ul class="feature-list">
+                        <li>...</li>
+                    </ul>
+                </div>
+                <div class="plan-card" data-plan-code="2Y" data-base-amount="20000000" data-duration="۲ ساله" onclick="selectPlan(this)">
+                    <h3>⭐ ۲ ساله</h3>
+                    <div class="price">۲,۰۰۰,۰۰۰ <small>تومان</small></div>
+                    <ul class="feature-list">
+                        <li>...</li>
+                    </ul>
+                </div>
+                
             </div>
             
-            <div id="renewalResults" class="renewal-results" style="display: none;">
-                </div>
+            <form id="purchase-form">
+                <div id="dynamic-section" class="dynamic-section">
+                    
+                    <h4>۲. مشخصات سفارش</h4>
 
-            <div id="renewalForm" style="display: none;">
-                <div class="form-group">
-                    <label for="renewNameInput">نام:</label>
-                    <input type="text" id="renewNameInput" placeholder="اختیاری">
-                </div>
-                <div class="form-group">
-                    <label for="renewEmailInput">ایمیل:</label>
-                    <input type="email" id="renewEmailInput" placeholder="اختیاری">
-                </div>
-                <div class="form-group">
-                    <label for="renewPhoneInput">شماره تماس:</label>
-                    <input type="tel" id="renewPhoneInput" placeholder="اختیاری">
-                </div>
-
-                <div class="renewal-plan-selection">
-                    <h4>انتخاب پلن تمدید:</h4>
-                    <div id="renewalPlanOptions"></div>
-                </div>
-
-                <div class="users-slider-container">
-                    <div class="users-info">
-                        <span>تعداد کاربران:</span>
-                        <span id="renewUsersValue">۱ کاربر</span>
+                    <div class="form-group">
+                        <label for="users">🔢 تعداد کاربر (۱ تا ۱۰ نفر):</label>
+                        <select id="users" name="users" required onchange="updateSummary()">
+                            <option value="1">۱ کاربر</option>
+                            <option value="2">۲ کاربر (۵۰٪ تخفیف کاربر دوم)</option>
+                            <option value="3">۳ کاربر (۵۰٪ تخفیف کاربران بعدی)</option>
+                            <option value="4">۴ کاربر</option>
+                            <option value="5">۵ کاربر</option>
+                            <option value="6">۶ کاربر</option>
+                            <option value="7">۷ کاربر</option>
+                            <option value="8">۸ کاربر</option>
+                            <option value="9">۹ کاربر</option>
+                            <option value="10">۱۰ کاربر</option>
+                        </select>
                     </div>
-                    <div class="slider-wrapper">
-                        <input type="range" id="renewUsersSlider" min="1" max="10" value="1">
-                    </div>
-                    <p class="price-note">⚠️ قیمت به ازای هر کاربر اضافه، ۵۰٪ قیمت پایه افزایش می‌یابد.</p>
-                </div>
 
-                <div class="coupon-section">
-                    <label for="renewCouponCodeInput">کد تخفیف (کوپن):</label>
-                    <div class="coupon-input-group">
-                        <input type="text" id="renewCouponCodeInput" placeholder="کد تخفیف را وارد کنید">
-                        <button id="applyRenewCouponBtn">اعمال</button>
+                    <div class="form-group">
+                        <label for="coupenCode">🎫 کد تخفیف (اختیاری):</label>
+                        <div class="coupon-group">
+                            <input type="text" id="coupenCode" name="coupenCode" placeholder="کد تخفیف خود را وارد کنید" oninput="clearCouponMessage()">
+                            <button type="button" id="checkCouponBtn" onclick="checkCoupon()">اعمال</button>
+                        </div>
+                        <div id="couponMessage" class="coupon-message" style="display: none;"></div>
                     </div>
-                    <div id="renewCouponStatus" class="coupon-status"></div>
-                </div>
 
-                <button id="renewBtn" disabled>تمدید (مبلغ: <span id="renewFinalAmount">...</span> تومان)</button>
-            </div>
+                    <div class="form-group">
+                        <label for="email">📧 ایمیل یا شماره موبایل (برای پیگیری):</label>
+                        <input type="text" id="email" name="email" placeholder="مثال: example@gmail.com یا 0912xxxxxxx" required>
+                    </div>
+                    
+                    <input type="hidden" id="renewalIdentifier" name="renewalIdentifier" value="">
+                    
+                    <h4>۳. خلاصه فاکتور</h4>
+                    <div class="summary-box">
+                        <div class="summary-item"><span>پلن انتخابی:</span><span id="summary-plan">-</span></div>
+                        <div class="summary-item"><span>تعداد کاربران:</span><span id="summary-users">-</span></div>
+                        <div class="summary-item"><span>مبلغ پایه:</span><span id="summary-base-amount">-</span></div>
+                        <div class="summary-item" id="summary-discount-row" style="display: none;"><span>تخفیف کوپن:</span><span id="summary-discount-value" style="color: var(--success-color);">-</span></div>
+                        <div class="summary-item"><span>مبلغ نهایی پرداخت (تومان):</span><span id="summary-final-amount" data-final-amount="0">۰</span></div>
+                    </div>
+                    
+                    <button type="submit" id="payButton" class="btn-primary" disabled>
+                        <i class="fa fa-shopping-cart"></i> ادامه و پرداخت ۰ تومان
+                    </button>
+                </div>
+            </form>
+
         </div>
-        
-        <div id="track" class="tab-content">
-            <div class="form-group">
-                <label for="trackingIdInput">شناسه پیگیری یا لینک اشتراک خود را وارد کنید:</label>
-                <input type="text" id="trackingIdInput" placeholder="مثال: AY-7XF5A3B">
-                <button id="trackButton" class="purchase-btn" style="margin-top: 15px;">پیگیری سفارش</button>
-            </div>
+
+        <div id="renew-tab" class="tab-content">
+            <form id="renewal-form">
+                <h4>۱. مشخصات تمدید</h4>
+                <div class="form-group">
+                    <label for="renewId">🔄 شناسه اشتراک یا ایمیل/شماره تماس ثبت شده:</label>
+                    <input type="text" id="renewId" name="renewId" placeholder="شناسه یا مشخصات قبلی" required>
+                </div>
+                
+                 <h4>۲. انتخاب پلن تمدید</h4>
+                <div class="plan-selection-renew">
+                    <div class="plan-card" data-plan-code="1M" data-base-amount="1200000" data-duration="۱ ماهه" onclick="selectRenewPlan(this)">
+                        <h3>۱ ماهه</h3>
+                        <div class="price">۱۲۰,۰۰۰ <small>تومان</small></div>
+                    </div>
+                    <div class="plan-card" data-plan-code="3M" data-base-amount="3400000" data-duration="۳ ماهه" onclick="selectRenewPlan(this)">
+                         <h3>۳ ماهه</h3>
+                        <div class="price">۳۴۰,۰۰۰ <small>تومان</small></div>
+                    </div>
+                    <div class="plan-card" data-plan-code="1Y" data-base-amount="10000000" data-duration="۱ ساله" onclick="selectRenewPlan(this)">
+                         <h3>۱ ساله</h3>
+                        <div class="price">۱,۰۰۰,۰۰۰ <small>تومان</small></div>
+                    </div>
+                    </div>
+                
+                <div id="dynamic-section-renew" class="dynamic-section" style="margin-top: 30px;">
+                    <div class="form-group">
+                        <label for="renew-users">🔢 تعداد کاربر:</label>
+                        <select id="renew-users" name="users" required onchange="updateRenewSummary()">
+                            </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="renew-coupenCode">🎫 کد تخفیف (اختیاری):</label>
+                        <div class="coupon-group">
+                            <input type="text" id="renew-coupenCode" name="coupenCode" placeholder="کد تخفیف خود را وارد کنید" oninput="clearRenewCouponMessage()">
+                            <button type="button" id="checkRenewCouponBtn" onclick="checkRenewCoupon()">اعمال</button>
+                        </div>
+                        <div id="renewCouponMessage" class="coupon-message" style="display: none;"></div>
+                    </div>
+
+                    
+                    <h4>۳. خلاصه فاکتور تمدید</h4>
+                    <div class="summary-box">
+                        <div class="summary-item"><span>پلن انتخابی:</span><span id="renew-summary-plan">-</span></div>
+                        <div class="summary-item"><span>تعداد کاربران:</span><span id="renew-summary-users">-</span></div>
+                        <div class="summary-item"><span>مبلغ پایه:</span><span id="renew-summary-base-amount">-</span></div>
+                        <div class="summary-item" id="renew-summary-discount-row" style="display: none;"><span>تخفیف کوپن:</span><span id="renew-summary-discount-value" style="color: var(--success-color);">-</span></div>
+                        <div class="summary-item"><span>مبلغ نهایی پرداخت (تومان):</span><span id="renew-summary-final-amount" data-final-amount="0">۰</span></div>
+                    </div>
+                    
+                    <button type="submit" id="renewPayButton" class="btn-primary" disabled>
+                        <i class="fa fa-shopping-cart"></i> ادامه و پرداخت ۰ تومان
+                    </button>
+                </div>
+            </form>
+        </div>
+
+
+        <div id="track-tab" class="tab-content">
+            <form id="tracking-form">
+                <h4>🔍 پیگیری سفارش با شناسه</h4>
+                <div class="form-group">
+                    <label for="trackingId">شناسه پیگیری (Tracking ID):</label>
+                    <input type="text" id="trackingId" name="trackingId" placeholder="مثال: xxxxxxxxxxxx" required>
+                </div>
+                <button type="submit" id="trackButton" class="btn-primary">
+                    <i class="fa fa-search"></i> پیگیری
+                </button>
+            </form>
             
-            <div id="trackingResults">
+            <div id="trackingResults" class="tracking-results" style="display: none;">
                 </div>
         </div>
+
+        <footer class="footer">
+            <p>تمامی حقوق برای <a href="https://shammay.ir" target="_blank" style="color: var(--primary-color); text-decoration: none;">Ay Technic</a> محفوظ است. &copy; ۱۴۰۳</p>
+        </footer>
+
     </div>
 
-    <footer>
-        <p>© ${new Date().getFullYear()} Ay Technic. تمامی حقوق محفوظ است.</p>
-    </footer>
-
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        const APP_URL = window.location.origin; // آدرس سرور شما
+        
+        // --- داده‌های پلن‌ها ---
+        // مبلغ به ریال ذخیره شده است تا هنگام ارسال به زرین‌پال نیازی به ضرب در ۱۰ نباشد.
+        const plansData = [
+            { duration: '۱ ماهه', baseAmount: 1200000, durationDays: 30, type: 'unlimited', icon: '💎', requestedPlan: '1M', basePriceToman: 120000 },
+            { duration: '۲ ماهه', baseAmount: 2200000, durationDays: 60, type: 'unlimited', icon: '🚀', requestedPlan: '2M', basePriceToman: 220000 },
+            { duration: '۳ ماهه', baseAmount: 3400000, durationDays: 90, type: 'unlimited', icon: '🌟', requestedPlan: '3M', basePriceToman: 340000 },
+            { duration: '۶ ماهه', baseAmount: 6000000, durationDays: 180, type: 'unlimited', icon: '🔥', requestedPlan: '6M', basePriceToman: 600000 },
+            { duration: '۱ ساله', baseAmount: 10000000, durationDays: 365, type: 'unlimited', icon: '👑', requestedPlan: '1Y', basePriceToman: 1000000 },
+            { duration: '۲ ساله', baseAmount: 20000000, durationDays: 730, type: 'unlimited', icon: '⭐', requestedPlan: '2Y', basePriceToman: 2000000 },
+        ];
+        
+        let selectedPlan = null; // برای خرید جدید
+        let selectedRenewPlan = null; // برای تمدید
+        
+        // --- توابع کمکی ---
+
+        // تابع محاسبه قیمت چند کاربره (مبلغ بر اساس ریال است)
+        const calculateMultiUserPrice = (basePrice, users) => {
+            // Price = Base Price + (Users - 1) * 50% of Base Price
+            const multiplier = 1 + (users - 1) * 0.5;
+            // گرد کردن به نزدیکترین ۱۰۰۰ تومان (۱۰,۰۰۰ ریال)
+            return Math.round(basePrice * multiplier / 10000) * 10000; 
+        };
+        
+        // تابع فرمت مبلغ
+        const formatToman = (amount) => (amount / 10).toLocaleString('fa-IR') + ' تومان';
+        
+        // --- مدیریت تب‌ها ---
+        function openTab(evt, tabName) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
             
-            const plansData = [
-                { text: '۱ ماهه', code: '30D', amount: 12000, colorId: 1, icon: 'gem' },
-                { text: '۲ ماهه', code: '60D', amount: 220000, colorId: 2, icon: 'rocket' },
-                { text: '۳ ماهه', code: '90D', amount: 340000, colorId: 3, icon: 'star' },
-                { text: '۶ ماهه', code: '180D', amount: 600000, colorId: 4, icon: 'fire-extinguisher' },
-                { text: '۱ ساله', code: '365D', amount: 1000000, colorId: 5, icon: 'cake' },
-                { text: '۲ ساله', code: '730D', amount: 2000000, colorId: 6, icon: 'sparkles' },
-            ];
-
-            // --- Utility Functions ---
-            const formatAmount = (amount) => amount.toLocaleString('fa-IR');
-            const calculateMultiUserPrice = (basePrice, users) => {
-                const multiplier = 1 + (users - 1) * 0.5;
-                const finalPrice = Math.round(basePrice * multiplier / 1000) * 1000;
-                return finalPrice;
-            };
-
-            // --- Theme Switcher Logic ---
-            const themeToggle = document.getElementById('theme-toggle');
-            const body = document.body;
-            const sunIcon = document.getElementById('sun-icon');
-            const moonIcon = document.getElementById('moon-icon');
-
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            body.setAttribute('data-theme', savedTheme);
-            if (savedTheme === 'dark') {
-                sunIcon.style.display = 'none';
-                moonIcon.style.display = 'block';
-            } else {
-                sunIcon.style.display = 'block';
-                moonIcon.style.display = 'none';
+            // اگر به تب خرید جدید برویم، پلن تمدید را ریست می‌کنیم
+            if (tabName === 'buy-tab') {
+                 selectedRenewPlan = null;
+                 document.getElementById('dynamic-section-renew').style.display = 'none';
+                 document.getElementById('renewal-form').reset();
+                 document.querySelectorAll('.plan-selection-renew .plan-card').forEach(card => card.classList.remove('selected'));
             }
-
-            themeToggle.addEventListener('click', () => {
-                const currentTheme = body.getAttribute('data-theme');
-                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-                body.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-
-                if (newTheme === 'dark') {
-                    sunIcon.style.display = 'none';
-                    moonIcon.style.display = 'block';
-                } else {
-                    sunIcon.style.display = 'block';
-                    moonIcon.style.display = 'none';
-                }
-            });
-
-            // --- Tab Switching Logic ---
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const targetTab = button.getAttribute('data-tab');
-
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-
-                    tabContents.forEach(content => {
-                        content.classList.remove('active');
-                        if (content.id === targetTab) {
-                            content.classList.add('active');
-                        }
-                    });
-                });
-            });
-
-            // --- Buy Tab Logic (Plan Cards & Users Slider) ---
-            const plansGrid = document.getElementById('plans-grid');
-            const purchaseBtn = document.querySelector('#buy .purchase-btn');
-            let selectedPlan = null; 
-
-            // 1. Generate Plan Cards
-            plansData.forEach(plan => {
-                const card = document.createElement('div');
-                card.className = 'plan-card';
-                card.setAttribute('data-plan-code', plan.code);
-                card.setAttribute('data-base-price', plan.amount);
-                card.setAttribute('data-final-price', plan.amount); // Initial 1-user price
-                card.setAttribute('data-users', '1');
-                card.setAttribute('data-plan-color-id', plan.colorId);
-
-                card.innerHTML = `
-                    <div class="plan-icon"><svg data-lucide="${plan.icon}"></svg></div>
-                    <div class="plan-duration">${plan.text}</div>
-                    <div class="plan-features">
-                        <li>سرعت بالا</li>
-                        <li>پشتیبانی از پروتکل‌های مختلف</li>
-                    </div>
-                    <div class="users-slider-container">
-                        <div class="users-info">
-                            <span>تعداد کاربران:</span>
-                            <span id="buyUsersValue-${plan.code}">۱ کاربر</span>
-                        </div>
-                        <div class="slider-wrapper">
-                            <input type="range" class="users-slider" min="1" max="10" value="1" data-plan-code="${plan.code}">
-                        </div>
-                        <p class="price-note">⚠️ قیمت به ازای هر کاربر اضافه، ۵۰٪ قیمت پایه افزایش می‌یابد.</p>
-                    </div>
-                    <div class="plan-price-section">
-                        <div class="plan-price" id="price-${plan.code}">${formatAmount(plan.amount)} <span>تومان</span></div>
-                    </div>
-                `;
-                plansGrid.appendChild(card);
-            });
-
-            const planCards = document.querySelectorAll('#buy .plan-card');
-            const usersSliders = document.querySelectorAll('#buy .users-slider');
             
-            const updatePlanCard = (card, users) => {
-                const basePrice = parseInt(card.getAttribute('data-base-price'));
-                const newPrice = calculateMultiUserPrice(basePrice, users);
-
-                card.setAttribute('data-final-price', newPrice);
-                card.setAttribute('data-users', users);
-                document.getElementById(`price-${card.getAttribute('data-plan-code')}`).innerHTML = `${formatAmount(newPrice)} <span>تومان</span>`;
-                document.getElementById(`buyUsersValue-${card.getAttribute('data-plan-code')}`).textContent = `${users} کاربر`;
-                
-                // If this plan is selected, update the purchase button text
-                if (card.classList.contains('selected')) {
-                    purchaseBtn.innerHTML = `خرید (${formatAmount(newPrice)} تومان)`;
-                    // Re-apply coupon if active
-                    if (document.getElementById('couponCodeInput').value) {
-                        document.getElementById('applyCouponBtn').click();
-                    }
-                }
-            };
-
-            // Plan Card Selection Listener
-            planCards.forEach(card => {
-                card.addEventListener('click', () => {
-                    planCards.forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    selectedPlan = card;
-
-                    const finalPrice = card.getAttribute('data-final-price');
-                    purchaseBtn.innerHTML = `خرید (${formatAmount(parseInt(finalPrice))} تومان)`;
-                    purchaseBtn.disabled = false;
-                    document.getElementById('couponCodeInput').value = '';
-                    document.getElementById('couponStatus').textContent = '';
-                });
-            });
-
-            // Users Slider Listener
-            usersSliders.forEach(slider => {
-                slider.addEventListener('input', () => {
-                    const users = parseInt(slider.value);
-                    const planCode = slider.getAttribute('data-plan-code');
-                    const card = document.querySelector(`#buy .plan-card[data-plan-code="${planCode}"]`);
-                    
-                    // Always update the price and users on the card based on the slider
-                    updatePlanCard(card, users);
-                });
-            });
-
-            // --- Coupon Logic (Buy Tab) ---
-            const applyCouponBtn = document.getElementById('applyCouponBtn');
-            const couponCodeInput = document.getElementById('couponCodeInput');
-            const couponStatus = document.getElementById('couponStatus');
-
-            applyCouponBtn.addEventListener('click', async () => {
-                if (!selectedPlan) {
-                    couponStatus.className = 'coupon-error';
-                    couponStatus.textContent = 'لطفاً ابتدا یک پلن را انتخاب کنید.';
-                    return;
-                }
-
-                const code = couponCodeInput.value.trim();
-                if (!code) {
-                    couponStatus.className = 'coupon-error';
-                    couponStatus.textContent = 'کد تخفیف نمی‌تواند خالی باشد.';
-                    return;
-                }
-
-                const originalPrice = parseInt(selectedPlan.getAttribute('data-base-price'));
-                const users = parseInt(selectedPlan.getAttribute('data-users'));
-                const currentFinalPrice = parseInt(selectedPlan.getAttribute('data-final-price'));
-
-                applyCouponBtn.disabled = true;
-                applyCouponBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-                couponStatus.textContent = 'در حال بررسی...';
-                couponStatus.className = 'coupon-status';
-
-                try {
-                    const response = await fetch('/api/check-coupon', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ couponCode: code, amount: originalPrice, users: users }),
-                    });
-                    const result = await response.json();
-
-                    if (response.ok) {
-                        // Success: Update price and status
-                        const newFinalPrice = calculateMultiUserPrice(result.finalAmount, users); // Re-apply multi-user logic on discounted base price
-                        
-                        selectedPlan.setAttribute('data-final-price', newFinalPrice);
-                        document.getElementById(`price-${selectedPlan.getAttribute('data-plan-code')}`).innerHTML = `${formatAmount(newFinalPrice)} <span>تومان</span>`;
-                        purchaseBtn.innerHTML = `خرید (${formatAmount(newFinalPrice)} تومان)`;
-
-                        couponStatus.className = 'coupon-success';
-                        couponStatus.textContent = `✅ کد تخفیف اعمال شد! ${formatAmount(currentFinalPrice - newFinalPrice)} تومان تخفیف.`;
-                    } else {
-                        // Error: Reset price, show error
-                        selectedPlan.setAttribute('data-final-price', currentFinalPrice);
-                        document.getElementById(`price-${selectedPlan.getAttribute('data-plan-code')}`).innerHTML = `${formatAmount(currentFinalPrice)} <span>تومان</span>`;
-                        purchaseBtn.innerHTML = `خرید (${formatAmount(currentFinalPrice)} تومان)`;
-
-                        couponStatus.className = 'coupon-error';
-                        couponStatus.textContent = result.error || 'خطا در اعمال کوپن.';
-                    }
-
-                } catch (error) {
-                    console.error('Coupon Check Error:', error);
-                    couponStatus.className = 'coupon-error';
-                    couponStatus.textContent = 'خطای شبکه در بررسی کوپن.';
-                } finally {
-                    applyCouponBtn.innerHTML = 'اعمال';
-                    applyCouponBtn.disabled = false;
-                }
-            });
-
-            // --- Payment Initiation Logic (Buy Tab) - REAL API CALL ---
-            if (purchaseBtn) {
-                purchaseBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    
-                    const selectedPlanCard = document.querySelector('#buy .plan-card.selected');
-                    if (!selectedPlanCard) {
-                        alert('لطفاً ابتدا یک پلن را انتخاب کنید.');
-                        return;
-                    }
-
-                    const name = document.getElementById('nameInput').value;
-                    const email = document.getElementById('emailInput').value;
-                    const phone = document.getElementById('phoneInput').value;
-                    const coupenCode = document.getElementById('couponCodeInput').value;
-                    const users = selectedPlanCard.getAttribute('data-users');
-                    const amount = selectedPlanCard.getAttribute('data-final-price');
-                    const requestedPlan = selectedPlanCard.getAttribute('data-plan-code');
-
-                    const originalText = purchaseBtn.innerHTML;
-                    purchaseBtn.disabled = true;
-                    purchaseBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال انتقال...';
-
-                    try {
-                        const response = await fetch('/api/start-payment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                amount: parseInt(amount),
-                                description: `خرید پلن ${requestedPlan} - ${users} کاربر`,
-                                chat_id: 'none', // برای پرداخت وب، chat_id را none می‌فرستیم
-                                name,
-                                email,
-                                phone,
-                                renewalIdentifier: '', // برای خرید جدید خالی می‌ماند
-                                requestedPlan,
-                                coupenCode,
-                                users,
-                            }),
-                        });
-
-                        const result = await response.json();
-
-                        if (response.ok && result.authority) {
-                            // هدایت به درگاه زرین‌پال
-                            window.location.href = `https://www.zarinpal.com/pg/StartPay/${result.authority}`;
-                        } else {
-                            throw new Error(result.error || 'خطا در شروع پرداخت');
-                        }
-
-                    } catch (error) {
-                        console.error('Payment Error:', error);
-                        alert(`خطا در شروع پرداخت: ${error.message}. لطفا مجددا تلاش کنید.`);
-                    } finally {
-                        purchaseBtn.innerHTML = originalText;
-                        purchaseBtn.disabled = false;
-                    }
-                });
+            // اگر به تب تمدید برویم، پلن خرید جدید را ریست می‌کنیم
+            if (tabName === 'renew-tab') {
+                 selectedPlan = null;
+                 document.getElementById('dynamic-section').style.display = 'none';
+                 document.getElementById('purchase-form').reset();
+                 document.querySelectorAll('.plan-cards .plan-card').forEach(card => card.classList.remove('selected'));
             }
-
-            // --- Renew Tab Logic ---
-            const checkRenewalBtn = document.getElementById('checkRenewalBtn');
-            const renewalIdentifierInput = document.getElementById('renewalIdentifierInput');
-            const renewalResults = document.getElementById('renewalResults');
-            const renewalForm = document.getElementById('renewalForm');
-            const renewBtn = document.getElementById('renewBtn');
-            const renewUsersSlider = document.getElementById('renewUsersSlider');
-            const renewUsersValue = document.getElementById('renewUsersValue');
-            const renewFinalAmountSpan = document.getElementById('renewFinalAmount');
-            const renewCouponCodeInput = document.getElementById('renewCouponCodeInput');
-            const applyRenewCouponBtn = document.getElementById('applyRenewCouponBtn');
-            const renewCouponStatus = document.getElementById('renewCouponStatus');
-            const renewalPlanOptions = document.getElementById('renewalPlanOptions');
-
-            let renewalUser = null;
-            let selectedRenewalPlan = null;
-
-            // 1. Check Renewal Identifier
-            checkRenewalBtn.addEventListener('click', async () => {
-                const identifier = renewalIdentifierInput.value.trim();
-                if (!identifier) {
-                    alert('لطفاً شناسه یا لینک اشتراک را وارد کنید.');
-                    return;
-                }
-
-                checkRenewalBtn.disabled = true;
-                checkRenewalBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال بررسی...';
-                renewalResults.style.display = 'none';
-                renewalForm.style.display = 'none';
-
-                try {
-                    const response = await fetch(`/api/track?trackingId=${identifier}`);
-                    const result = await response.json();
-
-                    if (response.ok && result.length > 0) {
-                        renewalUser = result[0]; // Assuming only one purchase is returned or we take the first one
-                        
-                        // Populate results
-                        renewalResults.innerHTML = `
-                            <h3>مشخصات اشتراک یافت شده:</h3>
-                            <div class="renewal-result-item">
-                                <p><strong>شناسه:</strong> ${renewalUser.trackingId}</p>
-                                <p><strong>پلن فعلی:</strong> ${renewalUser.plan.endsWith('D') ? `${parseInt(renewalUser.plan)} روزه` : renewalUser.plan}</p>
-                                <p><strong>تاریخ خرید:</strong> ${renewalUser.date}</p>
-                                <p><strong>لینک:</strong> <a href="${renewalUser.link}" target="_blank">لینک دسترسی</a></p>
-                            </div>
-                        `;
-                        renewalResults.style.display = 'block';
-
-                        // Populate renewal form fields
-                        document.getElementById('renewNameInput').value = renewalUser.name !== 'N/A' ? renewalUser.name : '';
-                        document.getElementById('renewEmailInput').value = renewalUser.email !== 'N/A' ? renewalUser.email : '';
-                        document.getElementById('renewPhoneInput').value = renewalUser.phone !== 'N/A' ? renewalUser.phone : '';
-
-                        // Reset selection
-                        selectedRenewalPlan = null;
-                        renewUsersSlider.value = '1';
-                        renewUsersValue.textContent = '۱ کاربر';
-                        renewFinalAmountSpan.textContent = '...';
-                        renewBtn.disabled = true;
-                        renewCouponCodeInput.value = '';
-                        renewCouponStatus.textContent = '';
-
-                        // Populate renewal plan options
-                        renewalPlanOptions.innerHTML = '';
-                        plansData.forEach(plan => {
-                            const option = document.createElement('div');
-                            option.className = 'plan-option';
-                            option.setAttribute('data-plan-code', plan.code);
-                            option.setAttribute('data-base-price', plan.amount);
-                            option.setAttribute('data-final-price', plan.amount); // Initial 1-user price
-
-                            option.innerHTML = `
-                                <span>${plan.icon} ${plan.text}</span>
-                                <span class="price">${formatAmount(plan.amount)} تومان</span>
-                            `;
-                            renewalPlanOptions.appendChild(option);
-
-                            option.addEventListener('click', () => {
-                                document.querySelectorAll('#renewalPlanOptions .plan-option').forEach(opt => opt.classList.remove('selected'));
-                                option.classList.add('selected');
-                                selectedRenewalPlan = option;
-                                
-                                // Reset users to 1 on plan change
-                                renewUsersSlider.value = '1';
-                                updateRenewalPrice();
-                            });
-                        });
-
-
-                        renewalForm.style.display = 'block';
-
-                    } else {
-                        renewalResults.innerHTML = '<p class="coupon-error">اشتراکی با این شناسه یافت نشد یا غیرفعال است.</p>';
-                        renewalResults.style.display = 'block';
-                        renewalUser = null;
-                    }
-
-                } catch (error) {
-                    console.error('Renewal Check Error:', error);
-                    renewalResults.innerHTML = '<p class="coupon-error">خطای شبکه یا سرور در بررسی اشتراک.</p>';
-                    renewalResults.style.display = 'block';
-                } finally {
-                    checkRenewalBtn.innerHTML = 'بررسی اشتراک';
-                    checkRenewalBtn.disabled = false;
-                }
-            });
-
-            // 2. Price Update Function
-            const updateRenewalPrice = () => {
-                if (!selectedRenewalPlan) return;
-                
-                const basePrice = parseInt(selectedRenewalPlan.getAttribute('data-base-price'));
-                const users = parseInt(renewUsersSlider.value);
-                let finalPrice = calculateMultiUserPrice(basePrice, users);
-
-                // Check for coupon override
-                if (renewCouponStatus.classList.contains('coupon-success')) {
-                    // Re-apply coupon logic if it was successful (need to refactor check-coupon for client-side to be safer, but for now we trust the final amount)
-                    // **Simplification: For the front-end, we will fetch the new price from the coupon check. If no coupon, use calculated price.**
-                    const currentCouponFinalPrice = parseInt(selectedRenewalPlan.getAttribute('data-final-price'));
-                    if (currentCouponFinalPrice !== basePrice) { // Coupon was applied
-                        finalPrice = currentCouponFinalPrice; // Use the last calculated price that included the coupon
-                    }
-                }
-
-                selectedRenewalPlan.setAttribute('data-final-price', finalPrice);
-                renewFinalAmountSpan.textContent = formatAmount(finalPrice);
-                renewUsersValue.textContent = `${users} کاربر`;
-                renewBtn.disabled = false;
-                renewBtn.innerHTML = `تمدید (مبلغ: <span id="renewFinalAmount">${formatAmount(finalPrice)}</span> تومان)`;
-
-            };
             
-            // 3. Users Slider Listener (Renewal)
-            renewUsersSlider.addEventListener('input', updateRenewalPrice);
-
-            // 4. Coupon Logic (Renew Tab)
-            applyRenewCouponBtn.addEventListener('click', async () => {
-                if (!selectedRenewalPlan) {
-                    renewCouponStatus.className = 'coupon-error';
-                    renewCouponStatus.textContent = 'لطفاً ابتدا یک پلن تمدید را انتخاب کنید.';
-                    return;
-                }
-
-                const code = renewCouponCodeInput.value.trim();
-                if (!code) {
-                    renewCouponStatus.className = 'coupon-error';
-                    renewCouponStatus.textContent = 'کد تخفیف نمی‌تواند خالی باشد.';
-                    return;
-                }
-
-                const originalPrice = parseInt(selectedRenewalPlan.getAttribute('data-base-price'));
-                const users = parseInt(renewUsersSlider.value);
-                const currentFinalPrice = parseInt(selectedRenewalPlan.getAttribute('data-final-price'));
-
-                applyRenewCouponBtn.disabled = true;
-                applyRenewCouponBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-                renewCouponStatus.textContent = 'در حال بررسی...';
-                renewCouponStatus.className = 'coupon-status';
-                
-                // Get the base price without multi-user logic for coupon check
-                const basePriceNoUser = originalPrice;
-
-                try {
-                    const response = await fetch('/api/check-coupon', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ couponCode: code, amount: basePriceNoUser, users: users }),
-                    });
-                    const result = await response.json();
-
-                    if (response.ok) {
-                        // Success: Re-apply multi-user logic on discounted base price
-                        const newFinalPrice = calculateMultiUserPrice(result.finalAmount, users); 
-                        
-                        selectedRenewalPlan.setAttribute('data-final-price', newFinalPrice);
-                        updateRenewalPrice(); // Updates the button text
-                        
-                        renewCouponStatus.className = 'coupon-success';
-                        renewCouponStatus.textContent = `✅ کد تخفیف اعمال شد! ${formatAmount(currentFinalPrice - newFinalPrice)} تومان تخفیف.`;
-                    } else {
-                        // Error: Reset price to calculated price, show error
-                        selectedRenewalPlan.setAttribute('data-final-price', calculateMultiUserPrice(basePriceNoUser, users));
-                        updateRenewalPrice(); // Updates the button text
-
-                        renewCouponStatus.className = 'coupon-error';
-                        renewCouponStatus.textContent = result.error || 'خطا در اعمال کوپن.';
-                    }
-
-                } catch (error) {
-                    console.error('Renew Coupon Check Error:', error);
-                    renewCouponStatus.className = 'coupon-error';
-                    renewCouponStatus.textContent = 'خطای شبکه در بررسی کوپن.';
-                } finally {
-                    applyRenewCouponBtn.innerHTML = 'اعمال';
-                    applyRenewCouponBtn.disabled = false;
-                }
-            });
-
-
-            // 5. Payment Initiation Logic (Renew Tab) - REAL API CALL
-            if (renewBtn) {
-                renewBtn.addEventListener('click', async () => {
-                    if (!renewalUser || !selectedRenewalPlan) {
-                        alert('لطفاً ابتدا اشتراک را بررسی و پلن تمدید را انتخاب کنید.');
-                        return;
-                    }
-
-                    const renewalIdentifier = renewalUser.trackingId;
-                    const requestedPlan = selectedRenewalPlan.getAttribute('data-plan-code');
-                    const amount = selectedRenewalPlan.getAttribute('data-final-price');
-                    const users = renewUsersSlider.value;
-
-                    const originalText = renewBtn.innerHTML;
-                    renewBtn.disabled = true;
-                    renewBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال انتقال...';
-
-                    try {
-                        const response = await fetch('/api/start-payment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                amount: parseInt(amount),
-                                description: `تمدید پلن ${requestedPlan} - شناسه ${renewalIdentifier} - ${users} کاربر`,
-                                chat_id: 'none', 
-                                name: document.getElementById('renewNameInput').value,
-                                email: document.getElementById('renewEmailInput').value,
-                                phone: document.getElementById('renewPhoneInput').value,
-                                renewalIdentifier, 
-                                requestedPlan: requestedPlan, // Send the duration code
-                                coupenCode: renewCouponCodeInput.value,
-                                users,
-                            }),
-                        });
-
-                        const result = await response.json();
-
-                        if (response.ok && result.authority) {
-                            window.location.href = `https://www.zarinpal.com/pg/StartPay/${result.authority}`;
-                        } else {
-                            throw new Error(result.error || 'خطا در شروع پرداخت تمدید');
-                        }
-
-                    } catch (error) {
-                        console.error('Renewal Payment Error:', error);
-                        alert(`خطا در شروع پرداخت تمدید: ${error.message}. لطفا مجددا تلاش کنید.`);
-                    } finally {
-                        renewBtn.innerHTML = originalText;
-                        renewBtn.disabled = false;
-                    }
-                });
+            // اگر به تب پیگیری برویم، فرم‌های دیگر را ریست می‌کنیم (اختیاری)
+            if (tabName === 'track-tab') {
+                document.getElementById('trackingResults').style.display = 'none';
+                document.getElementById('tracking-form').reset();
             }
-
-            // --- Tracking Logic (Track Tab) - REAL API CALL ---
-            const trackingIdInput = document.getElementById('trackingIdInput');
-            const trackButton = document.getElementById('trackButton');
-            const trackingResults = document.getElementById('trackingResults');
-
-            if (trackButton) {
-                trackButton.addEventListener('click', async () => {
-                    const trackingId = trackingIdInput.value.trim();
-                    if (!trackingId) {
-                        trackingResults.innerHTML = '<p class="coupon-error">لطفاً شناسه پیگیری یا لینک اشتراک را وارد کنید.</p>';
-                        trackingResults.className = 'coupon-error';
-                        trackingResults.style.display = 'block';
-                        return;
-                    }
-
-                    const originalText = trackButton.innerHTML;
-                    trackButton.disabled = true;
-                    trackButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال جستجو...';
-                    trackingResults.innerHTML = '';
-                    trackingResults.style.display = 'none';
-
-                    try {
-                        // **REAL API CALL to /api/track**
-                        const response = await fetch(`/api/track?trackingId=${trackingId}`);
-                        const result = await response.json();
-                        
-                        trackButton.innerHTML = originalText;
-                        trackButton.disabled = false;
-
-                        if (response.ok && result.length > 0) {
-                            let html = '<h3>سفارشات یافت شده:</h3>';
-                            result.forEach(item => {
-                                // Extract readable plan name
-                                const planName = item.plan.endsWith('D') ? `${parseInt(item.plan)} روزه` : (item.plan === 'Renew' ? 'تمدید' : item.plan);
-                                
-                                html += `<div class="result-item">
-                                    <p><strong>پلن:</strong> ${planName}</p>
-                                    <p><strong>تاریخ خرید:</strong> ${item.date}</p>
-                                    <p><strong>لینک اشتراک:</strong> <a href="${item.link}" target="_blank">${item.link.substring(0, 30)}...</a></p>
-                                    <p><strong>شناسه پیگیری:</strong> ${item.trackingId}</p>
-                                </div>`;
-                            });
-                            trackingResults.innerHTML = html;
-                            trackingResults.className = 'coupon-success'; // Use this class for styling success
-                            trackingResults.style.display = 'block';
-                        } else {
-                            // Handles 404 from server or empty array
-                            trackingResults.innerHTML = '<p class="coupon-error">سفارشی با این شناسه یافت نشد.</p>';
-                            trackingResults.className = 'coupon-error';
-                            trackingResults.style.display = 'block';
-                        }
-
-                    } catch (error) {
-                        console.error('Tracking fetch error:', error);
-                        trackButton.innerHTML = originalText;
-                        trackButton.disabled = false;
-                        trackingResults.innerHTML = '<p class="coupon-error">خطای شبکه یا سرور در پیگیری سفارش.</p>';
-                        trackingResults.className = 'coupon-error';
-                        trackingResults.style.display = 'block';
-                    }
-                });
-            }
-
-
+            
+             // مطمئن می‌شویم آیکون‌ها رندر شوند
             lucide.createIcons();
+        }
+
+        // --- توابع خرید جدید ---
+        function selectPlan(card) {
+            document.querySelectorAll('.plan-cards .plan-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+
+            const planCode = card.getAttribute('data-plan-code');
+            selectedPlan = plansData.find(p => p.requestedPlan === planCode);
+            
+            // نمایش بخش دینامیک (کاربر/کوپن/خلاصه)
+            document.getElementById('dynamic-section').style.display = 'block';
+            
+            // ریست کردن کوپن و به‌روزرسانی خلاصه
+            document.getElementById('coupenCode').value = '';
+            document.getElementById('users').value = '1';
+            clearCouponMessage();
+            updateSummary();
+        }
+
+        function updateSummary() {
+            if (!selectedPlan) return;
+            
+            const users = parseInt(document.getElementById('users').value);
+            const baseAmount = selectedPlan.baseAmount;
+            
+            // ۱. محاسبه مبلغ چند کاربره
+            const multiUserAmount = calculateMultiUserPrice(baseAmount, users); 
+            
+            // ۲. به‌روزرسانی خلاصه با مبلغ چند کاربره (ریالی)
+            const couponMessageEl = document.getElementById('couponMessage');
+            const summaryFinalAmountEl = document.getElementById('summary-final-amount');
+            const summaryDiscountRowEl = document.getElementById('summary-discount-row');
+            const payButton = document.getElementById('payButton');
+
+            // ریست کوپن و مبلغ نهایی (تا زمانی که دوباره بررسی شود)
+            summaryFinalAmountEl.setAttribute('data-final-amount', multiUserAmount);
+            summaryFinalAmountEl.textContent = formatToman(multiUserAmount);
+            summaryDiscountRowEl.style.display = 'none';
+            couponMessageEl.style.display = 'none';
+            
+            // به‌روزرسانی سایر موارد
+            document.getElementById('summary-plan').textContent = selectedPlan.duration;
+            document.getElementById('summary-users').textContent = users + ' کاربر';
+            document.getElementById('summary-base-amount').textContent = formatToman(baseAmount);
+
+            payButton.disabled = false;
+            payButton.innerHTML = `<i class="fa fa-shopping-cart"></i> ادامه و پرداخت ${formatToman(multiUserAmount)}`;
+        }
+        
+        function clearCouponMessage() {
+            document.getElementById('couponMessage').style.display = 'none';
+        }
+
+        async function checkCoupon() {
+            const coupenCode = document.getElementById('coupenCode').value.trim();
+            const originalAmount = Number(document.getElementById('summary-final-amount').getAttribute('data-final-amount'));
+            const requestedPlan = selectedPlan ? selectedPlan.requestedPlan : null;
+            
+            const couponMessageEl = document.getElementById('couponMessage');
+            const summaryFinalAmountEl = document.getElementById('summary-final-amount');
+            const summaryDiscountRowEl = document.getElementById('summary-discount-row');
+            const summaryDiscountValueEl = document.getElementById('summary-discount-value');
+            const payButton = document.getElementById('payButton');
+            const checkCouponBtn = document.getElementById('checkCouponBtn');
+            const originalBtnText = checkCouponBtn.textContent;
+            
+            // اگر کوپن خالی است، ریست و بازگشت
+            if (!coupenCode) {
+                 updateSummary();
+                 return;
+            }
+
+            if (!requestedPlan || originalAmount <= 0) {
+                 couponMessageEl.className = 'coupon-message coupon-error';
+                 couponMessageEl.textContent = 'لطفاً ابتدا پلن و تعداد کاربران را انتخاب کنید.';
+                 couponMessageEl.style.display = 'block';
+                 return;
+            }
+            
+            // --- شروع پردازش کوپن ---
+            checkCouponBtn.disabled = true;
+            checkCouponBtn.textContent = 'در حال بررسی...';
+            couponMessageEl.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${APP_URL}/api/coupen-check`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        coupenCode: coupenCode,
+                        requestedPlan: requestedPlan,
+                        finalAmount: originalAmount // مبلغ چند کاربره (ریالی)
+                    }),
+                });
+
+                const result = await response.json();
+                
+                // ریست کردن به حالت اولیه قبل از نمایش نتیجه
+                updateSummary();
+
+                if (result.success) {
+                    const newAmount = result.newAmount;
+                    const discountValue = result.discountValue;
+
+                    // به‌روزرسانی UI با تخفیف
+                    couponMessageEl.className = 'coupon-message coupon-success';
+                    couponMessageEl.textContent = result.message;
+                    
+                    summaryFinalAmountEl.setAttribute('data-final-amount', newAmount);
+                    summaryFinalAmountEl.textContent = result.formattedNewAmount;
+                    
+                    summaryDiscountRowEl.style.display = 'flex';
+                    summaryDiscountValueEl.textContent = '-' + result.formattedDiscountValue;
+
+                    payButton.innerHTML = `<i class="fa fa-shopping-cart"></i> ادامه و پرداخت ${result.formattedNewAmount}`;
+                    
+                } else {
+                    // نمایش خطا و بازگشت به مبلغ اصلی
+                    couponMessageEl.className = 'coupon-message coupon-error';
+                    couponMessageEl.textContent = result.error || 'خطای ناشناخته در بررسی کوپن.';
+                }
+                
+                couponMessageEl.style.display = 'block';
+
+            } catch (error) {
+                console.error('Coupon Check Error:', error);
+                couponMessageEl.className = 'coupon-message coupon-error';
+                couponMessageEl.textContent = 'خطای شبکه در اتصال به سرویس کوپن.';
+                couponMessageEl.style.display = 'block';
+                updateSummary(); // ریست به مبلغ اصلی
+            } finally {
+                checkCouponBtn.disabled = false;
+                checkCouponBtn.textContent = originalBtnText;
+            }
+        }
+
+        document.getElementById('purchase-form').addEventListener('submit', handlePurchase);
+        
+        async function handlePurchase(event) {
+            event.preventDefault();
+            
+            if (!selectedPlan) {
+                alert('لطفاً ابتدا یک پلن را انتخاب کنید.');
+                return;
+            }
+
+            const payButton = document.getElementById('payButton');
+            const originalText = payButton.innerHTML;
+            
+            payButton.disabled = true;
+            payButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> در حال اتصال به درگاه...';
+
+            const form = event.target;
+            const finalAmount = Number(document.getElementById('summary-final-amount').getAttribute('data-final-amount'));
+            
+            const postData = {
+                amount: finalAmount, // مبلغ ریالی نهایی
+                description: `خرید از طریق وب - پلن ${selectedPlan.requestedPlan} (${form.users.value} کاربره)`,
+                email: form.email.value,
+                renewalIdentifier: form.renewalIdentifier.value || '',
+                requestedPlan: selectedPlan.requestedPlan,
+                coupenCode: form.coupenCode.value.trim() || '',
+                users: form.users.value,
+            };
+            
+            try {
+                const response = await fetch(`${APP_URL}/api/start-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(postData)
+                });
+
+                const result = await response.json();
+
+                if (result.authority) {
+                    const zarinpalUrl = `https://www.zarinpal.com/pg/StartPay/${result.authority}`;
+                    window.location.href = zarinpalUrl;
+                } else {
+                    alert(`❌ خطا در شروع پرداخت: ${result.error || 'خطای ناشناخته'}`);
+                }
+
+            } catch (error) {
+                console.error('Payment Error:', error);
+                alert('❌ خطای شبکه یا سرور در شروع پرداخت. لطفاً دوباره تلاش کنید.');
+            } finally {
+                payButton.innerHTML = originalText;
+                payButton.disabled = false;
+            }
+        }
+        
+        // --- توابع تمدید ---
+        
+        // پر کردن سکتور یوزرهای تمدید
+        document.getElementById('renew-users').innerHTML = document.getElementById('users').innerHTML;
+        
+        function selectRenewPlan(card) {
+            document.querySelectorAll('.plan-selection-renew .plan-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+
+            const planCode = card.getAttribute('data-plan-code');
+            selectedRenewPlan = plansData.find(p => p.requestedPlan === planCode);
+            
+            // نمایش بخش دینامیک تمدید
+            document.getElementById('dynamic-section-renew').style.display = 'block';
+            
+            // ریست کردن کوپن و به‌روزرسانی خلاصه
+            document.getElementById('renew-coupenCode').value = '';
+            document.getElementById('renew-users').value = '1';
+            clearRenewCouponMessage();
+            updateRenewSummary();
+        }
+        
+        function updateRenewSummary() {
+             if (!selectedRenewPlan) return;
+            
+            const users = parseInt(document.getElementById('renew-users').value);
+            const baseAmount = selectedRenewPlan.baseAmount;
+            
+            // ۱. محاسبه مبلغ چند کاربره
+            const multiUserAmount = calculateMultiUserPrice(baseAmount, users); 
+            
+            // ۲. به‌روزرسانی خلاصه با مبلغ چند کاربره (ریالی)
+            const couponMessageEl = document.getElementById('renewCouponMessage');
+            const summaryFinalAmountEl = document.getElementById('renew-summary-final-amount');
+            const summaryDiscountRowEl = document.getElementById('renew-summary-discount-row');
+            const payButton = document.getElementById('renewPayButton');
+
+            // ریست کوپن و مبلغ نهایی (تا زمانی که دوباره بررسی شود)
+            summaryFinalAmountEl.setAttribute('data-final-amount', multiUserAmount);
+            summaryFinalAmountEl.textContent = formatToman(multiUserAmount);
+            summaryDiscountRowEl.style.display = 'none';
+            couponMessageEl.style.display = 'none';
+            
+            // به‌روزرسانی سایر موارد
+            document.getElementById('renew-summary-plan').textContent = selectedRenewPlan.duration;
+            document.getElementById('renew-summary-users').textContent = users + ' کاربر';
+            document.getElementById('renew-summary-base-amount').textContent = formatToman(baseAmount);
+
+            payButton.disabled = false;
+            payButton.innerHTML = `<i class="fa fa-shopping-cart"></i> ادامه و پرداخت ${formatToman(multiUserAmount)}`;
+        }
+        
+        function clearRenewCouponMessage() {
+             document.getElementById('renewCouponMessage').style.display = 'none';
+        }
+        
+        async function checkRenewCoupon() {
+             const coupenCode = document.getElementById('renew-coupenCode').value.trim();
+            const originalAmount = Number(document.getElementById('renew-summary-final-amount').getAttribute('data-final-amount'));
+            const requestedPlan = selectedRenewPlan ? selectedRenewPlan.requestedPlan : null;
+            
+            const couponMessageEl = document.getElementById('renewCouponMessage');
+            const summaryFinalAmountEl = document.getElementById('renew-summary-final-amount');
+            const summaryDiscountRowEl = document.getElementById('renew-summary-discount-row');
+            const summaryDiscountValueEl = document.getElementById('renew-summary-discount-value');
+            const payButton = document.getElementById('renewPayButton');
+            const checkCouponBtn = document.getElementById('checkRenewCouponBtn');
+            const originalBtnText = checkCouponBtn.textContent;
+            
+            if (!coupenCode) {
+                 updateRenewSummary();
+                 return;
+            }
+
+            if (!requestedPlan || originalAmount <= 0) {
+                 couponMessageEl.className = 'coupon-message coupon-error';
+                 couponMessageEl.textContent = 'لطفاً ابتدا پلن تمدید و تعداد کاربران را انتخاب کنید.';
+                 couponMessageEl.style.display = 'block';
+                 return;
+            }
+            
+            // --- شروع پردازش کوپن ---
+            checkCouponBtn.disabled = true;
+            checkCouponBtn.textContent = 'در حال بررسی...';
+            couponMessageEl.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${APP_URL}/api/coupen-check`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        coupenCode: coupenCode,
+                        requestedPlan: requestedPlan,
+                        finalAmount: originalAmount // مبلغ چند کاربره (ریالی)
+                    }),
+                });
+
+                const result = await response.json();
+                
+                // ریست کردن به حالت اولیه قبل از نمایش نتیجه
+                updateRenewSummary();
+
+                if (result.success) {
+                    const newAmount = result.newAmount;
+                    const discountValue = result.discountValue;
+
+                    // به‌روزرسانی UI با تخفیف
+                    couponMessageEl.className = 'coupon-message coupon-success';
+                    couponMessageEl.textContent = result.message;
+                    
+                    summaryFinalAmountEl.setAttribute('data-final-amount', newAmount);
+                    summaryFinalAmountEl.textContent = result.formattedNewAmount;
+                    
+                    summaryDiscountRowEl.style.display = 'flex';
+                    summaryDiscountValueEl.textContent = '-' + result.formattedDiscountValue;
+
+                    payButton.innerHTML = `<i class="fa fa-shopping-cart"></i> ادامه و پرداخت ${result.formattedNewAmount}`;
+                    
+                } else {
+                    // نمایش خطا و بازگشت به مبلغ اصلی
+                    couponMessageEl.className = 'coupon-message coupon-error';
+                    couponMessageEl.textContent = result.error || 'خطای ناشناخته در بررسی کوپن.';
+                }
+                
+                couponMessageEl.style.display = 'block';
+
+            } catch (error) {
+                console.error('Renew Coupon Check Error:', error);
+                couponMessageEl.className = 'coupon-message coupon-error';
+                couponMessageEl.textContent = 'خطای شبکه در اتصال به سرویس کوپن.';
+                couponMessageEl.style.display = 'block';
+                updateRenewSummary(); // ریست به مبلغ اصلی
+            } finally {
+                checkCouponBtn.disabled = false;
+                checkCouponBtn.textContent = originalBtnText;
+            }
+        }
+        
+        document.getElementById('renewal-form').addEventListener('submit', handleRenewal);
+
+        async function handleRenewal(event) {
+            event.preventDefault();
+            
+            if (!selectedRenewPlan) {
+                alert('لطفاً ابتدا یک پلن برای تمدید انتخاب کنید.');
+                return;
+            }
+
+            const payButton = document.getElementById('renewPayButton');
+            const originalText = payButton.innerHTML;
+            
+            payButton.disabled = true;
+            payButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> در حال اتصال به درگاه...';
+
+            const form = event.target;
+            const finalAmount = Number(document.getElementById('renew-summary-final-amount').getAttribute('data-final-amount'));
+            
+            const postData = {
+                amount: finalAmount, // مبلغ ریالی نهایی
+                description: `تمدید از طریق وب - پلن ${selectedRenewPlan.requestedPlan} (${form['users'].value} کاربره)`,
+                renewalIdentifier: form.renewId.value, // شناسه/ایمیل/شماره تماس قبلی
+                requestedPlan: selectedRenewPlan.requestedPlan,
+                coupenCode: form['coupenCode'].value.trim() || '',
+                users: form['users'].value,
+                // برای تمدید، ایمیل را خالی می‌گذاریم یا از renewId استفاده می‌کنیم اگر ایمیل باشد.
+                email: form.renewId.value.includes('@') ? form.renewId.value : '' 
+            };
+            
+            try {
+                const response = await fetch(`${APP_URL}/api/start-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(postData)
+                });
+
+                const result = await response.json();
+
+                if (result.authority) {
+                    const zarinpalUrl = `https://www.zarinpal.com/pg/StartPay/${result.authority}`;
+                    window.location.href = zarinpalUrl;
+                } else {
+                    alert(`❌ خطا در شروع پرداخت: ${result.error || 'خطای ناشناخته'}`);
+                }
+
+            } catch (error) {
+                console.error('Renewal Payment Error:', error);
+                alert('❌ خطای شبکه یا سرور در شروع پرداخت. لطفاً دوباره تلاش کنید.');
+            } finally {
+                payButton.innerHTML = originalText;
+                payButton.disabled = false;
+            }
+        }
+
+
+        // --- توابع پیگیری سفارش (حذف Mockup) ---
+        document.getElementById('tracking-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            const trackingId = document.getElementById('trackingId').value.trim();
+            const trackingResults = document.getElementById('trackingResults');
+            const trackButton = document.getElementById('trackButton');
+            const originalText = trackButton.innerHTML;
+            
+            if (!trackingId) return;
+
+            trackButton.disabled = true;
+            trackButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> در حال پیگیری...';
+            trackingResults.style.display = 'none';
+            trackingResults.innerHTML = '';
+            
+            try {
+                // فراخوانی API واقعی پیگیری
+                const response = await fetch(`${APP_URL}/api/track?trackingId=${trackingId}`);
+                const result = await response.json();
+                
+                trackButton.innerHTML = originalText;
+                trackButton.disabled = false;
+                
+                if (!response.ok || result.error) {
+                    trackingResults.className = 'coupon-error tracking-results';
+                    trackingResults.innerHTML = `<p>❌ سفارشی با شناسه **${trackingId}** یافت نشد.</p>`;
+                } else {
+                    let html = '<h3>✅ سفارشات یافت شده:</h3>';
+                    
+                    result.forEach(item => {
+                        // تبدیل کد پلن به نام قابل خواندن
+                        const planName = item.plan.endsWith('D') ? `${parseInt(item.plan)} روزه` : (item.plan === 'Renew' ? 'تمدید' : item.plan);
+                        
+                        html += `<div class="result-item">
+                            <p><strong>پلن:</strong> ${planName}</p>
+                            <p><strong>تاریخ خرید:</strong> ${item.date}</p>
+                            <p><strong>لینک اشتراک:</strong> <a href="${item.link}" target="_blank">لینک دسترسی</a></p>
+                            <p><strong>وضعیت:</strong> <span style="color: var(--success-color);">موفق</span></p>
+                        </div>`;
+                    });
+                    trackingResults.className = 'coupon-success tracking-results';
+                    trackingResults.innerHTML = html;
+                }
+                
+                trackingResults.style.display = 'block';
+
+            } catch (error) {
+                console.error('Tracking fetch error:', error);
+                trackButton.innerHTML = originalText;
+                trackButton.disabled = false;
+                trackingResults.className = 'coupon-error tracking-results';
+                trackingResults.innerHTML = '<p>❌ خطای شبکه یا سرور در پیگیری سفارش.</p>';
+                trackingResults.style.display = 'block';
+            }
+        });
+
+
+        // اجرای اولیه: انتخاب تب خرید و رندر آیکون‌ها
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.tab-button').click(); // Show default tab
+            lucide.createIcons();
+            
+            // رندر کردن آیکون‌های lucide در پلن کاردها (که در استایل پنهان بودند)
+            document.querySelectorAll('.plan-card .feature-list li svg').forEach(icon => {
+                icon.setAttribute('width', '20');
+                icon.setAttribute('height', '20');
+            });
         });
     </script>
 
 </body>
 </html>
-
