@@ -1,32 +1,37 @@
 const TelegramBot = require('node-telegram-bot-api');
 const fetch = require('node-fetch');
-// NEW: اضافه شدن کتابخانه‌های Google Sheet برای خواندن کوپن
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
 
 // --- متغیرهای شما ---
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const APP_URL = process.env.APP_URL;
-const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID; // NEW: باید در محیط تعریف شده باشد
-const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL; // NEW
-const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY; // NEW
-const ADMIN_CHAT_ID = '5976170456'; // NEW: برای ارسال نوتیفیکیشن‌ها
+const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID; 
+const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY;
+const ADMIN_CHAT_ID = '5976170456'; 
 
-// **تغییر ۱: حذف { polling: true }** // ربات به صورت Webhook تنظیم می‌شود و فقط برای ارسال پیام‌ها و پردازش آپدیت‌های دریافتی استفاده می‌شود.
-const bot = new TelegramBot(TOKEN); 
+// **تغییر ۱: حذف { polling: true }** const bot = new TelegramBot(TOKEN); 
 
-// --- توابع مدیریت خطای شبکه (برای حل مشکل TLS Disconnected) ---
+// --- توابع مدیریت خطای شبکه (برای حل مشکل EPIPE و TLS) ---
+// این توابع تلاش می‌کنند پیام بفرستند اما اگر شکست خورد، اجازه می‌دهند اجرای کد ادامه یابد.
 const safeSendMessage = (chatId, text, options = {}) => {
+    // Note: In Vercel, this often fails with EPIPE. It's safe, but not always successful.
+    // For critical first messages like /start, we use direct fetch in module.exports.
     return bot.sendMessage(chatId, text, options).catch(err => {
-        // این خطا را مدیریت می‌کند و از کرش کردن جلوگیری می‌کند
         console.error(`Safe Send Error to ${chatId}:`, err.message);
     });
 };
 
 const safeEditMessageText = (text, options) => {
     return bot.editMessageText(text, options).catch(err => {
-        // این خطا را مدیریت می‌کند و از کرش کردن جلوگیری می‌کند
         console.error(`Safe Edit Error (msgID: ${options.message_id}):`, err.message);
+    });
+};
+
+const safeAnswerCallbackQuery = (queryId, options = {}) => {
+    return bot.answerCallbackQuery(queryId, options).catch(err => {
+        console.error(`Safe Answer CQ Error:`, err.message);
     });
 };
 
@@ -61,7 +66,6 @@ async function getCoupenDetails(coupenCode) {
             return null;
         }
         
-        // اطمینان از بارگیری هدرهای صحیح (ستون اول هدر است)
         await sheet.loadHeaderRow(1); 
         
         const rows = await sheet.getRows();
@@ -88,16 +92,14 @@ async function getCoupenDetails(coupenCode) {
                 price: parseInt(coupenRow.get('price')) || 0,
                 manyTimes: manyTimes,
                 description: coupenRow.get('description'),
-                row: coupenRow // ارسال ردیف برای به‌روزرسانی بعدی (اختیاری اما مفید)
+                row: coupenRow 
             };
         }
         
-        return null; // کوپن یافت نشد
+        return null; 
     } catch (error) {
         console.error('Error fetching coupen details:', error.message);
-        // به ادمین اطلاع بده
-        // safeSendMessage(ADMIN_CHAT_ID, `⚠️ خطای سیستمی: در خواندن شیت کوپن: ${error.message}`);
-        return null; // خطای سیستمی
+        return null; 
     }
 }
 
@@ -118,7 +120,7 @@ const applyCoupenDiscount = (originalAmount, coupenDetails) => {
             // تخفیف درصدی
             discountAmount = Math.round(originalAmount * coupenDetails.percent / 100);
         } else if (coupenDetails.price > 0) {
-            // تخفیف مبلغی ثابت (اگرچه شما در شیت از percent استفاده کردید، اما این قابلیت اضافه شد)
+            // تخفیف مبلغی ثابت 
             discountAmount = coupenDetails.price;
         }
         
@@ -184,26 +186,15 @@ const appsMenu = {
     ]
 };
 
-// --- ۱. مدیریت دستور /start ---
-bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    const welcomeMessage = `سلام شــــامـــــــــای عزیز! به ربات خرید و تمدید اشتراک **Ay Technic** خوش آمدید.\n\nلطفاً برای ادامه یکی از گزینه‌های زیر را انتخاب کنید:`;
-    
-    // پاک کردن وضعیت فعلی کاربر
-    delete userStates[chatId]; 
-
-    safeSendMessage(chatId, welcomeMessage, {
-        reply_markup: mainMenu,
-        parse_mode: 'Markdown'
-    });
-});
+// **تغییر ۲: حذف bot.onText(/\/start/, ...)**
 
 // --- ۲. مدیریت متن‌های ارسالی کاربر ---
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    // اگر کاربر در حال انتظار برای ورودی خاصی نباشد یا دستور /start باشد، کاری نمی‌کنیم
+    // اگر کاربر دستور /start داد یا در حال انتظار برای ورودی خاصی نباشد، کاری نمی‌کنیم
+    // زیرا /start در تابع module.exports مدیریت می‌شود.
     if (text === '/start' || !userStates[chatId]) return;
 
     const state = userStates[chatId];
@@ -379,8 +370,8 @@ bot.on('callback_query', async (query) => {
     const messageId = query.message.message_id;
     const data = query.data;
     
-    // پاسخ به Callback Query برای جلوگیری از علامت بارگذاری
-    bot.answerCallbackQuery(query.id).catch(err => console.error("Error answering callback query:", err.message)); 
+    // **تغییر ۳: استفاده از تابع ایمن**
+    safeAnswerCallbackQuery(query.id); 
 
     // --- مدیریت منو اصلی (بازگشت به منو اصلی) ---
     if (data === 'menu_main') {
@@ -415,8 +406,8 @@ bot.on('callback_query', async (query) => {
     // شروع تمدید
     if (data === 'state_renew') {
         userStates[chatId] = { step: 'awaiting_renewal_id', type: 'renew' };
-        safeSendMessage(chatId, '🔄 لطفاً **ایمیل یا نام کاربری** مرتبط با اشتراک قبلی خود را برای تمدید وارد کنید.');
-        // حذف پیام قبلی (اختیاری)
+        
+        // **تغییر ۴: استفاده از تابع ایمن**
         return safeEditMessageText('🔄 لطفاً **ایمیل یا نام کاربری** مرتبط با اشتراک قبلی خود را برای تمدید وارد کنید.', {
             chat_id: chatId,
             message_id: messageId,
@@ -427,8 +418,11 @@ bot.on('callback_query', async (query) => {
     // شروع پیگیری
     if (data === 'state_track') {
         userStates[chatId] = { step: 'awaiting_tracking_id', type: 'track' };
+        
+        // **تغییر ۵: استفاده از تابع ایمن**
         safeSendMessage(chatId, '🔍 لطفاً **کد پیگیری (Tracking ID)** یا **ایمیل/نام کاربری** که هنگام خرید وارد کرده‌اید را وارد کنید.');
-        // حذف پیام قبلی (اختیاری)
+        
+        // **تغییر ۶: استفاده از تابع ایمن**
         return safeEditMessageText('🔍 لطفاً **کد پیگیری (Tracking ID)** یا **ایمیل/نام کاربری** که هنگام خرید وارد کرده‌اید را وارد کنید.', {
             chat_id: chatId,
             message_id: messageId,
@@ -569,12 +563,12 @@ bot.on('callback_query', async (query) => {
             if (response.ok && responseData.authority) {
                 const paymentLink = `https://www.zarinpal.com/pg/StartPay/${responseData.authority}`;
                 
-                // ارسال لینک پرداخت
+                // ارسال لینک پرداخت (ایمن)
                 safeSendMessage(chatId, '🔗 لینک پرداخت شما آماده شد. لطفاً پرداخت را از طریق دکمه زیر تکمیل کنید:', {
                     reply_markup: { inline_keyboard: [[{ text: '💳 پرداخت آنلاین', url: paymentLink }]] }
                 });
                 
-                // حذف کیبورد قبلی (تأیید نهایی)
+                // حذف کیبورد قبلی (تأیید نهایی) (ایمن)
                 safeEditMessageText(query.message.text, { // متن قبلی را حفظ کن
                     chat_id: chatId,
                     message_id: messageId,
@@ -625,7 +619,7 @@ bot.on('callback_query', async (query) => {
 });
 
 
-// **تغییر ۲: تبدیل کل کد به تابع ورسل (مهم‌ترین بخش)**
+// --- تابع اصلی Vercel Serverless/Webhook ---
 module.exports = async (req, res) => {
     
     // فقط درخواست‌های POST را پردازش کنید (Webhook)
@@ -637,11 +631,39 @@ module.exports = async (req, res) => {
     const update = req.body;
     
     try {
-        // **تغییر ۳: ارسال آپدیت به Listenerهای ربات:**
-        // این کار باعث می‌شود تمام bot.onText و bot.on('message'/'callback_query') اجرا شوند.
+        if (update.message) {
+            const chatId = update.message.chat.id;
+            const text = update.message.text;
+
+            // **تغییر ۷: مدیریت مستقیم /start**
+            if (text === '/start') {
+                const welcomeMessage = `سلام شــــامـــــــــای عزیز! به ربات خرید و تمدید اشتراک **Ay Technic** خوش آمدید.\n\nلطفاً برای ادامه یکی از گزینه‌های زیر را انتخاب کنید:`;
+                
+                // پاک کردن وضعیت فعلی کاربر
+                delete userStates[chatId]; 
+
+                // استفاده از fetch مستقیم برای تضمین پاسخگویی به /start
+                await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: welcomeMessage,
+                        reply_markup: mainMenu,
+                        parse_mode: 'Markdown'
+                    })
+                }).catch(err => console.error("Direct Fetch /start Send Message Error:", err.message));
+                
+                // نیازی به ادامه processUpdate نیست چون /start مدیریت شد.
+                return res.status(200).send('OK (Handled /start)');
+            }
+        }
+        
+        // **تغییر ۸: ارسال آپدیت به Listenerهای ربات:**
+        // برای تمام آپدیت‌های دیگر (Callback Queries و Messageهای متنی غیر /start)
         bot.processUpdate(update);
         
-        // **تغییر ۴: پاسخ سریع به تلگرام:**
+        // **تغییر ۹: پاسخ سریع به تلگرام:**
         // این پاسخ 200 OK تضمین می‌کند که تلگرام وب‌هوک شما را موفقیت‌آمیز تلقی کرده و آن را لغو نکند.
         res.status(200).send('OK');
 
