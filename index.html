@@ -1163,24 +1163,69 @@
                     description: document.getElementById('modal-description').value.trim(),
                 };
 
-                // --- START PAYMENT API CALL (MOCKUP) ---
-                console.log('Sending Payment Request with data:', formData);
-                
-                const submitButton = paymentForm.querySelector('button[type="submit"]');
-                submitButton.disabled = true;
-                submitButton.textContent = 'در حال انتقال به درگاه...';
 
-                // Simulate API call success/failure
-                await new Promise(resolve => setTimeout(resolve, 1500)); 
-                
-                // On Success: Redirect to Zarinpal (Mockup)
-                // window.location.href = `https://www.zarinpal.com/pg/StartPay/${authority}`;
-                
-                alert(`✅ درخواست پرداخت برای ${formatPrice(formData.amount)} ارسال شد. (API Call Mocked)`);
-                modal.classList.remove('show');
-                submitButton.disabled = false;
-                submitButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card" style="margin-left: 10px;"><rect width="22" height="16" x="1" y="4" rx="2" /><path d="M1 10h22" /></svg> پرداخت و دریافت آنی اشتراک';
+// --- Payment Initiation Logic (Buy Tab) ---
+const purchaseBtn = document.querySelector('#buy .purchase-btn');
+if (purchaseBtn) {
+    purchaseBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        const selectedPlanCard = document.querySelector('#buy .plan-card.selected');
+        if (!selectedPlanCard) {
+            alert('لطفاً ابتدا یک پلن را انتخاب کنید.');
+            return;
+        }
+
+        const name = document.getElementById('nameInput').value;
+        const email = document.getElementById('emailInput').value;
+        const phone = document.getElementById('phoneInput').value;
+        const coupenCode = document.getElementById('couponCodeInput').value;
+        const users = selectedPlanCard.getAttribute('data-users');
+        const amount = selectedPlanCard.getAttribute('data-final-price');
+        const requestedPlan = selectedPlanCard.getAttribute('data-plan-code');
+
+        const originalText = purchaseBtn.innerHTML;
+        purchaseBtn.disabled = true;
+        purchaseBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> در حال انتقال...';
+
+        try {
+            // **FIXED: Mocking block removed. Real API call starts here.**
+            const response = await fetch('/api/start-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: parseInt(amount),
+                    description: `خرید پلن ${requestedPlan} - ${users} کاربر`,
+                    chat_id: 'none', // برای پرداخت وب، chat_id را none می‌فرستیم
+                    name,
+                    email,
+                    phone,
+                    renewalIdentifier: '', // برای خرید جدید خالی می‌ماند
+                    requestedPlan,
+                    coupenCode,
+                    users,
+                }),
             });
+
+            const result = await response.json();
+
+            if (response.ok && result.authority) {
+                // هدایت به درگاه زرین‌پال
+                window.location.href = `https://www.zarinpal.com/pg/StartPay/${result.authority}`;
+            } else {
+                throw new Error(result.error || 'خطا در شروع پرداخت');
+            }
+
+        } catch (error) {
+            console.error('Payment Error:', error);
+            alert(`خطا در شروع پرداخت: ${error.message}. لطفا مجددا تلاش کنید.`);
+        } finally {
+            purchaseBtn.innerHTML = originalText;
+            purchaseBtn.disabled = false;
+        }
+    });
+    
+    
             
             // --- TRACKING LOGIC (MOCKUP) ---
             const trackingForm = document.getElementById('tracking-form');
