@@ -94,8 +94,15 @@ module.exports = async (req, res) => {
         // ---
         const verificationResult = await verificationResponse.json();
 
+        // verify.js (اصلاح استخراج پیغام خطا)
         if (verificationResult.errors.length > 0 || verificationResult.data.code !== 100) {
-            const errorMsg = (verificationResult.errors[0] || verificationResult.data).message;
+            // تلاش برای استخراج پیغام خطا:
+            // 1. از اولین عنصر آرایه errors
+            // 2. از data.message (پیغام موفقیت یا خطای عمومی)
+            // 3. در نهایت، فقط کد خطای عددی را نشان می‌دهیم
+            const errorSource = verificationResult.errors[0] || verificationResult.data;
+            const errorMsg = errorSource.message || `کد خطا: ${errorSource.code || 'نامشخص'}`;
+            
             throw new Error(`تایید پرداخت ناموفق بود: ${errorMsg}`);
         }
 
