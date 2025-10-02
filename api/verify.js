@@ -28,6 +28,12 @@ async function getDoc() {
     return doc;
 }
 
+// --- تابع کمکی برای نمایش قیمت به تومان (اضافه شد) ---
+function formatPrice(price) {
+    if (typeof price !== 'number' || isNaN(price)) return '0';
+    return price.toLocaleString('fa-IR') + ' تومان';
+}
+
 // --- تابع ساخت صفحه HTML موفقیت ---
 function generateSuccessPage(details) {
     const { trackingId, userLink, name, requestedUsers, isRenewal, renewalIdentifier } = details;
@@ -65,7 +71,11 @@ function generateSuccessPage(details) {
 module.exports = async (req, res) => {
     const { Authority, Status, amount, chat_id, name, email, phone, renewalIdentifier, requestedPlan, coupenCode, telegramUsername, telegramId, users, description } = req.query;
     
-    const amountToman = Math.floor(Number(amount) / 10); 
+    // --- اصلاح شده: تبدیل مبلغ ---
+    const amountToman = Number(amount); // مبلغ نهایی به تومان (از کوئری پارامتر)
+    const amountRial = amountToman * 10; // مبلغ نهایی به ریال (برای فراخوانی زرین‌پال)
+    // ---
+    
     const isTelegram = chat_id && chat_id !== 'none';
     const isRenewal = renewalIdentifier && renewalIdentifier.length > 0;
     
@@ -75,11 +85,13 @@ module.exports = async (req, res) => {
     }
 
     try {
+        // --- اصلاح شده: ارسال مبلغ به ریال ---
         const verificationResponse = await fetch('https://api.zarinpal.com/pg/v4/payment/verify.json', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ merchant_id: ZARINPAL_MERCHANT_ID, amount: Number(amount), authority: Authority }),
+            body: JSON.stringify({ merchant_id: ZARINPAL_MERCHANT_ID, amount: amountRial, authority: Authority }),
         });
+        // ---
         const verificationResult = await verificationResponse.json();
 
         if (verificationResult.errors.length > 0 || verificationResult.data.code !== 100) {
@@ -111,7 +123,7 @@ module.exports = async (req, res) => {
                      // با توجه به اینکه مبلغ تخفیف در شیت Renew لازم است، باید محاسبه شود.
                      // فرض می‌کنیم کوپن فقط یک نوع تخفیف (درصدی یا مبلغی) دارد
                      if(percent > 0) {
-                        // amount = originalAmount * (1 - percent/100) => originalAmount = amount / (1 - percent/100)
+                        // amountToman = originalAmount * (1 - percent/100) => originalAmount = amountToman / (1 - percent/100)
                         const originalAmount = Math.round(amountToman / (1 - percent / 100));
                         discountAmount = originalAmount - amountToman;
                      } else if (price > 0) {
@@ -142,7 +154,7 @@ module.exports = async (req, res) => {
                 requestDate: today,
                 users: users,
                 description: description,
-                amount: amountToman,
+                amount: amountToman, // مبلغ به تومان برای ثبت در شیت
                 coupenCode: coupenCode || '',
                 discountAmount: discountAmount,
                 trackingId: trackingId,
