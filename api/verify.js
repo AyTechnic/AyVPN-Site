@@ -28,7 +28,7 @@ async function getDoc() {
     return doc;
 }
 
-// --- تابع کمکی برای نمایش قیمت به تومان (اضافه شد) ---
+// --- تابع کمکی برای نمایش قیمت به تومان ---
 function formatPrice(price) {
     if (typeof price !== 'number' || isNaN(price)) return '0';
     return price.toLocaleString('fa-IR') + ' تومان';
@@ -71,8 +71,8 @@ function generateSuccessPage(details) {
 module.exports = async (req, res) => {
     const { Authority, Status, amount, chat_id, name, email, phone, renewalIdentifier, requestedPlan, coupenCode, telegramUsername, telegramId, users, description } = req.query;
     
-    // --- اصلاح شده: تبدیل مبلغ ---
-    const amountToman = Number(amount); // مبلغ نهایی به تومان (از کوئری پارامتر)
+    // --- تبدیل مبلغ ---
+    const amountToman = Number(amount); 
     const amountRial = amountToman * 10; // مبلغ نهایی به ریال (برای فراخوانی زرین‌پال)
     // ---
     
@@ -85,22 +85,23 @@ module.exports = async (req, res) => {
     }
 
     try {
-        // --- اصلاح شده: ارسال مبلغ به ریال ---
+        // --- فراخوانی زرین‌پال با مبلغ ریالی ---
         const verificationResponse = await fetch('https://api.zarinpal.com/pg/v4/payment/verify.json', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ merchant_id: ZARINPAL_MERCHANT_ID, amount: amountRial, authority: Authority }),
         });
-        // ---
+        
         const verificationResult = await verificationResponse.json();
-
-        // verify.js (اصلاح استخراج پیغام خطا)
+        
+        // **جدید**: لاگ کردن پاسخ کامل زرین‌پال در صورت خطا برای عیب‌یابی نهایی
         if (verificationResult.errors.length > 0 || verificationResult.data.code !== 100) {
-            // تلاش برای استخراج پیغام خطا:
-            // 1. از اولین عنصر آرایه errors
-            // 2. از data.message (پیغام موفقیت یا خطای عمومی)
-            // 3. در نهایت، فقط کد خطای عددی را نشان می‌دهیم
+            console.error('ZarinPal Verification Error JSON:', JSON.stringify(verificationResult, null, 2));
+        }
+
+        if (verificationResult.errors.length > 0 || verificationResult.data.code !== 100) {
             const errorSource = verificationResult.errors[0] || verificationResult.data;
+            // تلاش برای استخراج پیغام خطا یا نمایش کد خطا
             const errorMsg = errorSource.message || `کد خطا: ${errorSource.code || 'نامشخص'}`;
             
             throw new Error(`تایید پرداخت ناموفق بود: ${errorMsg}`);
@@ -122,15 +123,8 @@ module.exports = async (req, res) => {
                 if (couponRow) {
                      const percent = parseInt(couponRow.get('percent')) || 0;
                      const price = parseInt(couponRow.get('price')) || 0;
-                     // پیدا کردن مبلغ اصلی قبل از تخفیف (با مهندسی معکوس)
-                     // این بخش خیلی دقیق نیست و بهتر است مبلغ اصلی هم در query ارسال شود. فرض می کنیم amount مبلغ نهایی است.
-                     // برای سادگی، مبلغ تخفیف را با مقایسه پیدا می‌کنیم (این یک فرض است)
-                     // **اصلاح**: مبلغ اصلی را از فرانت می‌گیریم. در start-payment این کار را کردیم.
-                     // در اینجا باید مبلغ اصلی را هم در query از start-payment به verify بفرستیم. فعلا فرض میکنیم amount نهایی است.
-                     // با توجه به اینکه مبلغ تخفیف در شیت Renew لازم است، باید محاسبه شود.
-                     // فرض می‌کنیم کوپن فقط یک نوع تخفیف (درصدی یا مبلغی) دارد
+                     
                      if(percent > 0) {
-                        // amountToman = originalAmount * (1 - percent/100) => originalAmount = amountToman / (1 - percent/100)
                         const originalAmount = Math.round(amountToman / (1 - percent / 100));
                         discountAmount = originalAmount - amountToman;
                      } else if (price > 0) {
