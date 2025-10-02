@@ -1,323 +1,190 @@
 const TelegramBot = require('node-telegram-bot-api');
 const fetch = require('node-fetch');
-const { GoogleSpreadsheet } = require('google-spreadsheet');
-const { JWT } = require('google-auth-library');
 
-// --- متغیرهای شما ---
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const APP_URL = process.env.APP_URL;
-const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
-const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY;
+const bot = new TelegramBot(TOKEN);
 
-// **اصلاح حیاتی برای Vercel: غیرفعال کردن Polling**
-const bot = new TelegramBot(TOKEN, { polling: false }); 
-
-const COUPEN_SHEET_TITLE = 'Coupen';
-const userStates = {};
-const adminChatId = '5976170456'; // آیدی ادمین
-
-// --- داده های ربات (منو و پلن‌ها) ---
+// --- داده های ربات ---
 const plans = {
     unlimited: [
-        { text: '💎 ۱ ماهه نامحدود - ۱۲۰,۰۰۰ تومان', amount: 120000, key: '1M' },
-        { text: '🚀 ۲ ماهه نامحدود - ۲۲۰,۰۰۰ تومان', amount: 220000, key: '2M' },
-        { text: '🌟 ۳ ماهه نامحدود - ۳۴۰,۰۰۰ تومان', amount: 340000, key: '3M' },
-        { text: '🔥 ۶ ماهه نامحدود - ۶۰۰,۰۰۰ تومان', amount: 600000, key: '6M' },
-        { text: '🛡️ ۱ ساله نامحدود - ۱,۰۰۰,۰۰۰ تومان', amount: 1000000, key: '1Y' },
-        { text: '👑 ۲ ساله نامحدود - ۲,۰۰۰,۰۰۰ تومان', amount: 2000000, key: '2Y' },
+        { text: '💎 ۱ ماهه - ۱۲۰,۰۰۰ تومان', amount: 12000 },
+        { text: '🚀 ۲ ماهه - ۲۲۰,۰۰۰ تومان', amount: 220000 },
+        { text: '🌟 ۳ ماهه - ۳۴۰,۰۰۰ تومان', amount: 340000 },
+        { text: '🔥 ۶ ماهه - ۶۰۰,۰۰۰ تومان', amount: 600000 },
+        { text: '🛡️ ۱ ساله - ۱,۰۰۰,۰۰۰ تومان', amount: 1000000 },
+        { text: '👑 ۲ ساله - ۲,۰۰۰,۰۰۰ تومان', amount: 2000000 },
     ],
-    national: [
-        { text: '🇮🇷 ۱ ماهه ملی - ۵۰,۰۰۰ تومان', amount: 50000, key: 'N1M' },
-        { text: '🇮🇷 ۲ ماهه ملی - ۹۰,۰۰۰ تومان', amount: 90000, key: 'N2M' },
-        { text: '🇮🇷 ۳ ماهه ملی - ۱۳۰,۰۰۰ تومان', amount: 130000, key: 'N3M' },
-        { text: '🇮🇷 ۶ ماهه ملی - ۲۴۰,۰۰۰ تومان', amount: 240000, key: 'N6M' },
-        { text: '🇮🇷 ۱ ساله ملی - ۴۵۰,۰۰۰ تومان', amount: 450000, key: 'N1Y' },
-        { text: '🇮🇷 ۲ ساله ملی - ۸۵۰,۰۰۰ تومان', amount: 850000, key: 'N2Y' },
+    national: [ // Placeholder plans
+        { text: '🇮🇷 ۱ ماهه ملی - ۱۲۰,۰۰۰ تومان', amount: 120000 },
+        { text: '🇮🇷 ۳ ماهه ملی - ۳۴۰,۰۰۰ تومان', amount: 340000 },
     ]
 };
 
 const apps = {
     android: [
         { text: 'Ay VPN Plus', url: 'https://t.me/Ay_VPN/62' },
-        { text: 'v2rayNG', url: 'https://t.me/Ay_VPN/14' },
+        { text: 'v2rayNG', url: 'https://t.me/Ay_VPN/61' },
+        { text: 'NapsternetV', url: 'https://t.me/Ay_VPN/60' },
+        { text: 'Happ', url: 'https://t.me/Ay_VPN/59' },
     ],
     ios: [
-        { text: 'ShadowRocket', url: 'https://t.me/Ay_VPN/63' },
-        { text: 'v2Box', url: 'https://t.me/Ay_VPN/63' },
+        { text: 'Streisand', url: 'https://apps.apple.com/app/streisand/id6450534064' },
+        { text: 'V2Box', url: 'https://apps.apple.com/app/v2box-v2ray-client/id6446814690' },
+        { text: 'Happ', url: 'https://t.me/Ay_VPN/58' },
     ],
     windows: [
-        { text: 'NekoRay', url: 'https://t.me/Ay_VPN/13' },
-    ],
-    mac: [
-        { text: 'V2rayU', url: 'https://t.me/Ay_VPN/55' },
+        { text: 'Nekoray', url: 'https://t.me/Ay_VPN/57' },
+        { text: 'V2RayN', url: 'https://t.me/Ay_VPN/56' },
     ]
 };
 
-// --- منوها ---
+// --- منوهای دکمه‌ای ---
 const mainMenu = {
-    inline_keyboard: [
-        [{ text: '🛒 خرید اشتراک جدید', callback_data: 'menu_buy' }],
-        [{ text: '🔄 تمدید اشتراک', callback_data: 'menu_renew' }],
-        [{ text: '🛠️ پشتیبانی', url: 'https://t.me/AyVPNsupport' }],
-        [{ text: '📱 نصب برنامه‌ها', callback_data: 'menu_apps' }],
-    ]
-};
-
-const buyMenu = {
-    inline_keyboard: [
-        [{ text: '🌍 اشتراک نامحدود', callback_data: 'buy_type_unlimited' }],
-        [{ text: '🇮🇷 اشتراک ملی (فقط ایران)', callback_data: 'buy_type_national' }],
-        [{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }],
-    ]
-};
-
-const renewMenu = {
-    inline_keyboard: [
-        [{ text: '🌍 تمدید نامحدود', callback_data: 'renew_type_unlimited' }],
-        [{ text: '🇮🇷 تمدید ملی', callback_data: 'renew_type_national' }],
-        [{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }],
-    ]
+    reply_markup: {
+        inline_keyboard: [
+            [{ text: '💎 اشتراک نامحدود | ثابت 💎', callback_data: 'menu_buy_unlimited' }],
+            [{ text: '🇮🇷 اشتراک اینترنت ملی 🇮🇷', callback_data: 'menu_buy_national' }],
+            [{ text: '🔄 تمدید اشتراک قبلی', callback_data: 'menu_renew' }],
+            [{ text: '📱 برنامه های اتصال', callback_data: 'menu_apps' }],
+        ]
+    }
 };
 
 const appsMenu = {
-    inline_keyboard: [
-        [{ text: 'اندروید', callback_data: 'apps_android' }, { text: 'iOS', callback_data: 'apps_ios' }],
-        [{ text: 'ویندوز', callback_data: 'apps_windows' }, { text: 'مک', callback_data: 'apps_mac' }],
-        [{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }],
-    ]
+    reply_markup: {
+        inline_keyboard: [
+            [{ text: '🤖 اندروید', callback_data: 'apps_android' }, { text: '🍏 آیفون', callback_data: 'apps_ios' }],
+            [{ text: '💻 ویندوز', callback_data: 'apps_windows' }],
+            [{ text: '🎓 آموزش اتصال', url: 'https://t.me/Ay_VPN' }],
+            [{ text: '⬅️ بازگشت به منوی اصلی', callback_data: 'menu_main' }],
+        ]
+    }
 };
 
-// --- توابع کمکی ---
-const editOrSendMessage = (chatId, text, options) => {
-    // تابعی برای ویرایش یا ارسال پیام جدید (برای Callbacks)
-    if (options.message_id) {
-        return bot.editMessageText(text, { chat_id: chatId, ...options }).catch(() => bot.sendMessage(chatId, text, options));
-    }
-    return bot.sendMessage(chatId, text, options);
-};
+const backToMainMenuBtn = [[{ text: '⬅️ بازگشت به منوی اصلی', callback_data: 'menu_main' }]];
+const backToAppsMenuBtn = [[{ text: '⬅️ بازگشت به برنامه‌ها', callback_data: 'menu_apps' }]];
 
-// --- هندلرهای اصلی ---
+// --- متغیر برای مدیریت وضعیت تمدید ---
+let userStates = {};
 
-// 1. هندلر دستور /start
-bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    userStates[chatId] = { step: 'menu_main' };
-    bot.sendMessage(chatId, '✋ سلام! به ربات خرید و تمدید اشتراک Ay Technic خوش آمدید.', {
-        reply_markup: mainMenu
-    });
-});
+// --- تابع اصلی ربات ---
+module.exports = async (req, res) => {
+    const update = req.body;
 
-// 2. هندلر پیام‌های متنی (برای ورود اطلاعات در استیت‌ها)
-bot.on('message', async (msg) => {
-    const chatId = msg.chat.id;
-    const text = msg.text;
-
-    if (text.startsWith('/')) { // ignore commands
-        return;
-    }
-
-    const state = userStates[chatId];
-    if (!state) return;
-
-    const editMessageText = (newText, options = {}) => bot.editMessageText(newText, { chat_id: chatId, message_id: state.messageId, ...options });
-    
     try {
-        if (state.step === 'awaiting_renewal_identifier') {
-            state.renewalIdentifier = text.trim();
-            state.step = 'awaiting_user_count';
-            return editMessageText(`🔗 لینک یا شناسه تمدید: ${state.renewalIdentifier}\n\n🔢 لطفاً تعداد کاربران مورد نظر را وارد کنید (مثلاً 1, 2, 3):`);
+        if (update.message) {
+            await handleMessage(update.message);
         }
-
-        if (state.step === 'awaiting_user_count') {
-            const users = parseInt(text.trim());
-            if (isNaN(users) || users <= 0) {
-                return editMessageText(`⚠️ تعداد کاربران نامعتبر است. لطفاً یک عدد صحیح بزرگتر از ۰ وارد کنید.`);
-            }
-            state.users = users;
-            state.step = 'awaiting_coupen';
-            return editMessageText(`👤 تعداد کاربران: ${state.users} نفر\n\n✂️ اگر کد تخفیف دارید، آن را وارد کنید. در غیر این صورت، عبارت **'ندارم'** را ارسال کنید:`);
-        }
-
-        if (state.step === 'awaiting_coupen') {
-            state.coupenCode = (text.trim().toLowerCase() === 'ندارم') ? '' : text.trim();
-            state.step = 'awaiting_name';
-            return editMessageText(`🏷️ کد تخفیف: ${state.coupenCode || 'ندارم'}\n\n✍️ لطفاً نام و نام خانوادگی خود را وارد کنید:`);
-        }
-
-        if (state.step === 'awaiting_name') {
-            state.name = text.trim();
-            state.step = 'awaiting_phone';
-            return editMessageText(`👤 نام کامل: ${state.name}\n\n📞 لطفاً شماره موبایل خود را وارد کنید (مثلاً 0912xxxxxxx):`);
-        }
-
-        if (state.step === 'awaiting_phone') {
-            state.phone = text.trim();
-            state.step = 'awaiting_email';
-            return editMessageText(`📱 شماره موبایل: ${state.phone}\n\n📧 لطفاً آدرس ایمیل خود را وارد کنید (اختیاری است، اگر ندارید 'ندارم' را وارد کنید):`);
-        }
-
-        if (state.step === 'awaiting_email') {
-            state.email = (text.trim().toLowerCase() === 'ندارم') ? '' : text.trim();
-            state.step = 'awaiting_description';
-            return editMessageText(`✉️ ایمیل: ${state.email || 'ندارم'}\n\n📝 لطفاً توضیحات یا نام کاربری تلگرام (برای ارتباط بهتر) را وارد کنید (اختیاری است، اگر ندارید 'ندارم' را وارد کنید):`);
-        }
-        
-        if (state.step === 'awaiting_description') {
-            state.description = (text.trim().toLowerCase() === 'ندارم') ? '' : text.trim();
-            state.step = 'confirm_payment';
-            
-            // نمایش اطلاعات نهایی و دکمه پرداخت
-            const finalPlan = plans[state.planType].find(p => p.amount === state.amount);
-            
-            let finalMessage = `
-✅ **تایید نهایی سفارش**
-
-* نوع پلن: ${finalPlan.text}
-* تعداد کاربران: ${state.users} نفر
-* کد تخفیف: ${state.coupenCode || 'ندارم'}
-* نام کامل: ${state.name}
-* موبایل: ${state.phone}
-* ایمیل: ${state.email || 'ندارم'}
-* توضیحات/تلگرام: ${state.description || 'ندارم'}
-            `;
-            
-            // چک کردن کوپن و محاسبه قیمت نهایی
-            let finalAmountToman = finalPlan.amount;
-            let discountAmountToman = 0;
-            let coupenError = null;
-
-            if (state.coupenCode) {
-                const response = await fetch(`${APP_URL}/api/check-coupon`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ coupenCode: state.coupenCode, originalAmount: finalPlan.amount }),
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok && result.success) {
-                    discountAmountToman = result.discountAmount;
-                    finalAmountToman = finalPlan.amount - discountAmountToman;
-                } else {
-                    coupenError = result.error || 'کد تخفیف نامعتبر است.';
-                }
-            }
-
-            // محاسبه چند کاربره (این بخش باید طبق منطق start-payment باشد)
-            const multiUserPrice = calculateMultiUserPrice(finalPlan.amount, state.users);
-            finalAmountToman = multiUserPrice - discountAmountToman;
-            if (finalAmountToman < 1000) finalAmountToman = 1000;
-            
-            finalMessage += `\n\n* **مبلغ نهایی پرداخت:** ${finalAmountToman.toLocaleString('fa-IR')} تومان`;
-            if (discountAmountToman > 0) finalMessage += ` (تخفیف: ${discountAmountToman.toLocaleString('fa-IR')} تومان)`;
-            if (coupenError) finalMessage += `\n\n❌ **خطا:** ${coupenError}`;
-
-            const paymentKeyboard = {
-                inline_keyboard: [
-                    [{ text: `💳 پرداخت مبلغ ${finalAmountToman.toLocaleString('fa-IR')} تومان`, callback_data: 'pay_now' }],
-                    [{ text: '❌ انصراف و شروع مجدد', callback_data: 'menu_main' }],
-                ]
-            };
-            
-            return editMessageText(finalMessage, { 
-                reply_markup: paymentKeyboard, 
-                parse_mode: 'Markdown' 
-            });
+        if (update.callback_query) {
+            await handleCallbackQuery(update.callback_query);
         }
     } catch (error) {
-        console.error('Bot Message Error:', error.message);
-        bot.sendMessage(chatId, `❌ متأسفانه خطایی رخ داد: ${error.message}. لطفاً با /start دوباره شروع کنید.`);
-        delete userStates[chatId];
+        console.error('Bot Main Handler Error:', error);
     }
-});
+    res.status(200).send('OK');
+};
 
-// 3. هندلر Callback Query (کلیک روی دکمه‌ها)
-bot.on('callback_query', async (query) => {
-    const chatId = query.message.chat.id;
-    const messageId = query.message.message_id;
-    const data = query.data;
+// --- مدیریت پیام‌ها ---
+async function handleMessage(message) {
+    const chatId = message.chat.id;
+    const text = message.text;
 
-    // تابع کمکی برای پاسخ و ویرایش پیام
-    const editOrSendMessage = (text, options = {}) => bot.editMessageText(text, { chat_id: chatId, message_id: messageId, ...options });
-
-    // بازگشت به منو اصلی
-    if (data === 'menu_main') {
-        delete userStates[chatId];
-        userStates[chatId] = { step: 'menu_main', messageId: messageId };
-        return editOrSendMessage('✋ سلام! لطفاً یکی از گزینه‌های زیر را انتخاب کنید:', { reply_markup: mainMenu });
-    }
-
-    // --- مدیریت فرآیند خرید/تمدید ---
-
-    if (data === 'menu_buy' || data === 'menu_renew') {
-        const isRenew = data === 'menu_renew';
-        userStates[chatId] = { step: 'awaiting_plan_type', isRenew: isRenew, messageId: messageId };
-        
-        const text = isRenew ? '🔄 لطفاً نوع اشتراک جهت تمدید را انتخاب کنید:' : '🛒 لطفاً نوع اشتراک مورد نظر برای خرید را انتخاب کنید:';
-        const keyboard = isRenew ? renewMenu : buyMenu;
-        return editOrSendMessage(text, { reply_markup: keyboard });
-    }
-
-    // انتخاب نوع پلن (خرید و تمدید)
-    if (data.startsWith('buy_type_') || data.startsWith('renew_type_')) {
-        const type = data.split('_')[2]; // unlimited or national
-        userStates[chatId].planType = type;
-        
-        const planList = plans[type];
-        const keyboard = planList.map(p => ([{ text: p.text, callback_data: `select_plan_${p.key}` }]));
-        keyboard.push([{ text: '⬅️ بازگشت', callback_data: userStates[chatId].isRenew ? 'menu_renew' : 'menu_buy' }]);
-
-        const typeText = type === 'unlimited' ? 'نامحدود' : 'ملی';
-        const actionText = userStates[chatId].isRenew ? 'تمدید' : 'خرید';
-        
-        return editOrSendMessage(`✅ پلن‌های موجود برای ${actionText} ${typeText}. لطفاً یکی را انتخاب کنید:`, { reply_markup: { inline_keyboard: keyboard } });
-    }
-
-    // انتخاب پلن (مقدار)
-    if (data.startsWith('select_plan_')) {
-        const planKey = data.split('_')[2]; // 1M, N3M, etc.
-        const planType = userStates[chatId].planType;
-        const selectedPlan = plans[planType].find(p => p.key === planKey);
-
-        if (!selectedPlan) {
-            return editOrSendMessage('⚠️ پلن نامعتبر است. لطفاً دوباره تلاش کنید.');
-        }
-
-        userStates[chatId].amount = selectedPlan.amount;
-        userStates[chatId].requestedPlan = selectedPlan.key;
-        
-        if (userStates[chatId].isRenew) {
-            userStates[chatId].step = 'awaiting_renewal_identifier';
-            return editOrSendMessage(`پلن انتخابی: ${selectedPlan.text}\n\n🆔 لطفاً **لینک اشتراک یا شناسه** خود را جهت تمدید وارد کنید:`);
-        } else {
-            userStates[chatId].step = 'awaiting_user_count';
-            return editOrSendMessage(`پلن انتخابی: ${selectedPlan.text}\n\n🔢 لطفاً تعداد کاربران مورد نظر را وارد کنید (مثلاً 1, 2, 3):`);
-        }
+    if (text === '/start') {
+        return bot.sendMessage(chatId, '🚀 به ربات فروش اشتراک Ay Technic خوش آمدید!\n\nلطفاً از منوی زیر سرویس مورد نظر خود را انتخاب کنید:', mainMenu);
     }
     
-    // دکمه پرداخت نهایی (pay_now)
-    if (data === 'pay_now' && userStates[chatId] && userStates[chatId].step === 'confirm_payment') {
-        const state = userStates[chatId];
-        const finalPlan = plans[state.planType].find(p => p.amount === state.amount);
-        
-        const finalAmountToman = calculateMultiUserPrice(finalPlan.amount, state.users); // قیمت نهایی را دوباره محاسبه می‌کند
-        
-        const payload = {
-            requestedPlan: state.requestedPlan,
-            users: state.users.toString(),
-            coupenCode: state.coupenCode || '',
-            name: state.name,
-            email: state.email,
-            phone: state.phone,
-            renewalIdentifier: state.renewalIdentifier || '',
-            chat_id: chatId.toString(),
-            telegramUsername: query.from.username || '',
-            telegramId: query.from.id.toString(),
-            description: state.description || '',
+    // مدیریت فرآیند تمدید
+    if (userStates[chatId] === 'awaiting_renewal_id') {
+        userStates[chatId] = { step: 'awaiting_plan_type', identifier: text };
+        const renewalTypeMenu = {
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '💎 نامحدود', callback_data: 'renew_type_unlimited' }, { text: '🇮🇷 ملی', callback_data: 'renew_type_national' }],
+                    ...backToMainMenuBtn
+                ]
+            }
         };
+        return bot.sendMessage(chatId, '✅ مشخصات دریافت شد.\n\nحالا لطفاً نوع اشتراکی که می‌خواهید تمدید کنید را انتخاب نمایید:', renewalTypeMenu);
+    }
+}
+
+// --- مدیریت کلیک روی دکمه‌ها ---
+async function handleCallbackQuery(callbackQuery) {
+    const chatId = callbackQuery.message.chat.id;
+    const messageId = callbackQuery.message.message_id;
+    const data = callbackQuery.data;
+
+    await bot.answerCallbackQuery(callbackQuery.id);
+
+    // --- مدیریت منوها ---
+    if (data === 'menu_main') {
+        return bot.editMessageText('لطفاً از منوی زیر سرویس مورد نظر خود را انتخاب کنید:', { chat_id: chatId, message_id: messageId, ...mainMenu });
+    }
+    if (data.startsWith('menu_buy_')) {
+        const type = data.split('_')[2];
+        const planList = plans[type];
+        const keyboard = planList.map(p => ([{ text: p.text, callback_data: `buy_${p.amount}` }]));
+        return bot.editMessageText(`🛍️ لطفاً پلن اشتراک ${type === 'unlimited' ? 'نامحدود' : 'ملی'} مورد نظر خود را انتخاب کنید:`, {
+            chat_id: chatId, message_id: messageId,
+            reply_markup: { inline_keyboard: [...keyboard, ...backToMainMenuBtn] }
+        });
+    }
+    if (data === 'menu_renew') {
+        userStates[chatId] = 'awaiting_renewal_id';
+        return bot.editMessageText('🔄 برای تمدید، لطفاً یکی از مشخصات اشتراک قبلی خود را ارسال کنید (مانند لینک اشتراک، ایمیل، شماره تماس و...):', {
+            chat_id: chatId, message_id: messageId,
+            reply_markup: { inline_keyboard: backToMainMenuBtn }
+        });
+    }
+    if (data === 'menu_apps') {
+        return bot.editMessageText('📱 لطفاً سیستم عامل خود را برای دریافت برنامه‌های اتصال انتخاب کنید:', { chat_id: chatId, message_id: messageId, ...appsMenu });
+    }
+    if (data.startsWith('apps_')) {
+        const os = data.split('_')[1];
+        const appList = apps[os];
+        const keyboard = appList.map(app => ([{ text: `⬇️ ${app.text}`, url: app.url }]));
+        return bot.editMessageText(`📲 برنامه‌های پیشنهادی برای ${os.charAt(0).toUpperCase() + os.slice(1)}:`, {
+            chat_id: chatId, message_id: messageId,
+            reply_markup: { inline_keyboard: [...keyboard, ...backToAppsMenuBtn] }
+        });
+    }
+
+    // --- مدیریت خرید و پرداخت ---
+    if (data.startsWith('buy_') || data.startsWith('renew_plan_')) {
+        let amount, planType, renewalIdentifier = null;
         
-        try {
+        if (data.startsWith('buy_')) {
+            amount = data.split('_')[1];
+        } else { // Renew plan
+            const parts = data.split('_');
+            amount = parts[2];
+            planType = parts[1];
+            renewalIdentifier = userStates[chatId]?.identifier;
+            if (!renewalIdentifier) return bot.sendMessage(chatId, 'خطا: اطلاعات تمدید یافت نشد. لطفاً از ابتدا شروع کنید.');
+        }
+
+        const allPlans = [...plans.unlimited, ...plans.national];
+        const planDetails = allPlans.find(p => p.amount == amount);
+        
+        if (planDetails) {
+            await bot.sendMessage(chatId, `⏳ در حال ساخت لینک پرداخت برای "${planDetails.text}"...`);
+            
+            const user = callbackQuery.from;
+            const payload = {
+                amount: planDetails.amount,
+                description: planDetails.text,
+                chat_id: chatId,
+                name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
+                email: user.id.toString(), // Storing Telegram ID in email field
+                phone: user.username || 'N/A' // Storing Telegram username in phone field
+            };
+
+            if(renewalIdentifier) {
+                payload.renewalIdentifier = renewalIdentifier;
+                payload.requestedPlan = planDetails.text;
+            }
+
             const response = await fetch(`${APP_URL}/api/start-payment`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -327,62 +194,26 @@ bot.on('callback_query', async (query) => {
 
             if (response.ok && responseData.authority) {
                 const paymentLink = `https://www.zarinpal.com/pg/StartPay/${responseData.authority}`;
-                return editOrSendMessage('🔗 لینک پرداخت شما آماده شد. لطفاً پرداخت را از طریق دکمه زیر تکمیل کنید:', {
+                return bot.sendMessage(chatId, '🔗 لینک پرداخت شما آماده شد. لطفاً پرداخت را از طریق دکمه زیر تکمیل کنید:', {
                     reply_markup: { inline_keyboard: [[{ text: '💳 پرداخت آنلاین', url: paymentLink }]] }
                 });
             } else {
                 throw new Error(responseData.details || 'سرور درگاه پرداخت پاسخ نداد.');
             }
-        } catch (error) {
-            console.error('Payment Error:', error.message);
-            bot.sendMessage(chatId, `❌ خطای سرور در شروع پرداخت: ${error.message}`);
         }
-        delete userStates[chatId];
     }
     
-    // منوی برنامه‌ها
-    if (data === 'menu_apps') {
-        return editOrSendMessage('📱 لطفاً سیستم عامل خود را انتخاب کنید:', { reply_markup: appsMenu });
+    // مدیریت انتخاب نوع تمدید
+    if(data.startsWith('renew_type_')) {
+        const type = data.split('_')[2];
+        const state = userStates[chatId];
+        if(!state || state.step !== 'awaiting_plan_type') return;
+
+        const planList = plans[type];
+        const keyboard = planList.map(p => ([{ text: p.text, callback_data: `renew_plan_${p.amount}` }]));
+        return bot.editMessageText(`تمدید برای اشتراک ${type === 'unlimited' ? 'نامحدود' : 'ملی'}. لطفاً پلن جدید را انتخاب کنید:`, {
+            chat_id: chatId, message_id: messageId,
+            reply_markup: { inline_keyboard: [...keyboard, ...backToMainMenuBtn] }
+        });
     }
-
-    if (data.startsWith('apps_')) {
-        const type = data.split('_')[1];
-        const appList = apps[type];
-        const typeText = { android: 'اندروید', ios: 'iOS', windows: 'ویندوز', mac: 'مک' }[type];
-        const keyboard = appList.map(a => ([{ text: a.text, url: a.url }]));
-        keyboard.push([{ text: '⬅️ بازگشت به برنامه‌ها', callback_data: 'menu_apps' }]);
-        keyboard.push([{ text: '⬅️ بازگشت به منو اصلی', callback_data: 'menu_main' }]);
-        return editOrSendMessage(`✅ برنامه‌های پیشنهادی برای **${typeText}**:`, { reply_markup: { inline_keyboard: keyboard }, parse_mode: 'Markdown' });
-    }
-    
-    bot.answerCallbackQuery(query.id).catch(() => {});
-});
-
-// --- ** تابع اصلی Webhook برای Vercel ** ---
-module.exports = async (req, res) => {
-    // بررسی می‌کند که آیا درخواست از تلگرام (POST) است یا نه
-    if (req.method !== 'POST') {
-        return res.status(405).send('Method Not Allowed');
-    }
-
-    try {
-        // دریافت به‌روزرسانی از بادی درخواست
-        const update = req.body;
-
-        // وب‌هوک را به کتابخانه node-telegram-bot-api تحویل می‌دهد
-        bot.processUpdate(update);
-
-        // پاسخگویی سریع به تلگرام برای جلوگیری از خطای Timeout
-        res.status(200).send('OK');
-
-    } catch (error) {
-        console.error('Webhook Processing Error:', error.message);
-        res.status(500).send('Error processing webhook');
-    }
-};
-
-// --- توابع کمکی Google Sheet (خارج از Webhook) ---
-async function getDoc() { /* ... منطق اتصال به شیت ... */ }
-async function getCoupenDetails(coupenCode) { /* ... منطق بررسی کوپن ... */ }
-// توجه: برای سادگی، توابع getDoc و getCoupenDetails در اینجا حذف شدند اما فرض می‌شود در کد شما وجود دارند یا فراخوانی می‌شوند.
-// (اگر نیاز دارید که این توابع را هم به‌طور کامل قرار دهم، بفرمایید.)
+}
