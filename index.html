@@ -778,7 +778,7 @@
         // --- Dynamic Data for Plans ---
         const PlansData = [
             // Unlimited Plans (ID 1-6)
-            { id: 1, type: 'unlimited', duration: '۱ ماهه', requestedPlan: '1M', baseAmount: 1200, color: '#0d6efd', colorId: 1, icon: 'zap', features: ['مناسب برای وبگردی و شبکه‌های اجتماعی', 'پرسرعت و پایدار', 'گارانتی عودت وجه'] },
+            { id: 1, type: 'unlimited', duration: '۱ ماهه', requestedPlan: '1M', baseAmount: 120000, color: '#0d6efd', colorId: 1, icon: 'zap', features: ['مناسب برای وبگردی و شبکه‌های اجتماعی', 'پرسرعت و پایدار', 'گارانتی عودت وجه'] },
             { id: 2, type: 'unlimited', duration: '۲ ماهه', requestedPlan: '2M', baseAmount: 220000, color: '#198754', colorId: 2, icon: 'rocket', features: ['مناسب برای وبگردی و شبکه‌های اجتماعی', 'پرسرعت و پایدار', 'گارانتی عودت وجه'] },
             { id: 3, type: 'unlimited', duration: '۳ ماهه', requestedPlan: '3M', baseAmount: 340000, color: '#6f42c1', colorId: 3, icon: 'star', features: ['مناسب برای وبگردی و شبکه‌های اجتماعی', 'پرسرعت و پایدار', 'گارانتی عودت وجه'] },
             { id: 4, type: 'unlimited', duration: '۶ ماهه', requestedPlan: '6M', baseAmount: 600000, color: '#ffc107', colorId: 4, icon: 'flame', features: ['مناسب برای وبگردی و شبکه‌های اجتماعی', 'پرسرعت و پایدار', 'گارانتی عودت وجه'] },
@@ -1255,6 +1255,42 @@
             lucide.createIcons();
         });
     </script>
+
+<script>
+  (function(d,t) {
+    var BASE_URL="https://app.gapify.ai";
+    var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=BASE_URL+"/packs/js/sdk.js";
+    g.async = true;
+    s.parentNode.insertBefore(g,s);
+    g.onload=function(){
+      window.gapifySDK.run({
+        websiteToken: 'p7e3qdSe4mfMWZ3ETKrS4Vgd',
+        baseUrl: BASE_URL
+      })
+    }
+  })(document,"script");
+</script>
+
+<script>
+  (function(d, t) {
+    // آدرس فایل ویجت شما
+    var BASE_URL = "https://shammay.ir"; 
+    var WIDGET_SCRIPT = "AyVPN-Widget.js";
+
+    var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+    
+    // تنظیم سورس به فایل ویجت انیمیشن
+    g.src = BASE_URL + "/" + WIDGET_SCRIPT;
+    g.async = true;
+    
+    s.parentNode.insertBefore(g, s);
+    
+    g.onload = function() {
+      console.log('AyVPN Widget Loaded.');
+    }
+  })(document, "script");
+</script>
 
 </body>
 
